@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS documents;
 CREATE TABLE documents(
     document int NOT NULL UNIQUE,
-	primary key(document),
+    primary key(document),
     doc_kind VARCHAR(20) NOT NULL,
     doc_name VARCHAR(120) NOT NULL,
     doc_inst VARCHAR(100) NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE tsb(
 DROP TABLE IF EXISTS ekatte;
 CREATE TABLE ekatte(
     ekatte VARCHAR(5) NOT NULL UNIQUE,
-	primary key(ekatte),
+    primary key(ekatte),
     t_v_m VARCHAR(3) NOT NULL,
     kind INT NOT NULL,
     category INT NOT NULL,
@@ -51,7 +51,7 @@ CREATE TABLE kmetstva(
 DROP TABLE IF EXISTS reg;
 CREATE TABLE reg(
     region VARCHAR(4) NOT NULL UNIQUE,
-	primary key(region),
+    primary key(region),
     name VARCHAR(50) NOT NULL,
     document int NOT NULL
 );
@@ -71,7 +71,7 @@ FOREIGN KEY (region) REFERENCES reg(region)
 
 DROP TABLE IF EXISTS obshtini;
 CREATE TABLE obshtini(
-	obshtina VARCHAR(5) NOT NULL,
+    obshtina VARCHAR(5) NOT NULL,
     ekatte VARCHAR(5) NOT NULL UNIQUE,
     primary key(ekatte),
     name VARCHAR(30) NOT NULL,
@@ -82,7 +82,7 @@ CREATE TABLE obshtini(
 DROP TABLE IF EXISTS raioni;
 CREATE TABLE raioni(
     raion VARCHAR(8) NOT NULL UNIQUE,
-	primary key(raion),
+    primary key(raion),
     name VARCHAR(20) NOT NULL,
     document int NOT NULL
 );
@@ -91,9 +91,9 @@ CREATE TABLE raioni(
 DROP TABLE IF EXISTS Sof_rai;
 CREATE TABLE Sof_rai(
     ekatte VARCHAR(5) NOT NULL UNIQUE,
-	primary key(ekatte),
+    primary key(ekatte),
     raion VARCHAR(8) NOT NULL,
-	name VARCHAR(50) NOT NULL,
+    name VARCHAR(50) NOT NULL,
     document int NOT NULL,
     FOREIGN KEY (raion) REFERENCES raioni(raion),
     FOREIGN KEY (ekatte) REFERENCES ekatte(ekatte)
