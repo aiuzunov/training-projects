@@ -27,13 +27,8 @@ CREATE TABLE ekatte(
     ekatte VARCHAR(5) NOT NULL UNIQUE,
 	primary key(ekatte),
     t_v_m VARCHAR(3) NOT NULL,
-    name VARCHAR(30) NOT NULL,
-    oblast VARCHAR(3) NOT NULL,
-    obshtina VARCHAR(5) NOT NULL,
-    kmetstvo VARCHAR(8) NOT NULL UNIQUE,
     kind INT NOT NULL,
     category INT NOT NULL,
-    altitude INT NOT NULL,
     document INT NOT NULL,
     tsb VARCHAR(2) NOT NULL,
     FOREIGN KEY (document) REFERENCES documents(document),
@@ -45,26 +40,19 @@ CREATE TABLE ekatte(
 DROP TABLE IF EXISTS kmetstva;
 CREATE TABLE kmetstva(
  kmetstvo varchar(8) NOT NULL UNIQUE,
- primary key(kmetstvo),
+ ekatte VARCHAR(5) NOT NULL UNIQUE,
+ primary key(ekkate),
  name varchar(30) NOT NULL,
  center int NOT NULL,
  document int NOT NULL,
- FOREIGN KEY (kmetstvo) REFERENCES ekatte(kmetstvo)
+ FOREIGN KEY (ekatte) REFERENCES ekatte(ekatte)
 );
 
-DROP TABLE IF EXISTS reg1;
-CREATE TABLE reg1(
+DROP TABLE IF EXISTS reg;
+CREATE TABLE reg(
     region VARCHAR(4) NOT NULL UNIQUE,
 	primary key(region),
     name VARCHAR(50) NOT NULL,
-    document int NOT NULL
-);
-
-DROP TABLE IF EXISTS reg2;
-CREATE TABLE reg2(
-    region VARCHAR(4) NOT NULL UNIQUE,
-	primary key(region),
-    name VARCHAR(20) NOT NULL,
     document int NOT NULL
 );
 
@@ -78,8 +66,7 @@ region VARCHAR(4) NOT NULL,
 document int NOT NULL,
 primary key(ekatte),
 FOREIGN KEY (ekatte) REFERENCES ekatte(ekatte),
-FOREIGN KEY (region) REFERENCES reg1(region),
-FOREIGN KEY (region) REFERENCES reg2(region)
+FOREIGN KEY (region) REFERENCES reg(region)
 );
 
 DROP TABLE IF EXISTS obshtini;
@@ -88,7 +75,6 @@ CREATE TABLE obshtini(
     ekatte VARCHAR(5) NOT NULL UNIQUE,
     primary key(ekatte),
     name VARCHAR(30) NOT NULL,
-    category INT NOT NULL,
     document INT NOT NULL,
 	FOREIGN KEY (ekatte) REFERENCES ekatte(ekatte)
 );
@@ -106,9 +92,7 @@ DROP TABLE IF EXISTS Sof_rai;
 CREATE TABLE Sof_rai(
     ekatte VARCHAR(5) NOT NULL UNIQUE,
 	primary key(ekatte),
-    t_v_m VARCHAR(3) NOT NULL,
     raion VARCHAR(8) NOT NULL,
-    kind int NOT NULL,
     document int NOT NULL,
     FOREIGN KEY (raion) REFERENCES raioni(raion),
     FOREIGN KEY (ekatte) REFERENCES ekatte(ekatte)
