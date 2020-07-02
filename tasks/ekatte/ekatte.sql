@@ -41,7 +41,7 @@ DROP TABLE IF EXISTS kmetstva;
 CREATE TABLE kmetstva(
  kmetstvo varchar(8) NOT NULL UNIQUE,
  ekatte VARCHAR(5) NOT NULL UNIQUE,
- primary key(ekkate),
+ primary key(ekatte),
  name varchar(30) NOT NULL,
  center int NOT NULL,
  document int NOT NULL,
