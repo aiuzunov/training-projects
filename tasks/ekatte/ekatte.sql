@@ -93,6 +93,7 @@ CREATE TABLE Sof_rai(
     ekatte VARCHAR(5) NOT NULL UNIQUE,
 	primary key(ekatte),
     raion VARCHAR(8) NOT NULL,
+	name VARCHAR(50) NOT NULL,
     document int NOT NULL,
     FOREIGN KEY (raion) REFERENCES raioni(raion),
     FOREIGN KEY (ekatte) REFERENCES ekatte(ekatte)
