@@ -75,8 +75,8 @@ ekt_stat = sql.fetchone()
 sql.close()
 connection.close()
 
-print("Брой на импортираните области = {:d}".format(obl_stat[0]))
+print("Брой на областите в базата = {:d}".format(obl_stat[0]))
 
-print("Брой на импортираните общини = {:d}".format(obs_stat[0]))
+print("Брой на общините в базата = {:d}".format(obs_stat[0]))
 
-print("Брой на импортираните населени места = {:d}".format(ekt_stat[0]))
+print("Брой на населените места в базата = {:d}".format(ekt_stat[0]))
