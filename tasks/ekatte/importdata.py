@@ -44,27 +44,39 @@ connection = psycopg2.connect(
 sql = connection.cursor()
 
 sql.execute(oblasti_result)
-obl_stat = sql.rowcount
 connection.commit()
 
 
 
 sql.execute(obshtini_result)
-obs_stat = sql.rowcount
 connection.commit()
 
 
 
 sql.execute(ekatte_result)
-ekt_stat = sql.rowcount
 connection.commit()
+
+oblselect = 'SELECT count(*) from oblasti'
+sql.execute(oblselect)
+obl_stat = sql.fetchone()
+
+obsselect = 'SELECT count(*) from obshtini'
+sql.execute(obsselect)
+obs_stat = sql.fetchone()
+
+ekselect = 'SELECT count(*) from ekatte'
+sql.execute(ekselect)
+ekt_stat = sql.fetchone()
+
+
+
 
 
 sql.close()
 connection.close()
 
-print("Брой на импортираните области = {:d}".format(obl_stat))
+print("Брой на импортираните области = {:d}".format(obl_stat[0]))
 
-print("Брой на импортираните общини = {:d}".format(obs_stat))
+print("Брой на импортираните общини = {:d}".format(obs_stat[0]))
 
-print("Брой на импортираните населени места = {:d}".format(ekt_stat))
+print("Брой на импортираните населени места = {:d}".format(ekt_stat[0]))
