@@ -2,11 +2,12 @@
 <html>
 <head>
 <meta charset="UTF-8">  
+<title>Ekatte Task</title>
 </head>
 <body>
 <h3>Търсене на информация за населено място</h3>
-<form name="userinputform" method="POST" action = "cgiscript.py">
-<input name="name" type="text"/>
+<form method="POST" accept-charset="utf-8" action = "cgiscript.py">
+<input name="name" type="text" pattern="[а-яА-Я]*" type="text" required/>
 </form>
 </body>
 </html>
