@@ -21,7 +21,7 @@ print ("<title>Ekatte Task</title>")
 print ("</head>")
 print ("<body>")
 print ("<h3> Търсене на информация за населено място </h3>")
-print ('<form name="userinputform" method="POST" action = "cgiscript.py"> <input name="name" type="text" pattern="[а-яА-Я]*" required /> </form>')
+print ('<form name="userinputform" method="POST" action = "cgiscript.py"> <input name="name" type="text" placeholder = "Име на населено място" pattern="[а-яА-Я]*" required /> </form>')
 
 form = cgi.FieldStorage()
 input = form.getvalue("name")
