@@ -1,4 +1,3 @@
-
 DROP TABLE IF EXISTS oblasti;
 CREATE TABLE oblasti(
 	oblast_id TEXT NOT NULL UNIQUE,
@@ -17,7 +16,7 @@ CREATE TABLE obshtini(
 
 DROP TABLE IF EXISTS selishta;
 CREATE TABLE selishta(
-	ekatte TEXT NOT NULL UNIQUE,
+	ekatte INT NOT NULL UNIQUE,
 	primary key(ekatte),
 	t_v_m TEXT NOT NULL,
 	name TEXT NOT NULL,
