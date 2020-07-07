@@ -1,25 +1,26 @@
+
 DROP TABLE IF EXISTS oblasti;
 CREATE TABLE oblasti(
-	oblast VARCHAR(3) NOT NULL UNIQUE,
-	name VARCHAR(30) NOT NULL,
-	primary key(oblast)
+	oblast_id TEXT NOT NULL UNIQUE,
+	name TEXT NOT NULL,
+	primary key(oblast_id)
 );
 
 DROP TABLE IF EXISTS obshtini;
 CREATE TABLE obshtini(
-	obshtina VARCHAR(5) NOT NULL UNIQUE,
-	name VARCHAR(30) NOT NULL,
-	primary key(obshtina),
-	oblast CHAR(3),
-	FOREIGN KEY (oblast) REFERENCES oblasti(oblast)
+	obshtina_id TEXT NOT NULL UNIQUE,
+	name TEXT NOT NULL,
+	primary key(obshtina_id),
+	oblast_id TEXT,
+	FOREIGN KEY (oblast_id) REFERENCES oblasti(oblast_id)
 );
 
-DROP TABLE IF EXISTS ekatte;
-CREATE TABLE ekatte(
-	ekatte VARCHAR(5) NOT NULL UNIQUE,
+DROP TABLE IF EXISTS selishta;
+CREATE TABLE selishta(
+	ekatte TEXT NOT NULL UNIQUE,
 	primary key(ekatte),
-	t_v_m VARCHAR(3) NOT NULL,
-	name VARCHAR(50) NOT NULL,
-	obshtina CHAR(5) NOT NULL,
-	FOREIGN KEY (obshtina) REFERENCES obshtini(obshtina)
+	t_v_m TEXT NOT NULL,
+	name TEXT NOT NULL,
+	obshtina_id TEXT NOT NULL,
+	FOREIGN KEY (obshtina_id) REFERENCES obshtini(obshtina_id)
 );
