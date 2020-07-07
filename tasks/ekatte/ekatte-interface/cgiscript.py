@@ -19,9 +19,9 @@ print ("</style>")
 
 print ("<title>Ekatte Task</title>")
 print ("</head>")
-print ("<body>")
+print ("<body style='background-color:rgb(211, 159, 149)'>")
 print ("<h3> Търсене на информация за населено място </h3>")
-print ('<form name="userinputform" method="POST" action = "cgiscript.py"> <input name="name" type="text" placeholder = "Име на населено място" pattern="[а-яА-Я]*" required /> </form>')
+print ('<form name="userinputform" method="POST" action = "cgiscript.py"> <input name="name" type="text" placeholder = "Име на населено място" pattern="[а-яА-Я ]*" required /> </form>')
 
 form = cgi.FieldStorage()
 input = form.getvalue("name")
@@ -36,7 +36,7 @@ connection = psycopg2.connect(
 
 sql = connection.cursor()
 
-sql.execute("SELECT ekatte.ekatte, oblasti.name, obshtini.name, ekatte.t_v_m, ekatte.name FROM oblasti,obshtini,ekatte WHERE ekatte.name LIKE concat(%s,%s) AND oblasti.oblast = obshtini.oblast AND obshtini.obshtina = ekatte.obshtina;",(input,'%'))
+sql.execute("SELECT selishta.ekatte, oblasti.name, obshtini.name, selishta.t_v_m, selishta.name FROM oblasti,obshtini,selishta WHERE LOWER(selishta.name) LIKE concat(LOWER(%s),%s) AND oblasti.oblast_id = obshtini.oblast_id AND obshtini.obshtina_id = selishta.obshtina_id ORDER BY selishta.ekatte;",(input,'%'))
 
 results = sql.fetchall()
 connection.commit()
