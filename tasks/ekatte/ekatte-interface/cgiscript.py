@@ -12,7 +12,7 @@ print("border: 1px solid black;")
 print("}")
 print ("td {")
 print ("display: table-cell;")
-print ("text-align:center;")
+print ("text-align:left;")
 print ("}")
 print ("</style>")
  
@@ -40,9 +40,29 @@ sql.execute("SELECT selishta.ekatte, oblasti.name, obshtini.name, selishta.t_v_m
 
 results = sql.fetchall()
 connection.commit()
+sql = connection.cursor()
+
+sql = connection.cursor()
+
+oblselect = 'SELECT count(*) from oblasti'
+sql.execute(oblselect)
+obl_stat = sql.fetchone()
+
+obsselect = 'SELECT count(*) from obshtini'
+sql.execute(obsselect)
+obs_stat = sql.fetchone()
+
+ekselect = 'SELECT count(*) from selishta'
+sql.execute(ekselect)
+ekt_stat = sql.fetchone()
+
 
 sql.close()
 connection.close()
+
+
+
+
 
 print("<table> <tr> <th>ЕКАТТЕ</th> <th>Област</th> <th>Община</th> <th>Вид</th> <th>Име</th> </tr>")
 
@@ -50,6 +70,12 @@ for row in results:
 	print("<tr> <td>",row[0],"</td> <td>",row[1],"</td> <td>",row[2],"</td> <td>",row[3],"</td> <td>",row[4],"</td> </tr>")
 
 print("</tr></table>")
+print("<br><br>")
+
+print("<table> <tr> <th>Брой Области</th> <th>Брой Общини</th> <th>Брой Селища</th> </tr>")
+print("<tr> <td>",obl_stat[0],"</td> <td>",obs_stat[0],"</td> <td>",ekt_stat[0],"</td> </tr>")
+print("</tr></table>")
+
 
 print ("</body>")
 print ("</html>")
