@@ -20,7 +20,7 @@ CREATE TABLE tags(
 DROP TABLE IF EXISTS products;
 CREATE TABLE products(
 	product_id INT NOT NULL ,
-	tag INT NOT NULL,
+	tag_id INT NOT NULL,
 	name TEXT NOT NULL UNIQUE,
 	image TEXT NOT NULL,
 	brand TEXT NOT NULL,
