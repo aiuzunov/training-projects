@@ -43,6 +43,7 @@ for dot1 in points_Georgi:
 		tempdot2 = min(dot1, dot2)
 		if tempdot1 - tempdot2 == c:
 			col_len = col_len + c
-
+if a == b == c:
+	col_len=int(col_len/2)
 result = abs(n-col_len)
 print(result)
