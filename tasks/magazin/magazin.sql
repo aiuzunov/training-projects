@@ -9,7 +9,7 @@ CREATE TABLE users(
 );
 
 
-DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS tags;
 CREATE TABLE tags(
 	tag_id INT NOT NULL,
 	name TEXT NOT NULL UNIQUE,
