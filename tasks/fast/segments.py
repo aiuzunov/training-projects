@@ -5,25 +5,24 @@ a = int(inputdata[1])
 b = int(inputdata[2])
 c = int(inputdata[3])
 
-while n > 100000:
-	print("n must be lower than 100 000")
+while n > 100000 or n<1:
+	print("Invalid Input For n")
 	print("Enter new value for n: ")
 	n = int(input())
-while a > 100000:
-	print("a must be lower than 100 000")
+while a > 100000 or a<1:
+	print("Invalid Input For a")
 	print("Enter new value for a: ")
 	a = int(input())
 
-while b > 100000:
-	print("b must be lower than 100 000")
+while b > 100000 or b<1:
+	print("Invalid Input For b")
 	print("Enter new value for b: ")
 	b = int(input())
 
-while c > 100000:
-	print("c must be lower than 100 000")
+while c > 100000 or c<1:
+	print("Invalid Input For c")
 	print("Enter new value for c: ")
 	c = int(input())
-
 
 i = 0
 points_Georgi = []
@@ -45,6 +44,5 @@ for dot1 in points_Georgi:
 		if tempdot1 - tempdot2 == c:
 			col_len = col_len + c
 
-result = n-col_len
-
+result = abs(n-col_len)
 print(result)
