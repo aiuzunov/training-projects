@@ -7,9 +7,11 @@ CREATE TABLE users(
 	isAdmin BOOL NOT NULL,
 	primary key(user_id)
 );
+
+
 DROP TABLE IF EXISTS categories;
-CREATE TABLE categories(
-	category_id INT NOT NULL ,
+CREATE TABLE tags(
+	tag_id INT NOT NULL,
 	name TEXT NOT NULL UNIQUE,
 	primary key(category_id)
 );
@@ -46,14 +48,12 @@ DROP TABLE IF EXISTS orders;
 CREATE TABLE orders(
 	order_id INT NOT NULL ,
 	user_id INT NOT NULL,
-	address_id INT NOT NULL,
 	created timestamp NOT NULL,
 	modified timestamp,
-	status BOOL NOT NULL,
+	orderStatus TEXT NOT NULL,
 	price numeric NOT NULL,
 	primary key(order_id),
-	FOREIGN KEY (user_id) REFERENCES users(user_id),
-	FOREIGN KEY (address_id) REFERENCES address(address_id)
+	FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
 
@@ -78,3 +78,4 @@ CREATE TABLE cart_item(
 	FOREIGN KEY (user_id) REFERENCES users(user_id),
 	FOREIGN KEY (product_id) REFERENCES products(product_id)
 );
+
