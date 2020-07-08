@@ -48,12 +48,14 @@ DROP TABLE IF EXISTS orders;
 CREATE TABLE orders(
 	order_id INT NOT NULL ,
 	user_id INT NOT NULL,
+	address_id INT NOT NULL,
 	created timestamp NOT NULL,
 	modified timestamp,
 	orderStatus TEXT NOT NULL,
 	price numeric NOT NULL,
 	primary key(order_id),
-	FOREIGN KEY (user_id) REFERENCES users(user_id)
+	FOREIGN KEY (user_id) REFERENCES users(user_id),
+	FOREIGN KEY (address_id) REFERENCES address(address_id)
 );
 
 
@@ -78,4 +80,3 @@ CREATE TABLE cart_item(
 	FOREIGN KEY (user_id) REFERENCES users(user_id),
 	FOREIGN KEY (product_id) REFERENCES products(product_id)
 );
-
