@@ -13,14 +13,14 @@ DROP TABLE IF EXISTS tags;
 CREATE TABLE tags(
 	tag_id INT NOT NULL,
 	name TEXT NOT NULL UNIQUE,
-	primary key(category_id)
+	primary key(tag_id)
 );
 
 
 DROP TABLE IF EXISTS products;
 CREATE TABLE products(
 	product_id INT NOT NULL ,
-	category_id INT NOT NULL,
+	tag INT NOT NULL,
 	name TEXT NOT NULL UNIQUE,
 	image TEXT NOT NULL,
 	brand TEXT NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE products(
 	countInStock INT NOT NULL,
 	description TEXT NOT NULL,
 	primary key(product_id),
-	FOREIGN KEY (category_id) REFERENCES categories(category_id)
+	FOREIGN KEY (tag_id) REFERENCES tags(tag_id)
 );
 
 DROP TABLE IF EXISTS address;
