@@ -73,7 +73,7 @@ def drawImage(colored, result, n, c, a, b,points_Gergana,points_Georgi):
     H = 250
     startx = maxwidth
     starty = 150
-    pairend = 170
+    pairend = 145
     georgiend = 125
     gerganaend = 130
     image = Image.new('RGB', (Wimg + (2*maxwidth) + 200, H), (246, 237, 223))
@@ -85,7 +85,7 @@ def drawImage(colored, result, n, c, a, b,points_Gergana,points_Georgi):
 
     i = 0
     drawing.text((10, 70),
-                 "Двойки точки за оцветяване:",
+                 "Дължини за оцветяване:",
                  fill=0, font=textfont)
     while i < len(colored) - 1:
         if colored[i + 1] - colored[i] == c:
@@ -97,7 +97,7 @@ def drawImage(colored, result, n, c, a, b,points_Gergana,points_Georgi):
             else:
                 pairend = pairend + 40
             drawing.text((pairend, 70),
-                 "({:d}, {:d}) ".format(colored[i],colored[i+1]),
+                 "({:d}-{:d}) ".format(colored[i],colored[i+1]),
                  fill=(0, 0, 0, 0), font=textfont)
             drawing.rectangle(
                 xy=[colored[i] * maxwidth +startx, starty, colored[i + 1] * maxwidth+startx, starty + 100],
@@ -153,7 +153,7 @@ def drawImage(colored, result, n, c, a, b,points_Gergana,points_Georgi):
     drawing.text((startx-20, 195), "A", fill=(0, 0, 0, 0), font=textfont, size=25)
     drawing.text((maxwidth*(n+1)+10, 195), "Y", fill=(0, 0, 0, 0), font=textfont, size=25)
 
-    image.save("segments2.png")
+    image.save("segments.png")
 
 
 drawImage(colored, result, n, c, a, b,points_Gergana,points_Georgi)
