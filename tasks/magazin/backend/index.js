@@ -47,17 +47,8 @@ app.post("/tags",async (req,res) => {
         console.error(err.message);
     }
 })
+
 //create product
-app.post("/tags",async (req,res) => {
-    try {
-        const {name} = req.body;
-        const newTag = await pool.query(" INSERT INTO tags (name) VALUES ($1)",[name]);
-        res.json(newTag);
-    } catch (err) {
-        console.error(err.message);
-    }
-})
-// get all products
 app.post("/products",async (req,res) => {
     try {
         const {tag_id,name,image,brand,price,count_in_stock,description} = req.body;
@@ -67,15 +58,48 @@ app.post("/products",async (req,res) => {
         console.error(err.message);
     }
 })
-// get a product
+// get all products
+app.get("/products",async(req,res) => {
+    try {
+        const allProducts = await pool.query("SELECT * FROM products");
+        res.json(allProducts.rows);
+    } catch (err) {
+        console.error(err.message)
+    }
+})
 
+// get a single product 
+app.get("/products/:id", async (req, res) => {
+    try {
+        const{id} = req.params;
+        const product = await pool.query("SELECT * FROM products WHERE id = $1",[id]);
+        res.json(product.rows[0]);
+    } catch (err) {
+        console.error(err.message)
+    }
+})
+
+//update a product
+app.put("/products/:id", async (req, res) => {
+    try {
+        const {id} = req.params;
+        const {tag_id,name,image,brand,price,count_in_stock,description} = req.body;
+        const updateProduct = await pool.query("UPDATE products SET tag_id = $2, name = $3, image = $4, brand = $5, price = $6, count_in_stock = $7, description = $8 WHERE id = $1",[id,tag_id,name,image,brand,price,count_in_stock,description]);
+        res.json("The product was sucessfully updated");
+    } catch (err) {
+        console.log(err.message)
+    }
+})
 // delete a product
-
-
-// add aaddress
-
-
-//create an order
+app.delete("/products/:id",async (req,res) => {
+    try {
+        const {id} = req.params;
+        const deleteProduct = await pool.query("DELETE FROM products WHERE id = $1",[id]);
+        res.json("The Product Was Deleted");
+    } catch (err) {
+        console.log(err.message)
+    }
+})
 
 
 
