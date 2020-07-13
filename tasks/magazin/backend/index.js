@@ -58,16 +58,27 @@ app.post("/products",async (req,res) => {
         console.error(err.message);
     }
 })
-// get all products
-app.get("/products",async(req,res) => {
+// get products for 1 page
+app.get("/products/:id",async(req,res) => {
     try {
-        const allProducts = await pool.query("SELECT * FROM products");
+        const{id} = req.params;
+        const allProducts = await pool.query("SELECT * FROM products WHERE id>$1 LIMIT 12",[id]);
         res.json(allProducts.rows);
     } catch (err) {
         console.error(err.message)
     }
 })
 
+//get product count
+app.get("/products/",async(req,res) => {
+    try {
+        const productCount = await pool.query("SELECT COUNT(*) FROM products");
+        res.json(productCount.rows[0]);
+    } catch (err) {
+        console.error(err.message)
+    }
+})
+/*
 // get a single product 
 app.get("/products/:id", async (req, res) => {
     try {
@@ -77,7 +88,7 @@ app.get("/products/:id", async (req, res) => {
     } catch (err) {
         console.error(err.message)
     }
-})
+})*/
 
 //update a product
 app.put("/products/:id", async (req, res) => {
