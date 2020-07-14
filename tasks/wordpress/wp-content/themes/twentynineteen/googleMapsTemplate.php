@@ -43,8 +43,6 @@ if ($conn->query($sql) === TRUE) {
 */
 $sql = "SELECT id,lat,lng,name,address,city,countryName FROM markersAPI";
 $result = $conn->query($sql);
-$result2 = $conn->query($sql);
-
 ?>
 <!DOCTYPE html">
 <head>
@@ -66,11 +64,11 @@ margin: 0 auto;
  <script src="//code.jquery.com/jquery-1.10.2.js"></script>
  <script src="//code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
  <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" />
- <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.2/bootstrap3-typeahead.min.js"></script>  
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />  
-
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.2/bootstrap3-typeahead.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
+  <script src="wp-content/themes/twentynineteen/cluster/markerclusterer.js"></script>
 </head>
- 
+
 
 <script>
 var map
@@ -93,23 +91,6 @@ function initMap() {
         }
         ?>
     ];
-                          
-    
-    var infoWindowContent = [
-        <?php if($result2->num_rows > 0){
-            while($row = $result2->fetch_assoc()){ ?>
-                ['<div class="info_content">' +
-                '<h3><?php echo $row['name']; ?></h3>' +
-                '<p><?php echo $row['address']; ?></p>' +
-                '<p>Lat: <?php echo $row['lat']; ?></p>' +
-                '<p>Lng: <?php echo $row['lng']; ?></p>' +
-                '<p>Country: <?php echo $row['countryName']; ?></p>' +
-                '<p>City: <?php echo $row['city']; ?></p>' +
-                 '</div>'],
-        <?php }
-        }
-        ?>
-    ];
     var bounds = new google.maps.LatLngBounds();
     var infoWindow = new google.maps.InfoWindow(), marker, i;
 
@@ -117,31 +98,41 @@ function initMap() {
         var position = new google.maps.LatLng(markers[i][1], markers[i][2]);
         marker = new google.maps.Marker({
             position: position,
-            map: map,
             title: markers[i][0],
             latitude: markers[i][1],
             longtitude: markers[i][2],
             city: markers[i][3],
             country: markers[i][4]
         });
-   	marker.setMap(map);
    	map.markers.push(marker);
         bounds.extend(marker.position);
 
-         google.maps.event.addListener(marker, 'click', (function(marker, i) {
-            return function() {
-                infoWindow.setContent(infoWindowContent[i][0]);
-                infoWindow.open(map, marker);
-            }
-        })(marker, i));
-        google.maps.event.addListener(marker, 'click', function() {
-	map.panTo(this.getPosition());
-	map.setZoom(15);
-});  
-      }
-      
+		google.maps.event.addListener(marker, 'click', (function(marker, i){
+                            return function(e){
+                                infoWindow.setContent(
+                                    '<div>' +
+                                        '<div>' +
+                                            '<div>'+'Name: ' + this.title +'</div>' +
+											'<div>'+ 'City: ' + this.city +'</div>' +
+											'<div>'+ 'Country: ' +this.country +'</div>' +
+											'<div>'+ 'Latitude: ' +this.latitude +'</div>' +
+											'<div>'+ 'Longtitude: ' + this.longtitude +'</div>' +
+										'</div>'
+							             );
+                                infoWindow.open(map, this);
+								map.panTo(this.position);
+							}
+							})(marker, i));
 
-     map.fitBounds(bounds);
+
+      }
+	var options = {
+        imagePath: 'wp-content/themes/twentynineteen/cluster/images/m'
+	};
+
+	var markerCluster = new MarkerClusterer(map, map.markers, options);
+
+    map.fitBounds(bounds);
 
  }
 
@@ -154,14 +145,14 @@ function markerFilter(){
     			return;
     		}
     	}
-    	
+
     	if(cc.length==1){
-    		var country=cc[0];
+			var country=cc[0];
     		var city=0;
     	}
     	else if(cc.length==2){
-    		var city=cc[0];
-    		var country=cc[1];
+			var city=cc[0];
+			var country=cc[1];
     	}
     	//var city = city;
 	//var country = country;
@@ -177,12 +168,11 @@ function markerFilter(){
 		alert("Invalid Coordinates Input");
 		return;
 	}
-	var counter1=0,counter2=0,counter3=0,counter4=0,pointscounter=0;	 if(document.getElementById("cc").value.trim().length==0&&document.getElementById("cords1").value.trim().length==0&&document.getElementById("cords2").value.trim().length==0&&document.getElementById("cords3").value.trim().length==0&&document.getElementById("cords4").value.trim().length==0){	
-	return;	 
+	var counter1=0,counter2=0,counter3=0,counter4=0,pointscounter=0;	 if(document.getElementById("cc").value.trim().length==0&&document.getElementById("cords1").value.trim().length==0&&document.getElementById("cords2").value.trim().length==0&&document.getElementById("cords3").value.trim().length==0&&document.getElementById("cords4").value.trim().length==0){
+	return;
 	}
-	
 
-	
+
 	if(document.getElementById("cords1").value.trim().length!=0&&document.getElementById("cords2").value.trim().length!=0&&document.getElementById("cords3").value.trim().length!=0&&document.getElementById("cords4").value.trim().length!=0){
 	if(x1>x2||x3<x4){
 		alert("Lower Left Point Latitude/Longtitude must be lower than Upper Right Point Latitude/Longtitude");
@@ -192,25 +182,25 @@ function markerFilter(){
 		if(city!=0&&country!=0){
 if(map.markers[i].latitude>=x1&&map.markers[i].latitude<=x2&&map.markers[i].longtitude<=x3&&map.markers[i].longtitude>=x4&&map.markers[i].country==country&&map.markers[i].city==city){
 	counter4++;
-	
+
 }
 		}
 		else if(country!=0){
 			if(map.markers[i].latitude>=x1&&map.markers[i].latitude<=x2&&map.markers[i].longtitude<=x3&&map.markers[i].longtitude>=x4&&map.markers[i].country==country){
-	
+
 	counter4++;
 }
 		}
 		else if(city!=0){
 	if(map.markers[i].latitude>=x1&&map.markers[i].latitude<=x2&&map.markers[i].longtitude<=x3&&map.markers[i].longtitude>=x4&&map.markers[i].city==city){
-	
+
 	counter4++;
 }
 		}
 		else if(city==0&&country==0){
 			if(map.markers[i].latitude>=x1&&map.markers[i].latitude<=x2&&map.markers[i].longtitude<=x3&&map.markers[i].longtitude>=x4){
 	counter4++;
-	
+
 }
 		}
 	}
@@ -221,7 +211,7 @@ if(map.markers[i].latitude>=x1&&map.markers[i].latitude<=x2&&map.markers[i].long
 } else if(document.getElementById("cords1").value.trim().length==0&&document.getElementById("cords2").value.trim().length==0&&document.getElementById("cords3").value.trim().length==0&&document.getElementById("cords4").value.trim().length==0){
 	for( i=0;i<map.markers.length;i++){
 		if(map.markers[i].country==country&&map.markers[i].city==city){
-		counter3++;	
+		counter3++;
 	}
 	if(map.markers[i].country==country)
 			counter1++;
@@ -230,7 +220,7 @@ if(map.markers[i].latitude>=x1&&map.markers[i].latitude<=x2&&map.markers[i].long
 	}
 	if((counter3==0)&&city!=0&&country!=0){
 	alert("The country and city combination was not found in the database");
-	return;	
+	return;
 	}
 	else if(counter1==0&&country!=0){
 	alert("The country was not found in the database");
@@ -246,40 +236,40 @@ if(map.markers[i].latitude>=x1&&map.markers[i].latitude<=x2&&map.markers[i].long
 	return;
 	}
 	for( i=0;i<map.markers.length;i++){
-	map.markers[i].setMap(null);
-		if(country!=0&&city==0&&document.getElementById("cords1").value.trim().length!=0&&document.getElementById("cords2").value.trim().length!=0&&document.getElementById("cords3").value.trim().length!=0&&document.getElementById("cords4").value.trim().length!=0){	 if(map.markers[i].latitude>=x1&&map.markers[i].latitude<=x2&&map.markers[i].longtitude<=x3&&map.markers[i].longtitude>=x4&&map.markers[i].country==country){	
- 	bounds.extend(map.markers[i].position);					  					
-	map.markers[i].setMap(map);
+	//map.markers[i].setMap(null);
+		if(country!=0&&city==0&&document.getElementById("cords1").value.trim().length!=0&&document.getElementById("cords2").value.trim().length!=0&&document.getElementById("cords3").value.trim().length!=0&&document.getElementById("cords4").value.trim().length!=0){	 if(map.markers[i].latitude>=x1&&map.markers[i].latitude<=x2&&map.markers[i].longtitude<=x3&&map.markers[i].longtitude>=x4&&map.markers[i].country==country){
+ 	bounds.extend(map.markers[i].position);
+
 	pointscounter++;
  	}
 }
-	else if(city!=0&&country!=0&&document.getElementById("cords1").value.trim().length!=0&&document.getElementById("cords2").value.trim().length!=0&&document.getElementById("cords3").value.trim().length!=0&&document.getElementById("cords4").value.trim().length!=0){	 if(map.markers[i].latitude>=x1&&map.markers[i].latitude<=x2&&map.markers[i].longtitude<=x3&&map.markers[i].longtitude>=x4&&map.markers[i].city==city&&map.markers[i].country==country){	
- 	bounds.extend(map.markers[i].position);					  					
-	map.markers[i].setMap(map);
+	else if(city!=0&&country!=0&&document.getElementById("cords1").value.trim().length!=0&&document.getElementById("cords2").value.trim().length!=0&&document.getElementById("cords3").value.trim().length!=0&&document.getElementById("cords4").value.trim().length!=0){	 if(map.markers[i].latitude>=x1&&map.markers[i].latitude<=x2&&map.markers[i].longtitude<=x3&&map.markers[i].longtitude>=x4&&map.markers[i].city==city&&map.markers[i].country==country){
+ 	bounds.extend(map.markers[i].position);
+
 	pointscounter++;
  	}
 }
-	else if(document.getElementById("cords1").value.trim().length!=0&&document.getElementById("cords2").value.trim().length!=0&&document.getElementById("cords3").value.trim().length!=0&&document.getElementById("cords4").value.trim().length!=0){		  			 if(map.markers[i].latitude>=x1&&map.markers[i].latitude<=x2&&map.markers[i].longtitude<=x3&&map.markers[i].longtitude>=x4){	
-	bounds.extend(map.markers[i].position);					  					
-	map.markers[i].setMap(map);
+	else if(document.getElementById("cords1").value.trim().length!=0&&document.getElementById("cords2").value.trim().length!=0&&document.getElementById("cords3").value.trim().length!=0&&document.getElementById("cords4").value.trim().length!=0){		  			 if(map.markers[i].latitude>=x1&&map.markers[i].latitude<=x2&&map.markers[i].longtitude<=x3&&map.markers[i].longtitude>=x4){
+	bounds.extend(map.markers[i].position);
+
 	pointscounter++;
-	}		
+	}
 	}
 	else if(city!=0&&country!=0){
 		if(map.markers[i].city==city&&map.markers[i].country==country){
-			bounds.extend(map.markers[i].position);					  				 		map.markers[i].setMap(map);
+			bounds.extend(map.markers[i].position);
 			pointscounter++;
 		}
 	}
 	else if(country!=0){
 		if(map.markers[i].country==country){
-			bounds.extend(map.markers[i].position);					  				 		map.markers[i].setMap(map);
+			bounds.extend(map.markers[i].position);
 			pointscounter++;
 		}
 	}
 	else if(city!=0){
 		if(map.markers[i].city==city){
-			bounds.extend(map.markers[i].position);					  				 		map.markers[i].setMap(map);
+			bounds.extend(map.markers[i].position);
 			pointscounter++;
 		}
 	}

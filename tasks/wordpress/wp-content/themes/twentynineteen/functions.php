@@ -328,32 +328,28 @@ add_action( 'wp_ajax_cities_details', 'cities_details_callback' );
 add_action( 'wp_ajax_nopriv_cities_details', 'cities_details_callback' );
 function cities_details_callback() {
   require_once 'databaseconnect.php';
-  $sql1 = $conn->prepare("SELECT DISTINCT city,countryName FROM markersAPI WHERE city LIKE '%".$_POST["query"]."%'");
-  
-  $sql1->bind_param("s",$city);
+  $sql1 = $conn->prepare("SELECT DISTINCT city,countryName FROM markersAPI WHERE city LIKE ?");
+  $inputparam = "%{$_POST["query"]}%";
+  strip_tags($inputparam);
+  $sql1->bind_param("s",$inputparam);
   $sql1->execute();
   $result = $sql1->get_result();
-    $sql1->close();
-    $sql2 = $conn->prepare("SELECT DISTINCT countryName FROM markersAPI WHERE countryName LIKE '%".$_POST["query"]."%'");
-  $sql2->bind_param("s",$countryName);
-  $sql2->execute(); 
+  $sql1->close();
+  $sql2 = $conn->prepare("SELECT DISTINCT countryName FROM markersAPI WHERE countryName LIKE ?");
+  $sql2->bind_param("s",$inputparam);
+  $sql2->execute();
   $result2 = $sql2->get_result();
- 
+
   $sql2->close();
-  
+
   $data = array();
-  // Fetch all records
     if($result->num_rows >0){
             while($row = $result->fetch_assoc()){
-               	#array_push($response,$row['countryName']);
-               	#$data[] = $row['countryName']+$row['city'];
                	$data[] = ''.$row['city'].', '.$row['countryName'].'';
                 }
         }
     if($result2->num_rows >0){
             while($row = $result2->fetch_assoc()){
-               	#array_push($response,$row['countryName']);
-               	#$data[] = $row['countryName']+$row['city'];
                	$data[] = $row['countryName'];
                 }
         }
