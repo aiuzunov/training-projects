@@ -7,6 +7,7 @@ import CardMedia from '@material-ui/core/CardMedia';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import AddShoppingCartIcon from '@material-ui/icons/AddShoppingCart';
+import {Link, NavLink , Route} from 'react-router-dom';
 
 const useStyles = makeStyles({
     root: {
@@ -34,10 +35,11 @@ function ProductCard(props) {
     const classes = useStyles();
     const bull = <span className={classes.bullet}>•</span>;
 
-    return(
+    return(    
+      <Route>    
         <Card className={classes.root} variant="outlined">
       <CardMedia 
-        class={classes.media}
+        className={classes.media}
         image={props.image}
         style={{ width:"100%",maxWidth:"100%",height:"250px", maxHeight:"20%"}}
       />
@@ -45,7 +47,7 @@ function ProductCard(props) {
         <Typography className={classes.colortext}  variant="h5" component="h2">
           {props.name}
         </Typography>
-        <Typography className={classes.pos,classes.colortext}>
+        <Typography className={classes.colortext}>
          Цена: {props.price} лв.
         </Typography>
         <Typography className={classes.colortext} variant="body2" component="p">
@@ -53,10 +55,16 @@ function ProductCard(props) {
         </Typography>
       </CardContent>
       <CardActions style={{justifyContent: 'center'}}>
+     
+      <Link to="/product123">
         <Button className={classes.colortext}  size="medium">Learn More</Button>
+        </Link>
+            
+   
         <Button className={classes.colortext} size="medium">  <AddShoppingCartIcon/>  </Button>
       </CardActions>
     </Card>
+    </Route>
     );
 }
 

@@ -14,6 +14,12 @@ import ShoppingCartIcon from '@material-ui/icons/ShoppingCart';
 import CategoryIcon from '@material-ui/icons/Category';
 import { createMuiTheme } from '@material-ui/core/styles';
 import { ThemeProvider } from '@material-ui/styles';
+import BasicPagination from './BasicPagination';
+import {useEffect,useState} from  'react';
+import {BrowserRouter as Router, Switch, Route} from 'react-router-dom';
+import {Link, NavLink} from 'react-router-dom';
+
+
 
 
 const theme = createMuiTheme({
@@ -35,6 +41,7 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(2),
   },
   title: {
+    color:'#fff',
     display: 'none',
     [theme.breakpoints.up('sm')]: {
       display: 'block',
@@ -96,7 +103,8 @@ function NavBar() {
   const [navAnchorEl,setNavAnchorEl] = React.useState(null);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
-
+  const [search, setSearch] = useState("");
+  const [finishedSearch, setFinishedSearch] = useState("");
   const isNavMenuOpen = Boolean(navAnchorEl);
   const isProfileMenuOpen = Boolean(anchorEl);
   const isProfileMobileMenuOpen = Boolean(mobileMoreAnchorEl);
@@ -188,7 +196,18 @@ function NavBar() {
     </Menu>
   );
 
+  const updateSearch = e => {
+    setSearch(e.target.value);
+  }
+
+  const getSearch = e => {
+    e.preventDefault();
+    setFinishedSearch(search);
+  }
+
   return (
+    <Router>
+   
     <div className={classes.grow}>
       <ThemeProvider theme={theme}>
       <AppBar position="relative" color="primary">
@@ -203,14 +222,20 @@ function NavBar() {
           >
             <CategoryIcon />
           </IconButton>
+          <Link to="/" style={{ textDecoration: 'none' }}>
           <Typography className={classes.title} variant="h6" noWrap>
             Онлайн Магазин
           </Typography>
+          </Link>
           <div className={classes.search}>
             <div className={classes.searchIcon}>
               <SearchIcon />
             </div>
+            <form onSubmit={getSearch}>
             <InputBase
+              value={search}
+              onChange={updateSearch}
+              onSubmit={getSearch}
               placeholder="Търсене на продукт…"
               classes={{
                 root: classes.inputRoot,
@@ -218,6 +243,7 @@ function NavBar() {
               }}
               inputProps={{ 'aria-label': 'search' }}
             />
+            </form>
           </div>
           <div className={classes.grow} />
           <div className={classes.sectionDesktop}>
@@ -252,8 +278,13 @@ function NavBar() {
       {renderMobileProfileMenu}
       {renderProfileMenu}
       {renderNavMenu}
+      <BasicPagination search={finishedSearch}/>
+
     </div>
+       
+    </Router>
   );
+  
 }
 
 export default NavBar;

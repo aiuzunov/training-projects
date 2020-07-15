@@ -6,6 +6,7 @@ import ProductCard from './ProductCard';
 import {useEffect,useState} from  'react';
 
 
+
 const useStyles = makeStyles({
   productContainer: {
     paddingTop: '50px',
@@ -14,40 +15,47 @@ const useStyles = makeStyles({
   },
 });
 
-const getProductCard = (productname,productimage,productprice,productdescription) => {
+const getProductCard = (productid,productname,productimage,productprice,productdescription) => {
   return(
-    <Grid  item xs={10} sm={4} >
-      <ProductCard name={productname} image={productimage} price={productprice} description={productdescription}/>
+    <Grid key={productid} item xs={10} sm={4} >
+      <ProductCard  name={productname} image={productimage} price={productprice} description={productdescription}/>
     </Grid>
   )
 };
 
 function NestedGrid(props){
     const classes = useStyles();
-    console.log(props.pageNumber);
     const [products,setProducts] = useState([]);
     var renderstartid = 9*(props.pageNumber-1);
     const getProducts = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/products/${renderstartid}`);
-        const products = await response.json();
-        setProducts(products);
+        if(props.search!=""){
+          const response = await fetch(`http://localhost:5000/products/${renderstartid}/${props.search}`);
+          const products = await response.json();
+          setProducts(products);
+        }
+        else{
+          const response = await fetch(`http://localhost:5000/products/${renderstartid}`);
+          const products = await response.json();
+          setProducts(products);
+        }
+       
       } catch (err) {
         console.log(err.message);
       }
     }
     useEffect(() => {
       getProducts();
-    },[props.pageNumber]);    
+    },[props.pageNumber,props.search]);    
     return (
       <Grid container className={classes.productContainer} 
             spacing={0}
-            direction="rows"
+            direction="row"
             
             style={{ minHeight: '100vh'}}
         >
         {products.map(product => (
-          getProductCard(product.name,product.image,product.price,product.description)
+          getProductCard(product.id,product.name,product.image,product.price,product.description)
         ))}
 
       </Grid>

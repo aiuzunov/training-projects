@@ -58,16 +58,32 @@ app.post("/products",async (req,res) => {
         console.error(err.message);
     }
 })
+
 // get products for 1 page
-app.get("/products/:id",async(req,res) => {
+app.get("/products/:id/:name",async(req,res) => {
     try {
-        const{id} = req.params;
-        const allProducts = await pool.query("SELECT * FROM products WHERE id>$1 LIMIT 12",[id]);
+        const{id,name} = req.params;
+        const allProducts = await pool.query("SELECT * FROM products WHERE id>$1 AND LOWER(name) LIKE concat('%',LOWER($2),'%') LIMIT 9",[id,name]);
         res.json(allProducts.rows);
     } catch (err) {
         console.error(err.message)
     }
 })
+
+// get products for 1 page
+app.get("/products/:id",async(req,res) => {
+    try {
+        const{id} = req.params;
+        const allProducts = await pool.query("SELECT * FROM products WHERE id>$1 LIMIT 9",[id]);
+        res.json(allProducts.rows);
+    } catch (err) {
+        console.error(err.message)
+    }
+})
+
+
+
+
 
 //get product count
 app.get("/products/",async(req,res) => {
