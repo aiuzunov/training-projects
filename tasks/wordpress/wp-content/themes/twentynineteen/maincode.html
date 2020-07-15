@@ -1,0 +1,143 @@
+<!DOCTYPE html">
+<head>
+<title> Google Map With Markers :) </title>
+<style type="text/css">
+
+#insertblock {
+width:70%;
+margin: 0 auto;
+}
+#mapCanvas {
+    width: 70%;
+    height: 500px;
+    margin: auto;
+}
+
+</style>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAQ7oDWXimjk6zOiZtFd54RRLxJn-f7YD8"></script>
+<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+<script src="//code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
+<link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.2/bootstrap3-typeahead.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
+<script src="wp-content/themes/twentynineteen/initMap.js"></script>
+<script src="wp-content/themes/twentynineteen/markerFilter.js"></script>
+<script src="wp-content/themes/twentynineteen/clearInput.js"></script>
+<script src="wp-content/themes/twentynineteen/cluster/markerclusterer.js"></script>
+
+
+</head>
+
+<script>
+    var map
+         function load_markers(){
+            var markers = [
+                <?php if($result->num_rows >0){
+                    while($row = $result->fetch_assoc()){
+                        echo '["'.$row['name'].'", '.$row['lat'].', '.$row['lng'].', "'.$row['city'].'", "'.$row['countryName'].'"],';;
+                        }
+                }
+                ?>
+            ];
+            var bounds = new google.maps.LatLngBounds();
+            var infoWindow = new google.maps.InfoWindow(), marker, i;
+
+            for( i = 0; i < markers.length; i++ ) {
+                var position = new google.maps.LatLng(markers[i][1], markers[i][2]);
+                marker = new google.maps.Marker({
+                    position: position,
+                    title: markers[i][0],
+                    latitude: markers[i][1],
+                    longtitude: markers[i][2],
+                    city: markers[i][3],
+                    country: markers[i][4]
+                });
+               map.markers.push(marker);
+                bounds.extend(marker.position);
+
+                google.maps.event.addListener(marker, 'click', (function(marker, i){
+                                    return function(e){
+                                        infoWindow.setContent(
+                                            '<div>' +
+                                                '<div>' +
+                                                    '<div>'+'Name: ' + this.title +'</div>' +
+                                                    '<div>'+ 'City: ' + this.city +'</div>' +
+                                                    '<div>'+ 'Country: ' +this.country +'</div>' +
+                                                    '<div>'+ 'Latitude: ' +this.latitude +'</div>' +
+                                                    '<div>'+ 'Longtitude: ' + this.longtitude +'</div>' +
+                                                '</div>'
+                                                 );
+                                        infoWindow.open(map, this);
+                                        map.panTo(this.position);
+                                    }
+                                    })(marker, i));
+
+
+              }
+            var options = {
+                imagePath: 'wp-content/themes/twentynineteen/cluster/images/m'
+            };
+
+            var markerCluster = new MarkerClusterer(map, map.markers, options);
+
+            map.fitBounds(bounds);
+
+         }
+         google.maps.event.addDomListener(window, 'load', initMap);
+
+         $(document).ready(function(){
+
+         $('#cc').typeahead({
+          source: function(query, result)
+          {
+          var data = {
+                                'action': 'cities_details',
+                                'query': query
+                    }
+           $.ajax({
+            url:"<?= admin_url('admin-ajax.php'); ?>",
+            method:"POST",
+            data: data,
+            dataType:"json",
+            success:function(data)
+            {
+             result($.map(data, function(item){
+              return item;
+             }));
+            }
+           })
+          }
+         });
+
+        });
+    </script>
+
+<body>
+ <div id="insertblock">
+                <input type="text" name="country" id="cc" placeholder="Enter Country Name" />
+                <div id="countryList"></div>
+                <input type="text" placeholder="Lower Left Point Latitude" id="cords1">
+                <input type="text" placeholder="Lower Left Point Longtitude" id="cords4">
+		<input type="text" placeholder="Upper Right Point Latitude" id="cords2">
+		<input type="text" placeholder="Upper Right Point Longtitude" id="cords3">
+		</br>
+		<div>
+		<label>Matching Points: </label>
+		<p id="counter"></p>
+		</div>
+		<button type="button" onclick="markerFilter();">Filter</button>
+		<button type="button" onclick="clearInput();">Clear Input</button>
+
+
+           </div>
+
+
+
+
+<div id="mapContainer">
+    <div id="mapCanvas"></div>
+</div>
+
+
+</body>
+</html>
