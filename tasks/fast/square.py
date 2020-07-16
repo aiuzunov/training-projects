@@ -1,6 +1,6 @@
 import math
 
-numberOfLengths = 0
+lengths = []
 longestSegment = 0
 
 A = int(input())
@@ -13,8 +13,10 @@ for x in range(1,A+1):
     for y in range(x+1,A+1): 
         temp = math.floor(math.sqrt(x*x + y*y))
         if temp*temp == (x*x + y*y):
-            numberOfLengths+=1
+            lengths.append(temp)
             if longestSegment < temp:
                 longestSegment = temp
 
-print(longestSegment,numberOfLengths)
+
+lengths = set(lengths)
+print(longestSegment,len(lengths))
