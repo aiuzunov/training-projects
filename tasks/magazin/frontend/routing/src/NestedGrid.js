@@ -50,7 +50,7 @@ function NestedGrid(props){
       }
     } */
     useEffect(() => {
-      dispatch(listProducts());
+      dispatch(listProducts(props.search,renderstartid));
     },[props.pageNumber,props.search]);    
     
     return ( 

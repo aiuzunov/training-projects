@@ -4,6 +4,7 @@ import NavBar from './NavBar';
 import ProductsPage from './ProductsPage';
 import {BrowserRouter as Router,Switch, Route} from 'react-router-dom';
 import ProductDetailsPage from './ProductDetailsPage';
+import Cart from './Cart';
 
 function App() {
   return (
@@ -15,8 +16,7 @@ function App() {
         <ProductsPage/>
       </Route>
       <Route path="/product/:id" component={ProductDetailsPage}/>
-    <div className="App">
-    </div>
+      <Route path="/cart/:id?" component={Cart} />
     </Switch>
     </Router>
   );
