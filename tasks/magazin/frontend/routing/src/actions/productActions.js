@@ -1,21 +1,44 @@
-import { PRODUCT_LIST_SUCCESS, PRODUCT_LIST_FAIL, PRODUCT_LIST_REQUEST, PRODUCT_DETAILS_REQUEST, PRODUCT_DETAILS_SUCCESS, PRODUCT_DETAILS_FAIL } from "../constants/productConstants";
+import { PRODUCT_LIST_SUCCESS, PRODUCT_LIST_FAIL, PRODUCT_LIST_REQUEST, PRODUCT_DETAILS_REQUEST, PRODUCT_DETAILS_SUCCESS, PRODUCT_DETAILS_FAIL, PRODUCT_SAVE_REQUEST, PRODUCT_SAVE_SUCCESS, PRODUCT_SAVE_FAIL } from "../constants/productConstants";
 import axios from 'axios';
-const listProducts = (searchid,renderstartid) => async (dispatch) => {
+const listProducts = () => async (dispatch) => {
     try {
-        if(searchid!=""){
         dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`http://localhost:5000/products/${renderstartid}/${searchid}`);
-        dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });
-        }
-    else{
-        dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`http://localhost:5000/products/${renderstartid}`);
-        dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });
-        }
+        const { data } = await axios.get(`http://localhost:5000/products/all`);
+        dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });    
+      
       } catch (error) {
         dispatch({ type: PRODUCT_LIST_FAIL, payload: error.message });
       }
 };
+
+const saveProduct = (product) => async (dispatch, getState) => {
+    try {
+      dispatch({ type: PRODUCT_SAVE_REQUEST, payload: product });
+      const {
+        userSignIn: { userInfo },
+      } = getState();
+      if(product.id){
+        const { data } = await axios.put(`http://localhost:5000/products/${product.id}`, product, {
+        headers: {
+          Authorization: 'Bearer ' + userInfo.token,
+        },
+      });
+      dispatch({ type: PRODUCT_SAVE_SUCCESS, payload: data });
+
+    }else {
+        const { data } = await axios.post(`http://localhost:5000/products/`, product, {
+            headers: {
+              Authorization: 'Bearer ' + userInfo.token,
+            },
+          });
+          dispatch({ type: PRODUCT_SAVE_SUCCESS, payload: data });
+    }
+        
+    
+    } catch (error) {
+      dispatch({ type: PRODUCT_SAVE_FAIL, payload: error.message });
+    }
+  };
 
 const detailsProduct = (productId) => async (dispatch) => {
     try {
@@ -29,3 +52,4 @@ const detailsProduct = (productId) => async (dispatch) => {
 
 export {listProducts};
 export {detailsProduct};
+export {saveProduct};

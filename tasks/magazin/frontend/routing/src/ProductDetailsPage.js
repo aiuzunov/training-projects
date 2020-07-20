@@ -3,9 +3,11 @@ import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { detailsProduct } from './actions/productActions';
 import { Link } from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
 
 
 function ProductDetailsPage({ match , history }) {
+
     useEffect(() => {
         dispatch(detailsProduct(match.params.id));
         //getProduct();
@@ -35,9 +37,8 @@ function ProductDetailsPage({ match , history }) {
     return(
         loading ? <div>Loading...</div> : error ? <div>Error</div> : 
         <div>
-            <div className="goback"> 
-                <Link to="/">Go Back</Link>
-            </div>
+            <button onClick={history.goBack}>Go back</button>                
+            
             <div className="details"> 
                 <div className="details-image">
                     <img src={product.image} alt="Product Image"></img>
@@ -86,4 +87,4 @@ function ProductDetailsPage({ match , history }) {
     );
 }
 
-export default ProductDetailsPage;
+export default withRouter(ProductDetailsPage);

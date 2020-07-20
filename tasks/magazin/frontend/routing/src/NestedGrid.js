@@ -32,27 +32,17 @@ function NestedGrid(props){
     const { products , loading, error } = productList;
     const dispatch = useDispatch();
     var renderstartid = 9*(props.pageNumber-1);
-   /* const getProducts = async () => {
-      try {
-        if(props.search!=""){
-          const response = await fetch(`http://localhost:5000/products/${renderstartid}/${props.search}`);
-          const products = await response.json();
-          setProducts(products);
-        }
-        else{
-          const response = await fetch(`http://localhost:5000/products/${renderstartid}`);
-          const products = await response.json();
-          setProducts(products);
-        }
-       
-      } catch (err) {
-        console.log(err.message);
-      }
-    } */
     useEffect(() => {
-      dispatch(listProducts(props.search,renderstartid));
+      dispatch(listProducts());
     },[props.pageNumber,props.search]);    
     
+    const indexOfLastProduct = props.pageNumber * 9;
+    const indexOfFirstProduct = indexOfLastProduct - 9;
+    const currentProducts = products.slice(indexOfFirstProduct,indexOfLastProduct);
+    console.log(indexOfLastProduct,indexOfFirstProduct)
+    console.log(currentProducts)
+    console.log(1)
+
     return ( 
       loading ? <div> loadinggggg</div> : error ? <div> errorgggg </div> :
       
@@ -63,7 +53,7 @@ function NestedGrid(props){
             style={{ minHeight: '100vh'}}
         >
          
-        {products.map(product => (
+        {currentProducts.map(product => (
           
           getProductCard(product.id,product.name,product.image,product.price,product.description)
         ))}

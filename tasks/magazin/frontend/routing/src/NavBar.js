@@ -110,8 +110,9 @@ function NavBar() {
   const isNavMenuOpen = Boolean(navAnchorEl);
   const isProfileMenuOpen = Boolean(anchorEl);
   const isProfileMobileMenuOpen = Boolean(mobileMoreAnchorEl);
-
-
+  const userSignIn = useSelector(state=>state.userSignIn);
+  const {userInfo} = userSignIn;
+  console.log(userInfo);
   
   
   const handleNavMenuOpen = (event) => {
@@ -155,7 +156,9 @@ function NavBar() {
 );
 
   const ProfileMenuId = 'primary-search-account-menu';
+ 
   const renderProfileMenu = (
+    
     <Menu
       anchorEl={anchorEl}
       anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
@@ -165,8 +168,12 @@ function NavBar() {
       open={isProfileMenuOpen}
       onClose={handleMenuClose}
     >
+      <Link to="/signin">
       <MenuItem onClick={handleMenuClose}>Login</MenuItem>
+      </Link> 
+      <Link to="/signup">
       <MenuItem onClick={handleMenuClose}>Register</MenuItem>
+      </Link>
     </Menu>
   );
 
@@ -254,6 +261,7 @@ function NavBar() {
             <IconButton color="inherit">
                 <ShoppingCartIcon />
             </IconButton>
+            {userInfo ? <Link to="/profile">{userInfo.username}</Link> : 
             <IconButton
               edge="end"
               aria-label="account of current user"
@@ -263,7 +271,7 @@ function NavBar() {
               color="inherit"
             >
               <AccountCircle />
-            </IconButton>
+            </IconButton>}
           </div>
           <div className={classes.sectionMobile}>
             <IconButton
