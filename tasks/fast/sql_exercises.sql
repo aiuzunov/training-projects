@@ -1,3 +1,5 @@
+--SQL exercises from https://www.sql-ex.com/exercises/
+
 --Exercise 1:
 
 SELECT model,speed,hd FROM PC WHERE price<500
