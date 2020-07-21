@@ -73,6 +73,18 @@ app.put("/products/:id",async (req,res) => {
         console.error(err.message);
     }
 })
+
+
+//delete product
+app.delete("/products/:id",async (req,res) => {
+    try {
+        const{id} = req.params;
+        const deleteProduct = await pool.query("DELETE FROM products where id=$1",[id]);
+        res.json(deleteProduct);
+    } catch (err) {
+        console.error(err.message);
+    }
+})
 /*
 // get products for 1 page + name
 app.get("/products/:id/:name",async(req,res) => {
@@ -100,7 +112,7 @@ app.get("/products/:id",async(req,res) => {
 })
 
 */
-
+// all products
 app.get("/products/all",async(req,res) => {
     try {
         const allProducts = await pool.query("SELECT * FROM products");
@@ -110,12 +122,71 @@ app.get("/products/all",async(req,res) => {
     }
 })
 
+//  all products filter by name
+app.get("/products/all/:name",async(req,res) => {
+    try {
+        const{name} = req.params;
+        const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%')",[name]);
+        res.json(allProducts.rows);
+    } catch (err) {
+        console.error(err.message)
+    }
+})
+
+
+//  all products filter by tag
+app.get("/products/tagsfilter/:tagid",async(req,res) => {
+    try {
+        const{tagid} = req.params;
+        const allProducts = await pool.query("SELECT * FROM products WHERE tag_id=$1",[tagid]);
+        res.json(allProducts.rows);
+    } catch (err) {
+        console.error(err.message)
+    }
+})
+
+
+app.get("/products/all/:name/:tagid",async(req,res) => {
+    try {
+        const{name,tagid} = req.params;
+        const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tag_id=$2",[name,tagid]);
+        res.json(allProducts.rows);
+    } catch (err) {
+        console.error(err.message)
+    }
+})
+
+
 
 
 //get product count
 app.get("/products/",async(req,res) => {
     try {
+        console.log(13)
         const productCount = await pool.query("SELECT COUNT(*) FROM products");
+        res.json(productCount.rows[0]);
+    } catch (err) {
+        console.error(err.message)
+    }
+})
+
+//all product count+name
+app.get("/products/:name",async(req,res) => {
+    try {
+        console.log(12)
+        const{name} = req.params;
+        const productCount = await pool.query("SELECT COUNT(*) FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%')",[name]);
+        res.json(productCount.rows[0]);
+    } catch (err) {
+        console.error(err.message)
+    }
+})
+
+//all product count+name
+app.get("/products/:name/:tagid",async(req,res) => {
+    try {
+        const{name,tagid} = req.params;
+        const productCount = await pool.query("SELECT COUNT(*) FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tag_id=$2",[name,tagid]);
         res.json(productCount.rows[0]);
     } catch (err) {
         console.error(err.message)
@@ -210,3 +281,12 @@ app.listen(5000, ()=>{
 });
 
 
+// get all tags
+app.get("/tags/all",async(req,res) => {
+    try {
+        const allTags = await pool.query("SELECT * FROM tags");
+        res.json(allTags.rows);
+    } catch (err) {
+        console.error(err.message)
+    }
+})

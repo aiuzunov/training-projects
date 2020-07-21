@@ -1,11 +1,12 @@
 import React, { useCallback } from 'react';
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { detailsProduct, saveProduct, listProducts } from './actions/productActions';
+import { detailsProduct, saveProduct, listProducts, deleteProduct } from './actions/productActions';
 import { Link } from 'react-router-dom';
 import { signin } from './actions/userActions';
 import Pagination from '@material-ui/lab/Pagination';
 import CRUDPagination from './CRUDPagination';
+import NavBar from './NavBar';
 
 
 
@@ -23,6 +24,8 @@ function CRUDProducts({  match , history }) {
     const [tag_id,setTag_id] = useState('');
     const productSave = useSelector((state)=>state.productSave);
     const {loading: loadingSave,success: productSaved, error:errorSave} = productSave;
+    const productDelete = useSelector((state)=>state.productDelete);
+    const {loading: loadingDelete,success: productDeleted, error:errorDelete} = productDelete;
     const productList = useSelector((state)=>state.productList);
     const {loading, products, error} = productList;
     const dispatch = useDispatch();
@@ -32,7 +35,7 @@ function CRUDProducts({  match , history }) {
         }
         dispatch(listProducts());
 
-    },[productSaved]);
+    },[productSaved,productDeleted]);
     
     const indexOfLastPost = currentPage * postsPerPage;
     const indexOfFirstPost = indexOfLastPost - postsPerPage;
@@ -56,13 +59,20 @@ function CRUDProducts({  match , history }) {
        dispatch(saveProduct({id,name,price,image,brand,description,count_in_stock,tag_id}));
    };
 
+   const deleteProductHandler = (product) => {
+       console.log("@323")
+       dispatch(deleteProduct(product));
+   }
+
    const paginate = (pageNumber) => setCurrentPage(pageNumber);
  
     return(
+        <div>
+            <NavBar/>
         <div className="content content-margined">
+          
             <div className="product-header">
-                <h3>Options</h3>
-                <button onClick={() => popCreateMenu({})}>Create Product</button>
+                <button className= "button primary" onClick={() => popCreateMenu({})}>Create Product</button>
             </div>
             {createProductPop && (<div className="signinform">
             <form onSubmit={submitInfo}>
@@ -128,7 +138,7 @@ function CRUDProducts({  match , history }) {
         </div>)}
             
             <div className="product-list">
-                <table>
+                <table className="table">
                     <thead>
                         <tr> 
                             <th>
@@ -179,8 +189,8 @@ function CRUDProducts({  match , history }) {
                                {product.description}
                             </td>
                             <th>
-                                <button onClick={() => popCreateMenu(product)}> Edit</button>
-                                <button> Delete</button>
+                                <button className= "button" onClick={() => popCreateMenu(product)}> Edit</button>
+                                <button className= "button" onClick={() => deleteProductHandler(product)}> Delete</button>
 
                             </th>
                         </tr>
@@ -191,6 +201,8 @@ function CRUDProducts({  match , history }) {
                 </table>
                 <CRUDPagination postsPerPage={postsPerPage} totalPosts={products.length} paginate={paginate} />
             </div>
+        </div>
+        
         </div>
         
         

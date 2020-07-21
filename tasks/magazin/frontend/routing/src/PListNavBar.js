@@ -20,6 +20,9 @@ import {BrowserRouter as Router, Switch, Route} from 'react-router-dom';
 import {Link, NavLink} from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { listProducts } from './actions/productActions';
+import { Select, InputLabel, FormControl } from '@material-ui/core';
+import Filters from './Filters';
+import { listTags } from './actions/tagsActions';
 
 
 
@@ -100,9 +103,17 @@ const useStyles = makeStyles((theme) => ({
       display: 'none',
     },
   },
+  button: {
+    display: 'block',
+    marginTop: theme.spacing(2),
+  },
+  formControl: {
+    margin: theme.spacing(1),
+    minWidth: 120,
+  },
 }));
 
-function NavBar() {
+function PListNavBar() {
   const classes = useStyles();
   const [navAnchorEl,setNavAnchorEl] = React.useState(null);
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -114,7 +125,13 @@ function NavBar() {
   const isProfileMobileMenuOpen = Boolean(mobileMoreAnchorEl);
   const userSignIn = useSelector(state=>state.userSignIn);
   const {userInfo} = userSignIn;
-  
+  const tagsList = useSelector((state) => state.tagsList);
+  const { tags , loading, error } = tagsList;
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+        dispatch(listTags());
+      },[]);   
   
   const handleNavMenuOpen = (event) => {
     setNavAnchorEl(event.currentTarget);
@@ -218,6 +235,9 @@ function NavBar() {
     setFinishedSearch(search);
   }
 
+
+ 
+  
   return (
    
     <div className={classes.grow}>
@@ -235,7 +255,7 @@ function NavBar() {
             <CategoryIcon />
           </IconButton>
           <Link to="/" style={{ textDecoration: 'none' }}>
-          <Typography className={classes.title} variant="h6" noWrap>
+          <Typography onClick={() => window.location.reload(false)} className={classes.title} variant="h6" noWrap>
             Онлайн Магазин
           </Typography>
           </Link>
@@ -255,9 +275,17 @@ function NavBar() {
               }}
               inputProps={{ 'aria-label': 'search' }}
             />
+            <div>
+              
+           </div>
+    
             </form>
+            
           </div>
+               
+         
           <div className={classes.grow} />
+          
           <div className={classes.sectionDesktop}>
           <Link to="/cart" style={{ color: '#FFF' }} >
             <IconButton color="inherit">
@@ -295,11 +323,12 @@ function NavBar() {
       {renderMobileProfileMenu}
       {renderProfileMenu}
       {renderNavMenu}
+      <Filters search ={finishedSearch} tags={tags}/>
 
     </div>
   );
   
 }
 
-export default NavBar;
+export default PListNavBar;
 

@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { detailsProduct } from './actions/productActions';
 import { Link } from 'react-router-dom';
 import { withRouter } from 'react-router-dom';
+import NavBar from './NavBar';
 
 
 function ProductDetailsPage({ match , history }) {
@@ -35,8 +36,12 @@ function ProductDetailsPage({ match , history }) {
       }
 */
     return(
+       
+
         loading ? <div>Loading...</div> : error ? <div>Error</div> : 
         <div>
+            <NavBar/>
+
             <button onClick={history.goBack}>Go back</button>                
             
             <div className="details"> 

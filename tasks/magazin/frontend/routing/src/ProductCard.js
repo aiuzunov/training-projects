@@ -8,6 +8,7 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import AddShoppingCartIcon from '@material-ui/icons/AddShoppingCart';
 import {Link, NavLink , Route} from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
 
 const useStyles = makeStyles({
     root: {
@@ -34,6 +35,9 @@ const useStyles = makeStyles({
 function ProductCard(props) {
     const classes = useStyles();
     const bull = <span className={classes.bullet}>•</span>;
+    const AddToCart = () => {
+      props.history.push('/cart/' + props.id + '?qty=' + 1);
+    };
 
     return(      
         <Card className={classes.root} variant="outlined">
@@ -60,10 +64,10 @@ function ProductCard(props) {
         </Link>
             
    
-        <Button className={classes.colortext} size="medium">  <AddShoppingCartIcon/>  </Button>
+        <Button onClick={AddToCart} className={classes.colortext} size="medium">  <AddShoppingCartIcon/>  </Button>
       </CardActions>
     </Card>
     );
 }
 
-export default ProductCard;
+export default withRouter(ProductCard);
