@@ -1,3 +1,4 @@
+from collections import deque
 import math
 
 
@@ -8,9 +9,10 @@ class PEL:
 
 
 def shortestPath(graph, n):
-    firstRound = PEL('A1', 0)
+    firstRound = PEL("A1", 0)
     lastRound = "A" + str(n)
-    queue = [firstRound]
+    queue = deque()
+    queue.append(firstRound)
     past = graph.copy()
 
     for i in range(len(graph)):
@@ -20,7 +22,8 @@ def shortestPath(graph, n):
     currentPosition = queue[0]
     while len(queue) != 0:
         currentPosition = queue[0]
-        queue.pop()
+        queue.popleft()
+
         distance = currentPosition.distance
         currentNumber = int(currentPosition.currposition[-1]) - 1
         if currentPosition.currposition == lastRound:
@@ -30,7 +33,6 @@ def shortestPath(graph, n):
             if past[currentNumber][i] != True:
                 queue.append(PEL(graph[currentNumber][i], distance + 1))
                 past[currentNumber][i] = True
-
     return -1
 
 
@@ -67,6 +69,8 @@ for i in range(len(rounds)):
         if i != j:
             if matchingRounds(rounds[i], rounds[j]):
                 graph[i].append(rounds[j][0])
+
+print(graph)
 
 result = shortestPath(graph.copy(), n)
 if result != -1:
