@@ -1,10 +1,30 @@
 import { PRODUCT_LIST_SUCCESS, PRODUCT_LIST_FAIL, PRODUCT_LIST_REQUEST, PRODUCT_DETAILS_REQUEST, PRODUCT_DETAILS_SUCCESS, PRODUCT_DETAILS_FAIL, PRODUCT_SAVE_REQUEST, PRODUCT_SAVE_SUCCESS, PRODUCT_SAVE_FAIL, PRODUCT_DELETE_REQUEST, PRODUCT_DELETE_SUCCESS, PRODUCT_DELETE_FAIL } from "../constants/productConstants";
 import axios from 'axios';
-const listProducts = (tagid,name) => async (dispatch) => {
+const listProducts = (price,tagid,name) => async (dispatch) => {
     try {
-      if(tagid&&name){
+      if(tagid&&name&&price){
+        dispatch({ type: PRODUCT_LIST_REQUEST });
+        const { data } = await axios.get(`http://localhost:5000/products/all/${name}/${tagid}/${price}`);
+        dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });
+      }
+      else if(tagid&&name){
         dispatch({ type: PRODUCT_LIST_REQUEST });
         const { data } = await axios.get(`http://localhost:5000/products/all/${name}/${tagid}`);
+        dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });  
+      }
+      else if(price&&name){
+        dispatch({ type: PRODUCT_LIST_REQUEST });
+        const { data } = await axios.get(`http://localhost:5000/products/np/${name}/${price}`);
+        dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });  
+      }
+      else if(tagid&&price){
+        dispatch({ type: PRODUCT_LIST_REQUEST });
+        const { data } = await axios.get(`http://localhost:5000/products/tp/${tagid}/${price}`);
+        dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });  
+      }
+      else if(price){
+        dispatch({ type: PRODUCT_LIST_REQUEST });
+        const { data } = await axios.get(`http://localhost:5000/products/p/${price}`);
         dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });  
       }
       else if(name){

@@ -23,6 +23,7 @@ function App() {
       <Route path="/signin" component={SignInScreen}/>
       <Route path="/signup" component={SignUpScreen}/>
       <Route path="/manageproducts" component={CRUDProducts}/>
+      
     </Switch>
     </Router>
   );

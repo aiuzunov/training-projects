@@ -4,7 +4,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import NavBar from './NavBar';
 import { withRouter } from 'react-router-dom';
-
+import DeleteIcon from '@material-ui/icons/RemoveShoppingCart';
+import { Button, makeStyles, createMuiTheme, Select, InputLabel, FormControl } from '@material-ui/core';
+import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import StoreIcon from '@material-ui/icons/Store';
 
 function Cart(props){
     const cart = useSelector(state => state.cart);
@@ -25,73 +28,109 @@ function Cart(props){
     const checkoutHandler = () => {
         props.history.push("/signin?redirect=shipping");
     };
-    
-    return (
-    <div>
-         <NavBar/>
-    <div className="cart">   
-        <div className="cart-list">
-            <ul className="cart-list-container">
-            <button onClick={props.history.goBack}>Go back</button>     
-                <li>
-                    <h3>
-                        Shopping Cart
-                    </h3>                
-                    <div>
-                        Price
-                    </div>
-                 </li>
-                {
-                    cartItems.length === 0 ? 
-                    <div>
-                        Cart is empty
-                    </div>
-                    :
-                    cartItems.map(item => 
-                    <li>
-                    <div className="cart-image">
-                        <img src={item.image} alt="product" />
-                    </div>
-                    <div className="cart-name">
-                        <div>
-                            <Link to={`/product/${item.product}`}>
-                            {item.name}
-                            </Link>
-                        </div>
-                        <div>
-                            <select value={item.quantity} onChange={(e) => dispatch(addToCart(item.product, e.target.value))}>
-                            {[...Array(item.count_in_stock).keys()].map(instock=>
-                                <option key={instock+1} value={instock + 1}>{instock+1}</option>  )}
-                            </select>
-                            <button type="button" className="button" onClick={() => removeFromCartHandler(item.product)} >
-                                Remove
-                            </button>
-                        </div>
-                        <div>
-                            {item.price}
-                        </div>
-                    </div>
-                    </li>
-                    )
-                }
 
-            </ul>
-        </div>
-        <div className="cart-action">
+
+    return(
+
+        <div>
+                 <NavBar/>
+
+<div className="shopping-cart">
+
+<div className="title">
+<Button
+        onClick={props.history.goBack}
+        variant="contained"
+        color="secondary"
+        className="backButton"
+        startIcon={<ArrowBackIcon />}
+      >
+        Продължи да пазаруваш
+      </Button>
+<h1>Количка с продукти</h1>
+</div>
+{
+cartItems.length === 0 ? 
+            <div className="title">
+               <h3>Количката е празна</h3>
+            </div>
+            :
+            cartItems.map(item => 
+            <div className="item">
+            <div className="buttons">
+                <span className="delete-btn"></span>
+                <span className="like-btn"></span>
+            </div>
+
+             <div className="image">
+                  <img src={item.image} alt="" />
+            </div>
+                
+            <div className="description">
+                  <span>{item.name}</span>
+                 <span>Bball High</span>
+                  <span>White</span>
+              </div>
+
+
+             <div className="quantity">
+                
+                    <FormControl >
+        <InputLabel htmlFor="age-native-simple">Количество</InputLabel>
+        <Select
+          native
+          value={item.quantity}
+          onChange={(e) => dispatch(addToCart(item.product, e.target.value))}
+          inputProps={{
+            name: 'description',
+            id: 'description-native-simple',
+          }}
+        >
+         {[...Array(item.count_in_stock).keys()].map(instock=>
+                        <option key={instock+1} value={instock + 1}>{instock+1}</option>  )}
+        </Select>
+      </FormControl>
+            </div>
+                 <div className="total-price">Единична цена: {item.price} лв.</div>
+                 <div className="total-price">Oбща сума: {item.price*item.quantity} лв.</div>
+                 <div className="item-remove">
+                    <Button
+                    onClick={() => removeFromCartHandler(item.product)}
+                    variant="contained"
+                    color="primary"
+                    startIcon={<DeleteIcon />}>
+                        Премахни
+                     </Button>
+
+                 </div>
+                     
+            </div>
+
+          
+            )
+        }
+         
+
+</div>
+
+<div className="cart-action">
             <h3>
-                Subtotal ( {cartItems.reduce((a,c) => parseInt(a) + parseInt(c.quantity),0)} items )
+                Общо ( {cartItems.reduce((a,c) => parseInt(a) + parseInt(c.quantity),0)} продукт/а )
                 : 
                 {(cartItems.reduce((a,c)=>a +c.price*c.quantity,0)).toFixed(2)} лв.
             </h3>
-            <button onClick={checkoutHandler} className="button primary full-width" disabled={cartItems.length === 0}>
-                Proceed to Checkout
-            </button>
-           
+            <Button
+                    onClick={checkoutHandler}
+                    variant="contained"
+                    color="secondary"
+                    disabled={cartItems.length === 0}
+                    startIcon={<StoreIcon />}>
+                       Поръчай продуктите в количката
+                     </Button>
         </div>
-    </div>
-    </div>
-   
+        </div>
+       
+
     );
 }
-
 export default withRouter(Cart);

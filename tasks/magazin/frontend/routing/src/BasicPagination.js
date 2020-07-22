@@ -10,34 +10,22 @@ import { listProducts } from './actions/productActions';
 
 
 export default function BasicPagination(props) {
-
+  const productList = useSelector((state) => state.productList);
+  const { products , loading, error } = productList;
   const [count,setCount] = useState([]);
     const getCount = async () => {
       try {
-        if(props.search&&props.tagid){
-          const response = await fetch(`http://localhost:5000/products/${props.search}/${props.tagid}`);
-          const count = await response.json();
-          setCount(count);
+        setCount(products.length);
         }
-        else if(props.search){
-          const response = await fetch(`http://localhost:5000/products/${props.search}`);
-          const count = await response.json();
-          setCount(count);
-        }
-        else{
-        const response = await fetch("http://localhost:5000/products/");
-        const count = await response.json();
-        setCount(count);
-        }
-        
-      } catch (err) {
+         catch (err) {
         console.log(err.message);
       }
     }
     useEffect(() => {
+      
       getCount();
-    },[props.tagid,props.search]);
-  var pagecount = parseInt(count.count / 9);
+    },[products.length,props.tagid,props.search]);
+  var pagecount = parseInt(count / 9);
   if (count % 9 !== 0){
     pagecount = pagecount + 1;
   }
@@ -53,7 +41,7 @@ export default function BasicPagination(props) {
           
           return (
             <div>
-            <NestedGrid tagid ={props.tagid} search={props.search} pageNumber={page}/>
+            <NestedGrid price={props.price} tagid ={props.tagid} search={props.search} pageNumber={page}/>
             <Pagination
               style={{ backgroundColor: 'white'}}
               color="secondary"

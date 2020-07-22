@@ -41,54 +41,74 @@ function ProductDetailsPage({ match , history }) {
         loading ? <div>Loading...</div> : error ? <div>Error</div> : 
         <div>
             <NavBar/>
+            <button onClick={history.goBack}>Go back</button>   
+         
+            <div className="container">
+        <div className="left-column">
+<img src={product.image} alt=""/>
+<img data-image="black" src="" alt=""></img>
+<img data-image="blue" src="" alt=""></img>
+<img data-image="red" className="active" src="" alt=""></img>
+</div>
 
-            <button onClick={history.goBack}>Go back</button>                
-            
-            <div className="details"> 
-                <div className="details-image">
-                    <img src={product.image} alt="Product Image"></img>
-                </div>
-            <div className="details-info">
-                <ul>
-                    <li>
-                        <h4>{product.name}</h4>
-                    </li>
-                    <li>
-                        <b>{product.price} лв.</b>
-                    </li>
-                    <li>
-                        Description:
-                        <div>
-                            {product.description}
-                        </div>
-                       
-                    </li>
-                </ul>    
-            </div>
-            <div className="details-action"> 
-                <ul>
-                    <li>
-                        Price : {product.price} лв.
-                    </li>
-                    <li>
-                        Status : {product.count_in_stock > 0? "In stock" : "Out of stock"}
-                    </li>
-                    <li>
-                        Qty: <select value={quantity} onChange={(e) => {setQuantity(e.target.value)}}>
+
+
+<div className="right-column">
+
+
+<div className="product-description">
+  <span>Headphones</span>
+  <h1>{product.name}</h1>
+  <p>{product.description}</p>
+</div>
+
+
+<div className="product-configuration">
+
+  
+  <div className="product-color">
+    <span>Color</span>
+
+    <div className="color-choose">
+      <div>
+        <input data-image="red" type="radio" id="red" name="color" value="red" checked></input>
+        <label for="red"><span></span></label>
+      </div>
+      <div>
+        <input data-image="blue" type="radio" id="blue" name="color" value="blue"></input>
+        <label for="blue"><span></span></label>
+      </div>
+      <div>
+        <input data-image="black" type="radio" id="black" name="color" value="black"></input>
+        <label for="black"><span></span></label>
+      </div>
+      
+    </div>
+    <div className="product-quantity">
+      Qty: <select value={quantity} onChange={(e) => {setQuantity(e.target.value)}}>
                             {[...Array(product.count_in_stock).keys()].map(instock=>
                                 <option key={instock+1} value={instock + 1}>{instock+1}</option>  )}
                         </select>
-                    </li>
-                    <li>
-                        {product.count_in_stock > 0 && <button onClick={AddToCart}  className="button">Add to Cart</button>}
-                
-                    </li>
-                </ul>
-            
-            
-            </div>
-            </div>
+      </div>
+  </div>
+        
+ 
+    </div>
+
+
+    <div className="product-price">
+     <span>{product.price} лв.</span>
+     {product.count_in_stock > 0 && <button onClick={AddToCart}  className="cart-btn">Добави в количката</button>}
+    </div>
+    </div>
+    </div>
+    );
+           
+           
+          
+           
         </div>
+        
     );
 }
 

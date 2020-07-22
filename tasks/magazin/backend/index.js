@@ -157,12 +157,130 @@ app.get("/products/all/:name/:tagid",async(req,res) => {
 })
 
 
+app.get("/products/all/:name/:tagid/:price",async(req,res) => {
+    try {
+        const{name,tagid,price} = req.params;
+        if(price==0){
+            const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tag_id=$2",[name,tagid]);
+            res.json(allProducts.rows);
+        }
+        else if(price==1){
+            const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tag_id=$2 AND price>=0 and price<=99",[name,tagid]);
+            res.json(allProducts.rows);
+        }
+        else if(price==2){
+            const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tag_id=$2 AND price>=100 and price<=199",[name,tagid]);
+            res.json(allProducts.rows);
+        }
+        else if(price==3){
+            const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tag_id=$2 AND price>=200 and price<=299",[name,tagid]);
+            res.json(allProducts.rows);
+        }
+        else if(price==4){
+            const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tag_id=$2 AND price>=300",[name,tagid]);
+            res.json(allProducts.rows);
+        }
+     
+    } catch (err) {
+        console.error(err.message)
+    }
+})
+
+
+app.get("/products/np/:name/:price",async(req,res) => {
+    try {
+        const{name,price} = req.params;
+        if(price==0){
+            const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%')",[name]);
+            res.json(allProducts.rows);
+        }
+        else if(price==1){
+            const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND price>=0 and price<=99",[name]);
+            res.json(allProducts.rows);
+        }
+        else if(price==2){
+            const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND price>=100 and price<=199",[name]);
+            res.json(allProducts.rows);
+        }
+        else if(price==3){
+            const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND price>=200 and price<=299",[name]);
+            res.json(allProducts.rows);
+        }
+        else if(price==4){
+            const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND price>=300",[name]);
+            res.json(allProducts.rows);
+        }
+     
+    } catch (err) {
+        console.error(err.message)
+    }
+})
+
+
+app.get("/products/tp/:tagid/:price",async(req,res) => {
+    try {
+       
+        const{tagid,price} = req.params;
+        if(price==0){
+            const allProducts = await pool.query("SELECT * FROM products WHERE tag_id=$1",[tagid]);
+            res.json(allProducts.rows);
+        }
+        else if(price==1){
+            const allProducts = await pool.query("SELECT * FROM products WHERE tag_id=$1 AND price>=0 and price<=99",[tagid]);
+            res.json(allProducts.rows);
+        }
+        else if(price==2){
+            const allProducts = await pool.query("SELECT * FROM products WHERE tag_id=$1 AND price>=100 and price<=199",[tagid]);
+            res.json(allProducts.rows);
+        }
+        else if(price==3){
+            const allProducts = await pool.query("SELECT * FROM products WHERE tag_id=$1 AND price>=200 and price<=299",[tagid]);
+            res.json(allProducts.rows);
+        }
+        else if(price==4){
+            const allProducts = await pool.query("SELECT * FROM products WHERE tag_id=$1 AND price>=300",[tagid]);
+            res.json(allProducts.rows);
+        }
+     
+    } catch (err) {
+        console.error(err.message)
+    }
+})
+
+
+app.get("/products/p/:price",async(req,res) => {
+    try {
+        const{price} = req.params;
+        if(price==0){
+            const allProducts = await pool.query("SELECT * FROM products");
+            res.json(allProducts.rows);
+        }
+        else if(price==1){
+            const allProducts = await pool.query("SELECT * FROM products WHERE price>=0 and price<=99");
+            res.json(allProducts.rows);
+        }
+        else if(price==2){
+            const allProducts = await pool.query("SELECT * FROM products WHERE price>=100 and price<=199");
+            res.json(allProducts.rows);
+        }
+        else if(price==3){
+            const allProducts = await pool.query("SELECT * FROM products WHERE price>=200 and price<=299");
+            res.json(allProducts.rows);
+        }
+        else if(price==4){
+            const allProducts = await pool.query("SELECT * FROM products WHERE price>=300");
+            res.json(allProducts.rows);
+        }
+     
+    } catch (err) {
+        console.error(err.message)
+    }
+})
 
 
 //get product count
 app.get("/products/",async(req,res) => {
     try {
-        console.log(13)
         const productCount = await pool.query("SELECT COUNT(*) FROM products");
         res.json(productCount.rows[0]);
     } catch (err) {
@@ -173,7 +291,6 @@ app.get("/products/",async(req,res) => {
 //all product count+name
 app.get("/products/:name",async(req,res) => {
     try {
-        console.log(12)
         const{name} = req.params;
         const productCount = await pool.query("SELECT COUNT(*) FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%')",[name]);
         res.json(productCount.rows[0]);
@@ -272,6 +389,8 @@ app.post("/signin",async (req,res) => {
         console.error(err.message);
     }
 })
+
+
 
 
 

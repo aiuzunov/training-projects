@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Checkbox, FormControlLabel, FormGroup, Select, Divider, makeStyles, FormControl, MenuItem, FormHelperText } from '@material-ui/core';
+import { Checkbox, FormControlLabel, FormGroup, Select, Divider, makeStyles, FormControl, MenuItem, FormHelperText, FormLabel, RadioGroup, Radio } from '@material-ui/core';
 import BasicPagination from './BasicPagination';
 
 const useStyles = makeStyles((theme) => ({
     formControl: {
       margin: theme.spacing(1),
+      marginLeft: theme.spacing(18),
       minWidth: 120,
     },
     selectEmpty: {
@@ -15,21 +16,26 @@ const useStyles = makeStyles((theme) => ({
 export default function Filters(props) {
   const classes = useStyles();
   const [tagid, setTagid] = useState('');
+  const [price,setPrice] = useState('');
 
-  const handleChange = (event) => {
+  const handleCategoryChange = (event) => {
     setTagid(event.target.value);
+  };
+
+  const handlePriceChange = (event) => {
+    setPrice(event.target.value);
   };
 
   useEffect(() => {
 
-},[tagid]);
+},[tagid,price]);
 
   return (
     <div>
     <FormControl className={classes.formControl}>
     <Select
       value={tagid}
-      onChange={handleChange}
+      onChange={handleCategoryChange}
       displayEmpty
       className={classes.selectEmpty}
       inputProps={{ 'aria-label': 'Without label' }}
@@ -42,10 +48,22 @@ export default function Filters(props) {
           
         ))}
     </Select>
-    <FormHelperText>Select Category</FormHelperText>
+    <FormHelperText>Изберете категория</FormHelperText>
   </FormControl>
-   <BasicPagination tagid={tagid} search={props.search}/>
+  <FormControl component="fieldset">
+      <FormLabel component="legend">Цена</FormLabel>
+      <RadioGroup row aria-label="gender" name="gender1" value={price} onChange={handlePriceChange} >
+        <FormControlLabel value="0" control={<Radio />} label="Всички." />
+        <FormControlLabel value="1" control={<Radio />} label="0-99 лв." />
+        <FormControlLabel value="2" control={<Radio />} label="100-199 лв." />
+        <FormControlLabel value="3" control={<Radio />} label="200-299 лв." />
+        <FormControlLabel value="4" control={<Radio />} label=">300 лв." />
+      </RadioGroup>
+    </FormControl>
+    
+   <BasicPagination price={price} tagid={tagid} search={props.search}/>
     </div>
+
    
   );
 }
