@@ -11,6 +11,7 @@ import Menu from '@material-ui/core/Menu';
 import SearchIcon from '@material-ui/icons/Search';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import ShoppingCartIcon from '@material-ui/icons/ShoppingCart';
+import HomeIcon from '@material-ui/icons/Home';
 import CategoryIcon from '@material-ui/icons/Category';
 import { createMuiTheme } from '@material-ui/core/styles';
 import { ThemeProvider } from '@material-ui/styles';
@@ -100,6 +101,7 @@ const useStyles = makeStyles((theme) => ({
       display: 'none',
     },
   },
+ 
 }));
 
 function NavBar() {
@@ -169,11 +171,11 @@ function NavBar() {
       open={isProfileMenuOpen}
       onClose={handleMenuClose}
     >
-      <Link to="/signin">
-      <MenuItem onClick={handleMenuClose}>Login</MenuItem>
+      <Link style={{ textDecoration: 'none' }} to="/signin">
+      <MenuItem style={{ color: '#000' }} onClick={handleMenuClose}>Влизане</MenuItem>
       </Link> 
-      <Link to="/signup">
-      <MenuItem onClick={handleMenuClose}>Register</MenuItem>
+      <Link style={{ textDecoration: 'none' }} to="/signup">
+      <MenuItem style={{ color: '#000' }} onClick={handleMenuClose}>Регистрация</MenuItem>
       </Link>
     </Menu>
   );
@@ -224,21 +226,22 @@ function NavBar() {
       <ThemeProvider theme={theme}>
       <AppBar position="relative" color="primary">
         <Toolbar>
+        <Link to="/" >
           <IconButton
+            style={{ color: '#FFF' }}
             edge="start"
             aria-controls={NavMenu}
             aria-haspopup="true"
-            onClick={handleNavMenuOpen}
-            color="inherit"
             aria-label="open drawer"
           >
-            <CategoryIcon />
+            <HomeIcon />
           </IconButton>
-          <Link to="/" style={{ textDecoration: 'none' }}>
+          </Link>
+         
           <Typography className={classes.title} variant="h6" noWrap>
             Онлайн Магазин
           </Typography>
-          </Link>
+          
           <div className={classes.search}>
             <div className={classes.searchIcon}>
               <SearchIcon />

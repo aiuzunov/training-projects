@@ -24,7 +24,6 @@ const CRUDPagination = ({ postsPerPage,totalPosts, paginate}) => {
     return (
 
         <div className={classes.root}>
-        <Typography>Page: {page}</Typography>
         <Pagination style={{ backgroundColor: 'white'}}
               color="secondary" count={Math.ceil(totalPosts / postsPerPage)} page={page} onChange={handleChange}  onChangePage={paginate(page)}/>
          </div>

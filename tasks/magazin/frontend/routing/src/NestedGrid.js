@@ -6,6 +6,7 @@ import ProductCard from './ProductCard';
 import {useEffect,useState} from  'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { listProducts } from './actions/productActions';
+import { CircularProgress } from '@material-ui/core';
 
 
 
@@ -39,7 +40,7 @@ function NestedGrid(props){
     const currentProducts = products.slice(indexOfFirstProduct,indexOfLastProduct);
 
     return ( 
-      loading ? <div> loadinggggg</div> : error ? <div> errorgggg </div> :
+      loading ?<div>  <CircularProgress color="secondary" /></div>  :
       
        (<Grid container className={classes.productContainer} 
             spacing={0}

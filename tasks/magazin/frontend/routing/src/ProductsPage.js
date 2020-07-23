@@ -12,8 +12,6 @@ function ProductsPage(){
         <div>
          
          <PListNavBar />
-  
-         <footer> All Rights Reserved </footer>
          
         
         </div>

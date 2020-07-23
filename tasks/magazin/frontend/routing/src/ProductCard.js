@@ -60,7 +60,7 @@ function ProductCard(props) {
       <CardActions style={{justifyContent: 'center'}}>
      
       <Link style={{ textDecoration: 'none' }} to={`/product/${props.id}`}>
-        <Button className={classes.colortext}  size="medium">Learn More</Button>
+        <Button className={classes.colortext}  size="medium">Научи повече</Button>
         </Link>
             
    

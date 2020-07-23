@@ -23,6 +23,7 @@ import { listProducts } from './actions/productActions';
 import { Select, InputLabel, FormControl } from '@material-ui/core';
 import Filters from './Filters';
 import { listTags } from './actions/tagsActions';
+import HomeIcon from '@material-ui/icons/Home';
 
 
 
@@ -186,11 +187,11 @@ function PListNavBar() {
       open={isProfileMenuOpen}
       onClose={handleMenuClose}
     >
-      <Link to="/signin">
-      <MenuItem onClick={handleMenuClose}>Login</MenuItem>
+       <Link style={{ textDecoration: 'none' }} to="/signin">
+      <MenuItem style={{ color: '#000' }} onClick={handleMenuClose}>Влизане</MenuItem>
       </Link> 
-      <Link to="/signup">
-      <MenuItem onClick={handleMenuClose}>Register</MenuItem>
+      <Link style={{ textDecoration: 'none' }} to="/signup">
+      <MenuItem style={{ color: '#000' }} onClick={handleMenuClose}>Регистрация</MenuItem>
       </Link>
     </Menu>
   );
@@ -244,21 +245,21 @@ function PListNavBar() {
       <ThemeProvider theme={theme}>
       <AppBar position="relative" color="primary">
         <Toolbar>
+        <Link to="/" >
           <IconButton
+            style={{ color: '#FFF' }}
             edge="start"
             aria-controls={NavMenu}
             aria-haspopup="true"
-            onClick={handleNavMenuOpen}
-            color="inherit"
             aria-label="open drawer"
           >
-            <CategoryIcon />
+            <HomeIcon />
           </IconButton>
-          <Link to="/" style={{ textDecoration: 'none' }}>
-          <Typography onClick={() => window.location.reload(false)} className={classes.title} variant="h6" noWrap>
+          </Link>
+          <Typography  className={classes.title} variant="h6" noWrap>
             Онлайн Магазин
           </Typography>
-          </Link>
+         
           <div className={classes.search}>
             <div className={classes.searchIcon}>
               <SearchIcon />

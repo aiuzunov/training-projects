@@ -41,7 +41,7 @@ export default function Filters(props) {
       inputProps={{ 'aria-label': 'Without label' }}
     >
       <MenuItem value="">
-        <em>None</em>
+        <em>Всички</em>
         </MenuItem>
         {props.tags.map(tag => (
            <MenuItem key={tag.id} value={tag.id}>{tag.name}</MenuItem>
@@ -50,9 +50,9 @@ export default function Filters(props) {
     </Select>
     <FormHelperText>Изберете категория</FormHelperText>
   </FormControl>
+  
   <FormControl component="fieldset">
-      <FormLabel component="legend">Цена</FormLabel>
-      <RadioGroup row aria-label="gender" name="gender1" value={price} onChange={handlePriceChange} >
+      <RadioGroup className="price-filters" row aria-label="gender" name="gender1" value={price} onChange={handlePriceChange} >
         <FormControlLabel value="0" control={<Radio />} label="Всички." />
         <FormControlLabel value="1" control={<Radio />} label="0-99 лв." />
         <FormControlLabel value="2" control={<Radio />} label="100-199 лв." />

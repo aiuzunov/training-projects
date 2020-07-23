@@ -7,6 +7,12 @@ import { signin } from './actions/userActions';
 import Pagination from '@material-ui/lab/Pagination';
 import CRUDPagination from './CRUDPagination';
 import NavBar from './NavBar';
+import AddBoxIcon from '@material-ui/icons/AddBox';
+import { Button, Icon } from '@material-ui/core';
+import CancelIcon from '@material-ui/icons/Cancel';
+import EditIcon from '@material-ui/icons/Edit';
+import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
+import { listTags } from './actions/tagsActions';
 
 
 
@@ -28,13 +34,15 @@ function CRUDProducts({  match , history }) {
     const {loading: loadingDelete,success: productDeleted, error:errorDelete} = productDelete;
     const productList = useSelector((state)=>state.productList);
     const {loading, products, error} = productList;
+    const tagsList = useSelector((state) => state.tagsList);
+    const { tags , loading: loadingTags, error: tagsError } = tagsList;
     const dispatch = useDispatch();
     useEffect(() => {
         if(productSaved){
             setCreateProductPop(false);
         }
         dispatch(listProducts());
-
+        dispatch(listTags());
     },[productSaved,productDeleted]);
     
     const indexOfLastPost = currentPage * postsPerPage;
@@ -60,7 +68,6 @@ function CRUDProducts({  match , history }) {
    };
 
    const deleteProductHandler = (product) => {
-       console.log("@323")
        dispatch(deleteProduct(product));
    }
 
@@ -72,13 +79,22 @@ function CRUDProducts({  match , history }) {
         <div className="content content-margined">
           
             <div className="product-header">
-                <button className= "button primary" onClick={() => popCreateMenu({})}>Create Product</button>
+            <Button
+              variant="contained"
+              color="primary"
+             onClick={() => popCreateMenu({})}
+              endIcon={<AddBoxIcon/>}
+             >
+                Нов Продукт
+            </Button>
+              
             </div>
             {createProductPop && (<div className="signinform">
             <form onSubmit={submitInfo}>
                 <ul className="form-container">
+                    
                     <li>
-                        <h2>Create Product</h2>
+                        <h2>{id ?  "Обновяване на продукта" : "Нов Продукт"}</h2>
                     </li>
                     <li>
                         {loadingSave && <div>Loading...</div>}
@@ -86,52 +102,69 @@ function CRUDProducts({  match , history }) {
                     </li>
                     <li>
                         <label htmlFor="name">
-                            Name
+                            Име
                         </label>
                         <input type="text" name="name" id="name" value={name} onChange={(e) => setName(e.target.value)}/>
                     </li>
                     <li>
                         <label htmlFor="price">
-                            Price
+                            Цена
                         </label>
                         <input type="number" step="any" name="price" id="price" value={price} onChange={(e) => setPrice(e.target.value)}/>
                     </li>
                     <li>
                         <label htmlFor="image">
-                            Image
+                            Изображение
                         </label>
                         <input type="text" name="image" id="image" value={image} onChange={(e) => setImage(e.target.value)}/>
                     </li>
                     <li>
                         <label htmlFor="brand">
-                            Brand
+                            Модел
                         </label>
                         <input type="text" name="brand" id="brand" value={brand} onChange={(e) => setBrand(e.target.value)}/>
                     </li>
                     <li>
                         <label htmlFor="tag">
-                            Tag ID
+                            ID на категория
                         </label>
                         <input type="number" name="tag" id="tag" value={tag_id} onChange={(e) => setTag_id(e.target.value)}/>
                     </li>
                     <li>
                         <label htmlFor="cis">
-                            Count in stock
+                            Брой в наличност
                         </label>
                         <input type="number" name="cis" id="cis" value={count_in_stock} onChange={(e) => setCountinstock(e.target.value)}/>
                     </li>
                     <li>
                         <label htmlFor="description">
-                            Description
+                            Описание
                         </label>
                         <textarea name="description" id="description" value={description} onChange={(e) => setDescription(e.target.value)}/>
                     </li>
                    
                     <li>
-                        <button type="submit" className="button primary">{id ?  "Update Product" : "Create Product"}</button>
+                    <Button
+                        variant="contained"
+                        size="large"
+                        color="primary"
+                        type="submit"
+                        endIcon={<AddBoxIcon/>}
+                      >
+                         {id ?  "Обнови Информацията за Продукта" : "Добави Нов Продукт"}
+                    </Button>
+                      
                     </li>    
                     <li>
-                        <button type="button" onClick={() =>  setCreateProductPop(false)} className="button secondary">Close</button>
+                    <Button
+                        onClick={() =>  setCreateProductPop(false)}
+                        variant="contained"
+                        size="large"
+                        color="primary"
+                        endIcon={<CancelIcon/>}
+                      >
+                        Затвори
+                    </Button>
                     </li>   
                 </ul>
             </form>
@@ -142,25 +175,25 @@ function CRUDProducts({  match , history }) {
                     <thead>
                         <tr> 
                             <th>
-                                Name
+                                Име
                             </th>
                             <th>
-                                Price
+                                Цена
                             </th>
                             <th>
-                                Image
+                                Изображение
                             </th>
                             <th>
-                                Category
+                                Категория
                             </th>
                             <th>
-                                Count in Stock
+                                Брой в наличност
                             </th>
                             <th>
-                                Description
+                                Описание
                             </th>
                             <th>
-                                Brand
+                                Модел
                             </th>
                         </tr>
                     </thead>
@@ -177,21 +210,39 @@ function CRUDProducts({  match , history }) {
                                  {product.image}
                             </td>
                             <td>
-                                 {product.brand}
+                             {tags.map(tag => (
+                                tag.id == product.tag_id ? <div>
+                                {tag.name}
+                                </div> :
+                                <div> </div>
+                                ))}
                             </td>
                             <td>
                                  {product.count_in_stock}
                             </td>
                             <td>
-                                 {product.tag_id}
+                                 {product.description}
                             </td>
                             <td>
-                               {product.description}
+                                 {product.brand}
                             </td>
                             <th>
-                                <button className= "button" onClick={() => popCreateMenu(product)}> Edit</button>
-                                <button className= "button" onClick={() => deleteProductHandler(product)}> Delete</button>
-
+                            <Button
+                                onClick={() => popCreateMenu(product)}
+                                variant="contained"
+                                size="large"
+                                color="primary"
+                                endIcon={<EditIcon/>}>
+                                Обнови
+                            </Button>
+                            <Button
+                                onClick={() => deleteProductHandler(product)}
+                                variant="contained"
+                                size="large"
+                                color="secondary"
+                                endIcon={<DeleteForeverIcon/>}>
+                                Изтрий
+                            </Button>
                             </th>
                         </tr>
                         ))}

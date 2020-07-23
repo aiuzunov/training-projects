@@ -4,6 +4,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { detailsProduct } from './actions/productActions';
 import { Link } from 'react-router-dom';
 import { signin, signup } from './actions/userActions';
+import { Button } from '@material-ui/core';
+import NavBar from './NavBar';
 
 
 
@@ -22,20 +24,28 @@ function SignUpScreen({  match , history }) {
         if(userInfo){
             history.push('/');
         }
-
     },[userInfo]);
  
    const submitInfo = (e) => {
-       e.preventDefault();
-       dispatch(signup(name,username,email,password))
+       if(password==password2){
+        e.preventDefault();
+        dispatch(signup(name,username,email,password))
+        dispatch(signin(email,password))
+       }else{
+           alert("Passwords must match")
+       }
+       
+       
    };
  
     return(
-        <div className="signinform">
+        <div>
+            <NavBar/>
+            <div className="signinform">
             <form onSubmit={submitInfo}>
                 <ul className="form-container">
                     <li>
-                        <h2>Sign Up</h2>
+                        <h2>Регистриране</h2>
                     </li>
                     <li>
                         {loading && <div>Loading...</div>}
@@ -43,46 +53,63 @@ function SignUpScreen({  match , history }) {
                     </li>
                     <li>
                         <label htmlFor="name">
-                            Name
+                            Име
                         </label>
-                        <input type="name" name="name" id="name" onChange={(e) => setName(e.target.value)}/>
+                        <input required type="name" name="name" id="name" onChange={(e) => setName(e.target.value)}/>
                     </li>
                     <li>
                         <label htmlFor="username">
-                            Username
+                            Потребителско име
                         </label>
-                        <input type="username" name="username" id="username" onChange={(e) => setUsername(e.target.value)}/>
+                        <input required type="username" name="username" id="username" onChange={(e) => setUsername(e.target.value)}/>
                     </li>
                     <li>
                         <label htmlFor="email">
-                            Email
+                            Имейл адрес
                         </label>
-                        <input type="email" name="email" id="email" onChange={(e) => setEmail(e.target.value)}/>
+                        <input required type="email" name="email" id="email" onChange={(e) => setEmail(e.target.value)}/>
                     </li>
                     <li>
                         <label htmlFor="password">
-                            Password
+                            Парола
                         </label>
-                        <input type="password" name="password" id="password" onChange={(e) => setPassword(e.target.value)}/>
+                        <input required type="password" name="password" id="password" onChange={(e) => setPassword(e.target.value)}/>
                     </li>
                     <li>
                         <label htmlFor="password2">
-                            Password
+                            Потвърдете паролата
                         </label>
-                        <input type="password" name="password2" id="password2" onChange={(e) => setPassword2(e.target.value)}/>
+                        <input required type="password" name="password2" id="password2" onChange={(e) => setPassword2(e.target.value)}/>
                     </li>
                     <li>
-                        <Link to="/">
-                        <button type="submit" className="button primary">Sign Up</button>
-                        </Link>
+                    <Button 
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    size="large"
+                    >
+                        Регистрация
+                     </Button>
                     </li>
+                    Вече имаш акаунт? 
+
                     <li>
-                        Already have an account? <Link to="/signin">Sign In</Link>
+                    <Button 
+                    size="large"
+                    href="/signin"
+                    variant="contained"
+                    color="primary"
+                    >
+                        Създай нов акаунт
+                     </Button>
+                     
                     </li>
                 </ul>
             </form>
         </div>
         
+        </div>
+       
     );
 }
 

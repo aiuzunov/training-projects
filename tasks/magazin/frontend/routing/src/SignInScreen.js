@@ -4,6 +4,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { detailsProduct } from './actions/productActions';
 import { Link } from 'react-router-dom';
 import { signin } from './actions/userActions';
+import { Button } from '@material-ui/core';
+import NavBar from './NavBar';
 
 
 
@@ -29,11 +31,13 @@ function SignInScreen({  match , history }) {
    };
  
     return(
-        <div className="signinform">
+        <div>
+            <NavBar/>
+            <div className="signinform">
             <form onSubmit={submitInfo}>
                 <ul className="form-container">
                     <li>
-                        <h2>Sign In</h2>
+                        <h2>Влез в акаунт</h2>
                     </li>
                     <li>
                         {loading && <div>Loading...</div>}
@@ -41,29 +45,44 @@ function SignInScreen({  match , history }) {
                     </li>
                     <li>
                         <label htmlFor="email">
-                            Email
+                             Имейл адрес
                         </label>
                         <input type="email" name="email" id="email" onChange={(e) => setEmail(e.target.value)}/>
                     </li>
                     <li>
                         <label htmlFor="password">
-                            Password
+                            Парола
                         </label>
                         <input type="password" name="password" id="password" onChange={(e) => setPassword(e.target.value)}/>
                     </li>
                     <li>
-                        <button type="submit" className="button primary">Sign In</button>
+                    <Button
+                    type="submit" 
+                    variant="contained"
+                    color="primary"
+                    >
+                        Влизане
+                     </Button>
+
                     </li>
                     <li>
-                        Don't have an account?
+                        Нямаш акаунт?
                     </li>
                     <li>
-                        <Link to="/signup" className="button secondary text-center"> 
-                        Create a new account
-                        </Link>
+                       
+                        <Button
+                    href="/signup"
+                    variant="contained"
+                    color="primary"
+                    >
+                        Създай нов акаунт
+                     </Button>
+                     
                     </li>
                 </ul>
             </form>
+        </div>
+        
         </div>
         
     );

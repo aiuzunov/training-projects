@@ -20,6 +20,7 @@ function Cart(props){
     }
     useEffect(()=>{
         if(productId){
+            console.log(productId, quantity)
             dispatch(addToCart(productId, quantity));
 
         }
@@ -68,13 +69,11 @@ cartItems.length === 0 ?
                 
             <div className="description">
                   <span>{item.name}</span>
-                 <span>Bball High</span>
-                  <span>White</span>
+                 
               </div>
 
 
              <div className="quantity">
-                
                     <FormControl >
         <InputLabel htmlFor="age-native-simple">Количество</InputLabel>
         <Select
@@ -92,7 +91,7 @@ cartItems.length === 0 ?
       </FormControl>
             </div>
                  <div className="total-price">Единична цена: {item.price} лв.</div>
-                 <div className="total-price">Oбща сума: {item.price*item.quantity} лв.</div>
+                 <div className="total-price">Oбща сума: {(item.price*item.quantity).toFixed(2)} лв.</div>
                  <div className="item-remove">
                     <Button
                     onClick={() => removeFromCartHandler(item.product)}
