@@ -13,6 +13,7 @@ import CancelIcon from '@material-ui/icons/Cancel';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import { listTags } from './actions/tagsActions';
+import BackOfficeFilters from './BackOfficeFilters';
 
 
 
@@ -41,9 +42,7 @@ function CRUDProducts({  match , history }) {
         if(productSaved){
             setCreateProductPop(false);
         }
-        dispatch(listProducts());
-        dispatch(listTags());
-    },[productSaved,productDeleted]);
+    },[productSaved]);
     
     const indexOfLastPost = currentPage * postsPerPage;
     const indexOfFirstPost = indexOfLastPost - postsPerPage;
@@ -63,11 +62,18 @@ function CRUDProducts({  match , history }) {
 
    const submitInfo = (e) => {
        e.preventDefault();
-       
-       dispatch(saveProduct({id,name,price,image,brand,description,count_in_stock,tag_id}));
+       var currentdate = new Date(); 
+       var create_date =  currentdate.getDate() + "/"
+                + (currentdate.getMonth()+1)  + "/" 
+                + currentdate.getFullYear() + " @ "  
+                + currentdate.getHours() + ":"  
+                + currentdate.getMinutes() + ":" 
+                + currentdate.getSeconds();
+       dispatch(saveProduct({create_date,id,name,price,image,brand,description,count_in_stock,tag_id}));
    };
 
    const deleteProductHandler = (product) => {
+       
        dispatch(deleteProduct(product));
    }
 
@@ -76,6 +82,7 @@ function CRUDProducts({  match , history }) {
     return(
         <div>
             <NavBar/>
+            <BackOfficeFilters saved ={productSaved} deleted={productDeleted} />
         <div className="content content-margined">
           
             <div className="product-header">
@@ -175,6 +182,12 @@ function CRUDProducts({  match , history }) {
                     <thead>
                         <tr> 
                             <th>
+                                Дата на създаване
+                            </th>
+                            <th>
+                                Последно обновен
+                            </th>
+                            <th>
                                 Име
                             </th>
                             <th>
@@ -201,10 +214,16 @@ function CRUDProducts({  match , history }) {
                         {currentPosts.map(product => (
                             <tr key={product.id}>
                             <td>
-                                {product.name}
+                                 {product.create_date}
                             </td>
                             <td>
-                                 {product.price}
+                                 {product.edit_time}
+                            </td>
+                            <td>
+                                 {product.name}
+                            </td>
+                            <td>
+                                 {Number(product.price).toFixed(2)}
                             </td>
                             <td>
                                  {product.image}

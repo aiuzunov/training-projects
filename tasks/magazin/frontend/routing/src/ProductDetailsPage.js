@@ -117,7 +117,7 @@ function ProductDetailsPage({ match , history }) {
 
 
     <div className="product-price">
-     <span >Цена (1бр.) : {product.price} лв.</span>
+     <span >Цена (1бр.) : {Number(product.price).toFixed(2)} лв.</span>
     
     </div>
     {product.count_in_stock > 0 &&  <Button

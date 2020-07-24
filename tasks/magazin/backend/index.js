@@ -54,8 +54,8 @@ app.post("/tags",async (req,res) => {
 app.post("/products",async (req,res) => {
     try {
         console.log('test2321');
-        const {tag_id,name,image,brand,price,count_in_stock,description} = req.body;
-        const newProduct = await pool.query(" INSERT INTO products (tag_id,name,image,brand,price,count_in_stock,description) VALUES ($1,$2,$3,$4,$5,$6,$7)",[tag_id,name,image,brand,price,count_in_stock,description]);
+        const {create_date,tag_id,name,image,brand,price,count_in_stock,description} = req.body;
+        const newProduct = await pool.query(" INSERT INTO products (tag_id,name,image,brand,price,count_in_stock,description,create_date) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",[tag_id,name,image,brand,price,count_in_stock,description,create_date]);
         res.json(newProduct);
     } catch (err) {
         console.error(err.message);
@@ -66,8 +66,8 @@ app.post("/products",async (req,res) => {
 app.put("/products/:id",async (req,res) => {
     try {
         console.log('test221');
-        const {id,tag_id,name,image,brand,price,count_in_stock,description} = req.body;
-        const newProduct = await pool.query(" UPDATE products SET tag_id=$1,name=$2,image=$3,brand=$4,price=$5,count_in_stock=$6,description=$7 WHERE id=$8",[tag_id,name,image,brand,price,count_in_stock,description,id]);
+        const {create_date,id,tag_id,name,image,brand,price,count_in_stock,description} = req.body;
+        const newProduct = await pool.query(" UPDATE products SET tag_id=$1,name=$2,image=$3,brand=$4,price=$5,count_in_stock=$6,description=$7,edit_time=$8 WHERE id=$9",[tag_id,name,image,brand,price,count_in_stock,description,create_date,id]);
         res.json(newProduct);
     } catch (err) {
         console.error(err.message);
@@ -392,14 +392,6 @@ app.post("/signin",async (req,res) => {
 
 
 
-
-
-
-app.listen(5000, ()=>{
- console.log("server has started");
-});
-
-
 // get all tags
 app.get("/tags/all",async(req,res) => {
     try {
@@ -409,3 +401,10 @@ app.get("/tags/all",async(req,res) => {
         console.error(err.message)
     }
 })
+
+
+
+app.listen(5000, ()=>{
+ console.log("server has started");
+});
+

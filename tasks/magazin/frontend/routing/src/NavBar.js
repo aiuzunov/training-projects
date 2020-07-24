@@ -109,8 +109,6 @@ function NavBar() {
   const [navAnchorEl,setNavAnchorEl] = React.useState(null);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
-  const [search, setSearch] = useState("");
-  const [finishedSearch, setFinishedSearch] = useState("");
   const isNavMenuOpen = Boolean(navAnchorEl);
   const isProfileMenuOpen = Boolean(anchorEl);
   const isProfileMobileMenuOpen = Boolean(mobileMoreAnchorEl);
@@ -211,14 +209,6 @@ function NavBar() {
     </Menu>
   );
 
-  const updateSearch = e => {
-    setSearch(e.target.value);
-  }
-
-  const getSearch = e => {
-    e.preventDefault();
-    setFinishedSearch(search);
-  }
 
   return (
    
@@ -242,24 +232,8 @@ function NavBar() {
             Онлайн Магазин
           </Typography>
           
-          <div className={classes.search}>
-            <div className={classes.searchIcon}>
-              <SearchIcon />
-            </div>
-            <form onSubmit={getSearch}>
-            <InputBase
-              value={search}
-              onChange={updateSearch}
-              onSubmit={getSearch}
-              placeholder="Търсене на продукт…"
-              classes={{
-                root: classes.inputRoot,
-                input: classes.inputInput,
-              }}
-              inputProps={{ 'aria-label': 'search' }}
-            />
-            </form>
-          </div>
+         
+         
           <div className={classes.grow} />
           <div className={classes.sectionDesktop}>
           <Link to="/cart" style={{ color: '#FFF' }} >

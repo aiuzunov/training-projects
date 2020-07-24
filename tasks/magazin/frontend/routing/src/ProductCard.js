@@ -51,7 +51,7 @@ function ProductCard(props) {
           {props.name}
         </Typography>
         <Typography className={classes.colortext}>
-         Цена: {props.price} лв.
+         Цена: {Number(props.price).toFixed(2)} лв.
         </Typography>
         <Typography className={classes.colortext} variant="body2" component="p">
          {props.description}
