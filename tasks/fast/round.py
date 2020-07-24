@@ -104,11 +104,14 @@ def drawImage():
                  "n = {:d} ".format(n),
                  fill=(0, 0, 0, 0), font=textfont2)
 	drawing.text((90, 80),
-                 '\n'.join('{}: {}'.format(*k) for k in enumerate(rounds)),
+                 '\n'.join('{}: {}'.format(*k) for k in enumerate((rounds),1)),
                  fill=(0, 0, 0, 0), font=textfont2)
 	drawing.text((350, 20),
-                 "Най-кратък път :",
+                 "Най-къс път :",
                  fill=(0, 0, 0, 0), font=textfont2)
+	drawing.text((350, 50),
+                 "Дължина = {:d}".format(result),
+                 fill=0, font=textfont2)
 	drawing.text((350, 80),
                  '\n'.join('{}: {}'.format(*k) for k in enumerate(finalpath)),
                  fill=(0, 0, 0, 0), font=textfont2)
