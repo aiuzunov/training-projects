@@ -91,11 +91,11 @@ def pathPoints(rounds,points,lastRound,finalpath):
 	return finalpath
 
 def drawImage():
-	image = Image.new('RGB', (900,900), (246, 237, 223))
+	image = Image.new('RGB', (1200,900), (246, 237, 223))
 	drawing = ImageDraw.Draw(image)
 	minstep = 50
 	if(n>3):
-		minstep = minstep - n*2
+		minstep =  20
 	textfont2=ImageFont.truetype('arial.ttf', size=22)
 	drawing.text((90, 20),
                  "Входни данни :",
@@ -130,7 +130,6 @@ def drawImage():
                  fill=(0, 0, 0, 0), font=textfont2)
 	i=0
 	while i <  len(finalpath)-1:
-		print(450+finalpath[i][1]*minstep,450+ (finalpath[i][2]*minstep),450+(finalpath[i+1][1]*minstep),450+(finalpath[i+1][2]*minstep))
 		drawing.line((450+(finalpath[i][1]*minstep),450+ (finalpath[i][2]*minstep), 450+(finalpath[i+1][1]*minstep), 450+(finalpath[i+1][2]*minstep)), fill=(255,0,0), width=3)
 		drawing.ellipse((447+(finalpath[i][1]*minstep),447+ (finalpath[i][2]*minstep),453+(finalpath[i][1]*minstep),453+ (finalpath[i][2]*minstep)), fill = (0,0,255), outline =(0,0,255))
 		drawing.ellipse((447+(finalpath[i+1][1]*minstep),447+ (finalpath[i+1][2]*minstep),453+(finalpath[i+1][1]*minstep),453+ (finalpath[i+1][2]*minstep)), fill = (0,0,255), outline =(0,0,255))
@@ -142,9 +141,7 @@ def drawImage():
 result = shortestPath(graph.copy(),n,points,lastRound)
 if result != -1:
 	print(result)
-	print(1)
 	finalpath = pathPoints(rounds,points,lastRound,finalpath)
-	print(finalpath)
 	drawImage()
 else:
 	print(-1)	
