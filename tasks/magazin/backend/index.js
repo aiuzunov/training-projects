@@ -3,6 +3,17 @@ const app = express();
 const cors = require("cors");
 const pool = require("./db");
 const getToken = require("./util");
+const fs = require('fs')
+const request = require('request')
+
+//for downloading images
+const download = (url, path, callback) => {
+    request.head(url, (err, res, body) => {
+      request(url)
+        .pipe(fs.createWriteStream(path))
+        .on('close', callback)
+    })
+  }
 
 
 //middleware
@@ -53,10 +64,14 @@ app.post("/tags",async (req,res) => {
 //create product
 app.post("/products",async (req,res) => {
     try {
-        console.log('test2321');
         const {create_date,tag_id,name,image,brand,price,count_in_stock,description} = req.body;
+        const url = image;
+        const path = `./images/${name}.png`;
         const newProduct = await pool.query(" INSERT INTO products (tag_id,name,image,brand,price,count_in_stock,description,create_date) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",[tag_id,name,image,brand,price,count_in_stock,description,create_date]);
         res.json(newProduct);
+        download(url, path, () => {
+            console.log('✅ Done!')
+          })
     } catch (err) {
         console.error(err.message);
     }
@@ -65,10 +80,14 @@ app.post("/products",async (req,res) => {
 //update product
 app.put("/products/:id",async (req,res) => {
     try {
-        console.log('test221');
         const {create_date,id,tag_id,name,image,brand,price,count_in_stock,description} = req.body;
+        const url = image;
+        const path = `./images/${name}.png`;
         const newProduct = await pool.query(" UPDATE products SET tag_id=$1,name=$2,image=$3,brand=$4,price=$5,count_in_stock=$6,description=$7,edit_time=$8 WHERE id=$9",[tag_id,name,image,brand,price,count_in_stock,description,create_date,id]);
         res.json(newProduct);
+        download(url, path, () => {
+            console.log('✅ Done!')
+          })
     } catch (err) {
         console.error(err.message);
     }
@@ -79,7 +98,7 @@ app.put("/products/:id",async (req,res) => {
 app.delete("/products/:id",async (req,res) => {
     try {
         const{id} = req.params;
-        const deleteProduct = await pool.query("DELETE FROM products where id=$1",[id]);
+        const deleteProduct = await pool.query("UPDATE products SET count_in_stock=0 WHERE id = $1",[id]);
         res.json(deleteProduct);
     } catch (err) {
         console.error(err.message);
@@ -160,27 +179,11 @@ app.get("/products/all/:name/:tagid",async(req,res) => {
 app.get("/products/all/:name/:tagid/:price",async(req,res) => {
     try {
         const{name,tagid,price} = req.params;
-        if(price==0){
-            const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tag_id=$2",[name,tagid]);
-            res.json(allProducts.rows);
-        }
-        else if(price==1){
-            const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tag_id=$2 AND price>=0 and price<=99",[name,tagid]);
-            res.json(allProducts.rows);
-        }
-        else if(price==2){
-            const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tag_id=$2 AND price>=100 and price<=199",[name,tagid]);
-            res.json(allProducts.rows);
-        }
-        else if(price==3){
-            const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tag_id=$2 AND price>=200 and price<=299",[name,tagid]);
-            res.json(allProducts.rows);
-        }
-        else if(price==4){
-            const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tag_id=$2 AND price>=300",[name,tagid]);
-            res.json(allProducts.rows);
-        }
-     
+        var pricearr = price.split(",")
+        price1 = pricearr[0];
+        price2 = pricearr[1];
+        const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tag_id=$2 AND price>=$3 AND price<=$4",[name,tagid,price1,price2]);
+        res.json(allProducts.rows);
     } catch (err) {
         console.error(err.message)
     }
@@ -190,27 +193,11 @@ app.get("/products/all/:name/:tagid/:price",async(req,res) => {
 app.get("/products/np/:name/:price",async(req,res) => {
     try {
         const{name,price} = req.params;
-        if(price==0){
-            const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%')",[name]);
-            res.json(allProducts.rows);
-        }
-        else if(price==1){
-            const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND price>=0 and price<=99",[name]);
-            res.json(allProducts.rows);
-        }
-        else if(price==2){
-            const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND price>=100 and price<=199",[name]);
-            res.json(allProducts.rows);
-        }
-        else if(price==3){
-            const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND price>=200 and price<=299",[name]);
-            res.json(allProducts.rows);
-        }
-        else if(price==4){
-            const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND price>=300",[name]);
-            res.json(allProducts.rows);
-        }
-     
+        var pricearr = price.split(",")
+        price1 = pricearr[0];
+        price2 = pricearr[1];
+        const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND price>=$2 AND price<=$3",[name,price1,price2]);
+        res.json(allProducts.rows);
     } catch (err) {
         console.error(err.message)
     }
@@ -219,29 +206,12 @@ app.get("/products/np/:name/:price",async(req,res) => {
 
 app.get("/products/tp/:tagid/:price",async(req,res) => {
     try {
-       
         const{tagid,price} = req.params;
-        if(price==0){
-            const allProducts = await pool.query("SELECT * FROM products WHERE tag_id=$1",[tagid]);
-            res.json(allProducts.rows);
-        }
-        else if(price==1){
-            const allProducts = await pool.query("SELECT * FROM products WHERE tag_id=$1 AND price>=0 and price<=99",[tagid]);
-            res.json(allProducts.rows);
-        }
-        else if(price==2){
-            const allProducts = await pool.query("SELECT * FROM products WHERE tag_id=$1 AND price>=100 and price<=199",[tagid]);
-            res.json(allProducts.rows);
-        }
-        else if(price==3){
-            const allProducts = await pool.query("SELECT * FROM products WHERE tag_id=$1 AND price>=200 and price<=299",[tagid]);
-            res.json(allProducts.rows);
-        }
-        else if(price==4){
-            const allProducts = await pool.query("SELECT * FROM products WHERE tag_id=$1 AND price>=300",[tagid]);
-            res.json(allProducts.rows);
-        }
-     
+        var pricearr = price.split(",")
+        price1 = pricearr[0];
+        price2 = pricearr[1];
+        const allProducts = await pool.query("SELECT * FROM products WHERE tag_id=$1 AND price>=$2 AND price<=$3",[tagid,price1,price2]);
+        res.json(allProducts.rows);
     } catch (err) {
         console.error(err.message)
     }
@@ -249,29 +219,14 @@ app.get("/products/tp/:tagid/:price",async(req,res) => {
 
 
 app.get("/products/p/:price",async(req,res) => {
+    
     try {
         const{price} = req.params;
-        if(price==0){
-            const allProducts = await pool.query("SELECT * FROM products");
-            res.json(allProducts.rows);
-        }
-        else if(price==1){
-            const allProducts = await pool.query("SELECT * FROM products WHERE price>=0 and price<=99");
-            res.json(allProducts.rows);
-        }
-        else if(price==2){
-            const allProducts = await pool.query("SELECT * FROM products WHERE price>=100 and price<=199");
-            res.json(allProducts.rows);
-        }
-        else if(price==3){
-            const allProducts = await pool.query("SELECT * FROM products WHERE price>=200 and price<=299");
-            res.json(allProducts.rows);
-        }
-        else if(price==4){
-            const allProducts = await pool.query("SELECT * FROM products WHERE price>=300");
-            res.json(allProducts.rows);
-        }
-     
+        var pricearr = price.split(",")
+        price1 = pricearr[0];
+        price2 = pricearr[1];
+        const allProducts = await pool.query("SELECT * FROM products WHERE price>=$1 AND price<=$2",[price1,price2]);
+        res.json(allProducts.rows);
     } catch (err) {
         console.error(err.message)
     }
@@ -297,6 +252,13 @@ app.get("/products/:name",async(req,res) => {
     } catch (err) {
         console.error(err.message)
     }
+})
+
+
+app.get('/image/:name', function (req, res) {
+    const{name} = req.params;
+    const path = `./images/${name}.png`;
+    res.sendFile(path);
 })
 
 //all product count+name
@@ -336,7 +298,7 @@ app.put("/products/:id", async (req, res) => {
 app.delete("/products/:id",async (req,res) => {
     try {
         const {id} = req.params;
-        const deleteProduct = await pool.query("DELETE FROM products WHERE id = $1",[id]);
+        const deleteProduct = await pool.query("UPDATE products SET count_in_stock=0 WHERE id = $1",[id]);
         res.json("The Product Was Deleted");
     } catch (err) {
         console.log(err.message)
@@ -401,6 +363,7 @@ app.get("/tags/all",async(req,res) => {
         console.error(err.message)
     }
 })
+
 
 
 

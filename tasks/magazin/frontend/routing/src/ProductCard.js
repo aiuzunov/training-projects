@@ -53,8 +53,8 @@ function ProductCard(props) {
         <Typography className={classes.colortext}>
          Цена: {Number(props.price).toFixed(2)} лв.
         </Typography>
-        <Typography className={classes.colortext} variant="body2" component="p">
-         {props.description}
+        <Typography className={classes.colortext} variant="body2" component="h3">
+         {props.cis?<p>В наличност</p>: <p>Не е в наличност</p>}
         </Typography>
       </CardContent>
       <CardActions style={{justifyContent: 'center'}}>

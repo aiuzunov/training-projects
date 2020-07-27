@@ -77,6 +77,7 @@ cartItems.length === 0 ?
                     <FormControl >
         <InputLabel htmlFor="age-native-simple">Количество</InputLabel>
         <Select
+          style={{minWidth: 70}}
           native
           value={item.quantity}
           onChange={(e) => dispatch(addToCart(item.product, e.target.value))}
@@ -90,7 +91,7 @@ cartItems.length === 0 ?
         </Select>
       </FormControl>
             </div>
-                 <div className="total-price">Единична цена: {item.price} лв.</div>
+                 <div className="total-price">Единична цена: {Number(item.price).toFixed(2)} лв.</div>
                  <div className="total-price">Oбща сума: {(item.price*item.quantity).toFixed(2)} лв.</div>
                  <div className="item-remove">
                     <Button
@@ -115,7 +116,8 @@ cartItems.length === 0 ?
 <div className="cart-action">
             <h3>
                 Общо ( {cartItems.reduce((a,c) => parseInt(a) + parseInt(c.quantity),0)} продукт/а )
-                : 
+                :
+                  
                 {(cartItems.reduce((a,c)=>a +c.price*c.quantity,0)).toFixed(2)} лв.
             </h3>
             <Button

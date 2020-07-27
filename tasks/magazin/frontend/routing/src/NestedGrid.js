@@ -18,10 +18,10 @@ const useStyles = makeStyles({
   },
 });
 
-const getProductCard = (productid,productname,productimage,productprice,productdescription) => {
+const getProductCard = (productid,productname,productimage,productprice,productcis,productdescription) => {
   return(
     <Grid key={productid} item xs={10} sm={4} >
-      <ProductCard id={productid} name={productname} image={productimage} price={productprice} description={productdescription}/>
+      <ProductCard cis ={productcis} id={productid} name={productname} image={productimage} price={productprice} description={productdescription}/>
     </Grid>
   )
 };
@@ -41,7 +41,7 @@ function NestedGrid(props){
 
     return ( 
       loading ?<div>  <CircularProgress color="secondary" /></div>  :
-      
+       
        (<Grid container className={classes.productContainer} 
             spacing={0}
             direction="row"
@@ -50,8 +50,8 @@ function NestedGrid(props){
         >
          
         {currentProducts.map(product => (
+          getProductCard(product.id,product.name,product.image,product.price,product.count_in_stock,product.description)
           
-          getProductCard(product.id,product.name,product.image,product.price,product.description)
         ))}
 
       </Grid>)
