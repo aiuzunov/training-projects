@@ -163,3 +163,192 @@ pc.speed in
  and pc.ram=
              (select min(ram)
               from pc) 
+
+--Exercise 26:
+
+SELECT avg(price) FROM(
+SELECT price from laptop join product on product.model=laptop.model where product.maker='a'
+UNION ALL
+SELECT price from pc join product on product.model=pc.model where product.maker='a') x 
+
+--Exercise 27:
+
+SELECT maker, avg(hd) from pc join product on product.model = pc.model where maker IN (SELECT DISTINCT maker from product where type='printer') group by maker
+
+--Exercise 28:
+
+ SELECT COUNT(*) from (select maker from product group by maker having count(model)=1) as x
+
+--Exercise 29:
+
+SELECT Income_o.point, Income_o.date, SUM(inc),SUM(out)
+FROM Income_o LEFT JOIN
+Outcome_o ON Income_o.point = Outcome_o.point AND
+Income_o.date = Outcome_o.date
+GROUP BY Income_o.point, Income_o.date
+UNION
+SELECT Outcome_o.point, Outcome_o.date, SUM(inc),SUM(out)
+FROM Outcome_o LEFT JOIN
+Income_o ON Income_o.point = Outcome_o.point AND
+Income_o.date = Outcome_o.date
+GROUP BY Outcome_o.point, Outcome_o.date 
+
+--Exercise 30:
+
+SELECT DISTINCT point,date,SUM(out) AS out, SUM(inc) AS inc FROM (
+SELECT Income.point, Income.date, out, inc
+FROM Income LEFT JOIN
+Outcome ON Income.point = Outcome.point AND
+Income.date = Outcome.date AND Income.code= Outcome.code
+UNION ALL
+SELECT Outcome.point, Outcome.date, out, inc
+FROM Outcome LEFT JOIN
+Income ON Income.point = Outcome.point AND
+Income.date = Outcome.date AND Income.code=Outcome.code) AS t1
+GROUP BY point, date
+
+--Exercise 31:
+
+SELECT class, country
+FROM Classes
+WHERE bore>=16
+
+--Exercise 32:
+
+
+
+--Exercise 33:
+
+SELECT ship
+FROM Outcomes
+WHERE battle="North Atlantic"
+AND result="sunk"
+
+--Exercise 34:
+
+SELECT name
+FROM Ships, Classes
+WHERE launched >=1922
+AND displacement >35000
+AND Classes.class = Ships.class
+AND type="bb"
+
+--Exercise 35:
+
+
+--Exercise 36:
+
+SELECT distinct c.class
+FROM
+(
+SELECT s.class, s.name
+FROM Ships s
+UNION
+SELECT o.ship as "class", o.ship
+FROM Outcomes o
+WHERE NOT EXISTS( SELECT * FROM Ships s WHERE s.name = o.ship)
+) s
+INNER JOIN Classes c ON (c.class = s.class) AND (c.class = s.name)
+
+--Exercise 37:
+
+SELECT c.class
+FROM
+(
+SELECT s.class, s.name
+FROM Ships s
+UNION
+SELECT o.ship as ‘class’, o.ship
+FROM Outcomes o
+WHERE NOT EXISTS( SELECT * FROM Ships s WHERE s.name = o.ship)
+) s
+INNER JOIN Classes c ON c.class = s.class
+GROUP by c.class
+HAVING count(*) = 1 
+
+--Exercise 38:
+
+Select distinct country from Classes where type ="bb"
+INTERSECT
+Select distinct country from Classes where type ="bc"
+
+--Exercise 39:
+
+
+
+--Exercise 40:
+
+
+
+--Exercise 41:
+
+
+--Exercise 42:
+
+SELECT o.ship, o.battle
+FROM outcomes o
+LEFT JOIN Battles b ON b.name=o.battle
+WHERE o.result = "sunk"
+
+--Exercise 43:
+
+--Exercise 44:
+
+Select name
+from Ships
+where name like 'R%'
+union
+Select ship
+from Outcomes
+where ship like 'R%'
+
+--Exercise 45:
+
+--Exercise 46:
+
+select name, displacement,numGuns
+from outcomes
+join (classes join ships on classes.class=ships.class) on ship=name
+where battle="Guadalcanal"
+union
+select ship,displacement,numGuns
+from outcomes
+left join classes on ship=classes.class
+where battle="Guadalcanal"
+and ship not in (select name from ships)
+
+--Exercise 47:
+
+
+
+--Exercise 48:
+
+select class
+from ships, outcomes
+where outcomes.ship=Ships.name
+and result="sunk"
+union
+select ship
+from outcomes, classes
+where classes.class=outcomes.ship
+and result="sunk"
+
+--Exercise 49:
+
+select name
+from ships, classes
+where ships.class=classes.class
+and bore=16
+union
+select ship
+from outcomes, classes
+where outcomes.ship=classes.class
+and bore=16
+
+--Exercise 50:
+
+SELECT distinct battle
+FROM Classes
+inner JOIN Ships  ON ships.class = classes.class
+inner JOIN Outcomes  ON Classes.class=Outcomes.ship or Ships.name=Outcomes.ship
+WHERE classes.class = "Kongo"
