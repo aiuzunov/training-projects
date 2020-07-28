@@ -17,14 +17,13 @@ function ProductDetailsPage({ match , history }) {
 
     useEffect(() => {
         dispatch(detailsProduct(match.params.id));
-        dispatch(listTags());
-        console.log(history);
+        dispatch(listTags(match.params.id));
     },[]);
    // const [product,setProduct] = useState({})
    const [quantity,setQuantity] = useState(1);
    const productDetails = useSelector(state => state.productDetails);
    const { product, loading, error} = productDetails;
-   const tagsList = useSelector((state) => state.tagsList);
+   const tagsList = useSelector(state => state.tagsList);
    const { tags , loading: loadingTags, error: tagsError } = tagsList;
    const dispatch = useDispatch();
 
@@ -65,7 +64,7 @@ function ProductDetailsPage({ match , history }) {
             <div className="container">
               
         <div className="left-column">
-<img src={product.image} alt=""/>
+<img src={`http://localhost:5000/${product.name}.png`} alt=""/>
 <img data-image="black" src="" alt=""></img>
 <img data-image="blue" src="" alt=""></img>
 <img data-image="red" className="active" src="" alt=""></img>
@@ -77,11 +76,9 @@ function ProductDetailsPage({ match , history }) {
 
 
 <div className="product-description">
-  <span> {tags.map(tag => (
-    tag.id == product.tag_id ? <div>
-     Категория: {tag.name}
-    </div> :<div>
-     </div>
+  <span> Жанрове : {tags.map(tag => (
+     <div> {tag.name} </div>
+   
   ))}
   </span>
   <h1>{product.name}</h1>

@@ -21,7 +21,7 @@ const useStyles = makeStyles((theme) => ({
 export default function Filters(props) {
   const classes = useStyles();
   const [tagid, setTagid] = useState('');
-  const [price, setPrice] = React.useState([20, 37]);
+  const [price, setPrice] = React.useState([0, 100]);
 
   const handleCategoryChange = (event) => {
     setTagid(event.target.value);

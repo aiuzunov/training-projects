@@ -9,6 +9,11 @@ import Typography from '@material-ui/core/Typography';
 import AddShoppingCartIcon from '@material-ui/icons/AddShoppingCart';
 import {Link, NavLink , Route} from 'react-router-dom';
 import { withRouter } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { useState, useEffect } from 'react';
+import { listPT } from './actions/ptActions';
+
+
 
 const useStyles = makeStyles({
     root: {
@@ -33,17 +38,24 @@ const useStyles = makeStyles({
 
 
 function ProductCard(props) {
+    const ptList = useSelector((state) => state.ptList);
+    const { pts , loading: loadingPts, error: ptsError } = ptList
+    const dispatch = useDispatch();
     const classes = useStyles();
     const bull = <span className={classes.bullet}>•</span>;
     const AddToCart = () => {
       props.history.push('/cart/' + props.id + '?qty=' + 1);
     };
 
+    useEffect(() => {
+      dispatch(listPT());
+  },[]);
+
     return(      
         <Card className={classes.root} variant="outlined">
       <CardMedia 
         className={classes.media}
-        image={props.image}
+        image={`http://localhost:5000/${props.name}.png`}
         style={{ width:"100%",maxWidth:"100%",height:"250px", maxHeight:"20%"}}
       />
       <CardContent>
@@ -56,6 +68,14 @@ function ProductCard(props) {
         <Typography className={classes.colortext} variant="body2" component="h3">
          {props.cis?<p>В наличност</p>: <p>Не е в наличност</p>}
         </Typography>
+        <Typography className={classes.colortext} variant="body2" component="h3">
+          <div>Жанрове:</div>
+        {pts.map(pt => (
+     pt.product_id == props.id ? <div>
+     {pt.name} </div> : <div></div>
+   
+  ))}
+        </Typography>
       </CardContent>
       <CardActions style={{justifyContent: 'center'}}>
      
@@ -63,8 +83,8 @@ function ProductCard(props) {
         <Button className={classes.colortext}  size="medium">Научи повече</Button>
         </Link>
             
-   
-        <Button onClick={AddToCart} className={classes.colortext} size="medium">  <AddShoppingCartIcon/>  </Button>
+      {props.cis ? <Button onClick={AddToCart} className={classes.colortext} size="medium">  <AddShoppingCartIcon/>  </Button> : <div></div>
+}
       </CardActions>
     </Card>
     );

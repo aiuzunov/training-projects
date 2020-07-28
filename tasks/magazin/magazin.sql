@@ -1,82 +1,101 @@
-DROP TABLE IF EXISTS users;
 CREATE TABLE users(
-	user_id INT NOT NULL ,
+	id SERIAL primary key,
 	name TEXT NOT NULL ,
+	username TEXT NOT NULL,
 	email TEXT NOT NULL UNIQUE,
-	password TEXT NOT NULL,
-	isAdmin BOOL NOT NULL,
-	primary key(user_id)
+	password TEXT NOT NULL
 );
 
+CREATE TABLE employees(
+	id SERIAL primary key,
+	name TEXT NOT NULL ,
+	username TEXT NOT NULL,
+	email TEXT NOT NULL UNIQUE,
+	password TEXT NOT NULL
+);
 
-DROP TABLE IF EXISTS tags;
 CREATE TABLE tags(
-	tag_id INT NOT NULL,
-	name TEXT NOT NULL UNIQUE,
-	primary key(tag_id)
+	id SERIAL primary key,
+	name TEXT NOT NULL UNIQUE
 );
 
 
-DROP TABLE IF EXISTS products;
 CREATE TABLE products(
-	product_id INT NOT NULL ,
-	tag_id INT NOT NULL,
+	id SERIAL primary key,
 	name TEXT NOT NULL UNIQUE,
 	image TEXT NOT NULL,
 	brand TEXT NOT NULL,
 	price numeric NOT NULL,
-	countInStock INT NOT NULL,
+	count_in_stock INT NOT NULL,
 	description TEXT NOT NULL,
-	primary key(product_id),
-	FOREIGN KEY (tag_id) REFERENCES tags(tag_id)
+	create_date TEXT NOT NULL,
+	edit_time TEXT
 );
 
-DROP TABLE IF EXISTS address;
-CREATE TABLE address(
-	address_id INT NOT NULL ,
+CREATE TABLE tags_products(
+	id SERIAL,
+	product_id INT NOT NULL,
+	tag_id INT NOT NULL,
+	FOREIGN KEY (tag_id) REFERENCES tags(id),
+	FOREIGN KEY (product_id) REFERENCES products(id),
+	primary key (product_id,tag_id)
+);
+
+
+CREATE TABLE products_details(
+	id SERIAL primary key,
+	product_id INT NOT NULL,
+	size TEXT NOT NULL,
+	color TEXT NOT NULL,
+	gender TEXT NOT NULL,
+	FOREIGN KEY (product_id) REFERENCES products(id)
+);
+
+CREATE TABLE addresses(
+	id SERIAL primary key,
 	user_id INT NOT NULL,
 	address TEXT NOT NULL,
 	city TEXT NOT NULL,
 	postalcode TEXT NOT NULL,
 	country TEXT NOT NULL,
-	primary key(address_id),
-	FOREIGN KEY (user_id) REFERENCES users(user_id)
+	FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+CREATE TABLE payments(
+	id SERIAL primary key,
+	state TEXT NOT NULL,
+	time_of_payment timestamp
+);
 
-DROP TABLE IF EXISTS orders;
 CREATE TABLE orders(
-	order_id INT NOT NULL ,
+	id SERIAL primary key,
 	user_id INT NOT NULL,
 	address_id INT NOT NULL,
+	payment_id INT NOT NULL,
 	created timestamp NOT NULL,
 	modified timestamp,
-	orderStatus TEXT NOT NULL,
+	order_status TEXT NOT NULL,
 	price numeric NOT NULL,
-	primary key(order_id),
-	FOREIGN KEY (user_id) REFERENCES users(user_id),
-	FOREIGN KEY (address_id) REFERENCES address(address_id)
+	FOREIGN KEY (user_id) REFERENCES users(id),
+	FOREIGN KEY (address_id) REFERENCES addresses(id),
+	FOREIGN KEY (payment_id) REFERENCES payments(id)
 );
 
 
-DROP TABLE IF EXISTS order_item;
-CREATE TABLE order_item(
-	order_item_id INT NOT NULL ,
+CREATE TABLE order_items(
+	id SERIAL primary key,
 	order_id INT NOT NULL,
 	product_id INT NOT NULL,
 	quantity INT NOT NULL,
-	primary key(order_item_id),
-	FOREIGN KEY (order_id) REFERENCES orders(order_id),
-	FOREIGN KEY (product_id) REFERENCES products(product_id)
+	FOREIGN KEY (order_id) REFERENCES orders(id),
+	FOREIGN KEY (product_id) REFERENCES products(id)
 );
 
-DROP TABLE IF EXISTS cart_item;
-CREATE TABLE cart_item(
-	cart_item_id INT NOT NULL ,
+CREATE TABLE cart_items(
+	id SERIAL primary key,
 	user_id INT NOT NULL,
 	product_id INT NOT NULL,
 	quantity INT NOT NULL,
-	primary key(cart_item_id),
-	FOREIGN KEY (user_id) REFERENCES users(user_id),
-	FOREIGN KEY (product_id) REFERENCES products(product_id)
+	FOREIGN KEY (user_id) REFERENCES users(id),
+	FOREIGN KEY (product_id) REFERENCES products(id)
 );

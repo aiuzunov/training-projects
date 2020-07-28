@@ -1,0 +1,3 @@
+export const PT_LIST_REQUEST = 'PT_LIST_REQUEST';
+export const PT_LIST_SUCCESS = 'PT_LIST_SUCCESS';
+export const PT_LIST_FAIL = 'PT_LIST_FAIL';

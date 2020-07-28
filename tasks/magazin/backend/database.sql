@@ -19,25 +19,28 @@ CREATE TABLE tags(
 	name TEXT NOT NULL UNIQUE
 );
 
-CREATE TABLE employee_tags(
-	id SERIAL primary key,
-	employee_id INT NOT NULL,
-	tag_id INT NOT NULL,
-	FOREIGN KEY (tag_id) REFERENCES tags(id),
-	FOREIGN KEY (employee_id) REFERENCES employees(id)
-);
 
 CREATE TABLE products(
 	id SERIAL primary key,
-	tag_id INT NOT NULL,
 	name TEXT NOT NULL UNIQUE,
 	image TEXT NOT NULL,
 	brand TEXT NOT NULL,
 	price numeric NOT NULL,
 	count_in_stock INT NOT NULL,
 	description TEXT NOT NULL,
-	FOREIGN KEY (tag_id) REFERENCES tags(id)
+	create_date TEXT NOT NULL,
+	edit_time TEXT
 );
+
+CREATE TABLE tags_products(
+	id SERIAL,
+	product_id INT NOT NULL,
+	tag_id INT NOT NULL,
+	FOREIGN KEY (tag_id) REFERENCES tags(id),
+	FOREIGN KEY (product_id) REFERENCES products(id),
+	primary key (product_id,tag_id)
+);
+
 
 CREATE TABLE products_details(
 	id SERIAL primary key,

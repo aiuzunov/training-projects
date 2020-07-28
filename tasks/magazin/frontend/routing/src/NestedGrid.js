@@ -33,6 +33,7 @@ function NestedGrid(props){
     const dispatch = useDispatch();
     useEffect(() => {
       dispatch(listProducts(props.price,props.tagid,props.search));
+      console.log(products)
     },[props.pageNumber,props.search,props.tagid,props.price]);    
     
     const indexOfLastProduct = props.pageNumber * 9;

@@ -14,6 +14,7 @@ import EditIcon from '@material-ui/icons/Edit';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import { listTags } from './actions/tagsActions';
 import BackOfficeFilters from './BackOfficeFilters';
+import { listPT } from './actions/ptActions';
 
 
 
@@ -37,25 +38,44 @@ function CRUDProducts({  match , history }) {
     const {loading, products, error} = productList;
     const tagsList = useSelector((state) => state.tagsList);
     const { tags , loading: loadingTags, error: tagsError } = tagsList;
+    const ptList = useSelector((state) => state.ptList);
+    const { pts , loading: loadingPts, error: ptsError } = ptList
     const dispatch = useDispatch();
     useEffect(() => {
+        dispatch(listPT());
         if(productSaved){
             setCreateProductPop(false);
         }
     },[productSaved]);
-    
+
     const indexOfLastPost = currentPage * postsPerPage;
     const indexOfFirstPost = indexOfLastPost - postsPerPage;
     const currentPosts = products.slice(indexOfFirstPost, indexOfLastPost)
 
     const popCreateMenu = (product) => {
+        if(product.id){
+            var tagsstring = ''
+            for(let i =0 ; i<pts.length;i++){
+            if(i<pts.length-1){
+                tagsstring += JSON.stringify(pts[i].id) + ',';
+            }
+            else{
+                tagsstring += JSON.stringify(pts[i].id);
+    
+            }
+            }
+        }       
         setCreateProductPop(true);
         setName(product.name);
         setid(product.id);
         setPrice(product.price);
         setImage(product.image);
         setBrand(product.brand);
-        setTag_id(product.tag_id);
+        if(product.id){
+            setTag_id(tagsstring);
+        }else{
+            setTag_id(product.tag_id);
+        }
         setCountinstock(product.count_in_stock);
         setDescription(product.description);
     }
@@ -78,7 +98,6 @@ function CRUDProducts({  match , history }) {
    }
 
    const paginate = (pageNumber) => setCurrentPage(pageNumber);
- 
     return(
         <div>
             <NavBar/>
@@ -135,7 +154,7 @@ function CRUDProducts({  match , history }) {
                         <label htmlFor="tag">
                             ID на категория
                         </label>
-                        <input type="number" name="tag" id="tag" value={tag_id} onChange={(e) => setTag_id(e.target.value)}/>
+                        <input type="text" name="tag" id="tag" value={tag_id} onChange={(e) => setTag_id(e.target.value)}/>
                     </li>
                     <li>
                         <label htmlFor="cis">
@@ -197,7 +216,7 @@ function CRUDProducts({  match , history }) {
                                 Изображение
                             </th>
                             <th>
-                                Категория
+                                Жанрове
                             </th>
                             <th>
                                 Брой в наличност
@@ -229,11 +248,12 @@ function CRUDProducts({  match , history }) {
                                  {product.image}
                             </td>
                             <td>
-                             {tags.map(tag => (
-                                tag.id == product.tag_id ? <div>
-                                {tag.name}
-                                </div> :
-                                <div> </div>
+                             {pts.map(pt => (
+                              
+                                pt.product_id == product.id ? <div>
+                                    {pt.name}
+                                </div> : <div> </div>
+                                
                                 ))}
                             </td>
                             <td>

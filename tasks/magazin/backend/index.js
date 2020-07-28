@@ -19,6 +19,8 @@ const download = (url, path, callback) => {
 //middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.static('public'))
+
 
 //routes
 
@@ -65,9 +67,14 @@ app.post("/tags",async (req,res) => {
 app.post("/products",async (req,res) => {
     try {
         const {create_date,tag_id,name,image,brand,price,count_in_stock,description} = req.body;
+        var tagarr = tag_id.split(",");
         const url = image;
-        const path = `./images/${name}.png`;
-        const newProduct = await pool.query(" INSERT INTO products (tag_id,name,image,brand,price,count_in_stock,description,create_date) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",[tag_id,name,image,brand,price,count_in_stock,description,create_date]);
+        const path = `./public/${name}.png`;
+        const newProduct = await pool.query(" INSERT INTO products (name,image,brand,price,count_in_stock,description,create_date) VALUES ($1,$2,$3,$4,$5,$6,$7)",[name,image,brand,price,count_in_stock,description,create_date]);
+        productId = await pool.query(" SELECT id FROM products WHERE name=$1 ",[name])
+        for(let i = 0; i< tagarr.length;i++){
+            await pool.query("INSERT INTO tags_products (product_id,tag_id) VALUES($1,$2)",[productId.rows[0].id,tagarr[i]]);
+        }
         res.json(newProduct);
         download(url, path, () => {
             console.log('✅ Done!')
@@ -82,8 +89,14 @@ app.put("/products/:id",async (req,res) => {
     try {
         const {create_date,id,tag_id,name,image,brand,price,count_in_stock,description} = req.body;
         const url = image;
-        const path = `./images/${name}.png`;
-        const newProduct = await pool.query(" UPDATE products SET tag_id=$1,name=$2,image=$3,brand=$4,price=$5,count_in_stock=$6,description=$7,edit_time=$8 WHERE id=$9",[tag_id,name,image,brand,price,count_in_stock,description,create_date,id]);
+        const path = `./public/${name}.png`;
+        var tagarr = tag_id.split(",");
+        const newProduct = await pool.query(" UPDATE products SET name=$1,image=$2,brand=$3,price=$4,count_in_stock=$5,description=$6,edit_time=$7 WHERE id=$8",[name,image,brand,price,count_in_stock,description,create_date,id]);
+        await pool.query(`DELETE from tags_products where tag_id NOT IN (${tag_id}) AND product_id=${id}`);
+        
+        for(let i = 0; i< tagarr.length;i++){
+            await pool.query("INSERT INTO tags_products (product_id,tag_id) VALUES ($1,$2) ON CONFLICT ON CONSTRAINT tags_products_pkey DO NOTHING ",[id,tagarr[i]]);
+        }
         res.json(newProduct);
         download(url, path, () => {
             console.log('✅ Done!')
@@ -157,7 +170,7 @@ app.get("/products/all/:name",async(req,res) => {
 app.get("/products/tagsfilter/:tagid",async(req,res) => {
     try {
         const{tagid} = req.params;
-        const allProducts = await pool.query("SELECT * FROM products WHERE tag_id=$1",[tagid]);
+        const allProducts = await pool.query("SELECT DISTINCT products.id,name,image,brand,price,count_in_stock,description,create_date,edit_time FROM products join tags_products on products.id = tags_products.product_id where tags_products.tag_id = $1 ",[tagid]);
         res.json(allProducts.rows);
     } catch (err) {
         console.error(err.message)
@@ -168,7 +181,7 @@ app.get("/products/tagsfilter/:tagid",async(req,res) => {
 app.get("/products/all/:name/:tagid",async(req,res) => {
     try {
         const{name,tagid} = req.params;
-        const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tag_id=$2",[name,tagid]);
+        const allProducts = await pool.query("SELECT DISTINCT products.id,name,image,brand,price,count_in_stock,description,create_date,edit_time FROM products join tags_products on products.id = tags_products.product_id WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tags_products.tag_id = $2",[name,tagid]);
         res.json(allProducts.rows);
     } catch (err) {
         console.error(err.message)
@@ -182,7 +195,7 @@ app.get("/products/all/:name/:tagid/:price",async(req,res) => {
         var pricearr = price.split(",")
         price1 = pricearr[0];
         price2 = pricearr[1];
-        const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tag_id=$2 AND price>=$3 AND price<=$4",[name,tagid,price1,price2]);
+        const allProducts = await pool.query("SELECT DISTINCT products.id,name,image,brand,price,count_in_stock,description,create_date,edit_time FROM products join tags_products on products.id = tags_products.product_id WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tags_products.tag_id = $2 AND price>=$3 AND price<=$4",[name,tagid,price1,price2]);
         res.json(allProducts.rows);
     } catch (err) {
         console.error(err.message)
@@ -210,7 +223,7 @@ app.get("/products/tp/:tagid/:price",async(req,res) => {
         var pricearr = price.split(",")
         price1 = pricearr[0];
         price2 = pricearr[1];
-        const allProducts = await pool.query("SELECT * FROM products WHERE tag_id=$1 AND price>=$2 AND price<=$3",[tagid,price1,price2]);
+        const allProducts = await pool.query("SELECT DISTINCT products.id,name,image,brand,price,count_in_stock,description,create_date,edit_time FROM products join tags_products on products.id = tags_products.product_id WHERE tags_products.tag_id = $1 AND price>=$2 AND price<=$3",[tagid,price1,price2]);
         res.json(allProducts.rows);
     } catch (err) {
         console.error(err.message)
@@ -233,26 +246,8 @@ app.get("/products/p/:price",async(req,res) => {
 })
 
 
-//get product count
-app.get("/products/",async(req,res) => {
-    try {
-        const productCount = await pool.query("SELECT COUNT(*) FROM products");
-        res.json(productCount.rows[0]);
-    } catch (err) {
-        console.error(err.message)
-    }
-})
 
-//all product count+name
-app.get("/products/:name",async(req,res) => {
-    try {
-        const{name} = req.params;
-        const productCount = await pool.query("SELECT COUNT(*) FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%')",[name]);
-        res.json(productCount.rows[0]);
-    } catch (err) {
-        console.error(err.message)
-    }
-})
+
 
 
 app.get('/image/:name', function (req, res) {
@@ -261,16 +256,7 @@ app.get('/image/:name', function (req, res) {
     res.sendFile(path);
 })
 
-//all product count+name
-app.get("/products/:name/:tagid",async(req,res) => {
-    try {
-        const{name,tagid} = req.params;
-        const productCount = await pool.query("SELECT COUNT(*) FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tag_id=$2",[name,tagid]);
-        res.json(productCount.rows[0]);
-    } catch (err) {
-        console.error(err.message)
-    }
-})
+
 
 // get a single product 
 app.get("/product/:id", async (req, res) => {
@@ -283,27 +269,8 @@ app.get("/product/:id", async (req, res) => {
     }
 })
 
-//update a product
-app.put("/products/:id", async (req, res) => {
-    try {
-        const {id} = req.params;
-        const {tag_id,name,image,brand,price,count_in_stock,description} = req.body;
-        const updateProduct = await pool.query("UPDATE products SET tag_id = $2, name = $3, image = $4, brand = $5, price = $6, count_in_stock = $7, description = $8 WHERE id = $1",[id,tag_id,name,image,brand,price,count_in_stock,description]);
-        res.json("The product was sucessfully updated");
-    } catch (err) {
-        console.log(err.message)
-    }
-})
-// delete a product
-app.delete("/products/:id",async (req,res) => {
-    try {
-        const {id} = req.params;
-        const deleteProduct = await pool.query("UPDATE products SET count_in_stock=0 WHERE id = $1",[id]);
-        res.json("The Product Was Deleted");
-    } catch (err) {
-        console.log(err.message)
-    }
-})
+
+
 
 
 //create user
@@ -329,7 +296,7 @@ app.post("/createuser",async (req,res) => {
 })
 
 
-//create user
+//sign im user
 app.post("/signin",async (req,res) => {
     try {
       
@@ -359,6 +326,28 @@ app.get("/tags/all",async(req,res) => {
     try {
         const allTags = await pool.query("SELECT * FROM tags");
         res.json(allTags.rows);
+    } catch (err) {
+        console.error(err.message)
+    }
+})
+
+app.get("/listPT",async(req,res) => {
+    try {
+        const allPT = await pool.query("select tags.id,name,tags_products.product_id from tags join tags_products on tags.id = tags_products.tag_id");
+        res.json(allPT.rows);
+    } catch (err) {
+        console.error(err.message)
+    }
+})
+
+//get all tags for product
+app.get("/tags/:id",async(req,res) => {
+    try {
+        const{id} = req.params;
+        console.log(id)
+
+        const productTags = await pool.query("select name from tags join tags_products on tags.id = tags_products.tag_id where product_id = $1",[id]);
+        res.json(productTags.rows);
     } catch (err) {
         console.error(err.message)
     }
