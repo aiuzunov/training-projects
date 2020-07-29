@@ -55,12 +55,12 @@ const saveProduct = (product) => async (dispatch, getState) => {
       
       dispatch({ type: PRODUCT_SAVE_REQUEST, payload: product });
       const {
-        userSignIn: { userInfo },
+        employeeSignIn: { employeeInfo },
       } = getState();
       if(product.id){
         const { data } = await axios.put(`http://localhost:5000/products/${product.id}`, product, {
         headers: {
-          Authorization: 'Bearer ' + userInfo.token,
+          Authorization: 'Bearer ' + employeeInfo.token,
         },
       });
       dispatch({ type: PRODUCT_SAVE_SUCCESS, payload: data });
@@ -68,7 +68,7 @@ const saveProduct = (product) => async (dispatch, getState) => {
     }else {
         const { data } = await axios.post(`http://localhost:5000/products/`, product, {
             headers: {
-              Authorization: 'Bearer ' + userInfo.token,
+              Authorization: 'Bearer ' + employeeInfo.token,
             },
           });
           dispatch({ type: PRODUCT_SAVE_SUCCESS, payload: data });
@@ -94,12 +94,12 @@ const deleteProduct = (product) => async (dispatch, getState) => {
   try {
       dispatch({type: PRODUCT_DELETE_REQUEST, payload: product.id});
       const {
-        userSignIn: { userInfo },
+        employeeSignIn: { employeeInfo },
       } = getState();
       const {data} = await axios.delete(`http://localhost:5000/products/${product.id}`,
       {
         headers:{
-          Authorization: 'Bearer' + userInfo.token
+          Authorization: 'Bearer' + employeeInfo.token
         }
       });
       dispatch({type: PRODUCT_DELETE_SUCCESS, payload: data, success: true});

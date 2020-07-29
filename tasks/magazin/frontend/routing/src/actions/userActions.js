@@ -13,12 +13,24 @@ const signin = (email,password) => async (dispatch) => {
     }
 }
 
-const signup = (name,username,email,password) => async (dispatch) => {
+const signup = (name,username,email,password,update) => async (dispatch) => {
     dispatch({type: USER_SIGNUP_REQUEST,payload:{name,username,email,password}});
     try {
+    if(!update)
+    {
         const {data} = await Axios.post(`http://localhost:5000/createuser`,{name,username,email,password});
         dispatch({type: USER_SIGNUP_SUCCESS,payload:data});
         Cookie.set('userInfo', JSON.stringify(data));
+    }
+    else{
+        const {data} = await Axios.put(`http://localhost:5000/updateuser`,{name,username,email,password});
+        dispatch({type: USER_SIGNUP_SUCCESS,payload:data});
+        console.log(data);
+        if(data.id){
+            Cookie.set('userInfo', JSON.stringify(data));
+        }
+    }
+        
     } catch (error) {
         dispatch({type: USER_SIGNUP_FAIL,payload: error.message});
     }

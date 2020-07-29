@@ -7,6 +7,9 @@ import Cart from './Cart';
 import SignInScreen from './SignInScreen';
 import SignUpScreen from './SignUpScreen';
 import CRUDProducts from './CRUDProducts';
+import SignInEmployees from './signInEmployees';
+import PrivateRoute from './PrivateRoute';
+import UserProfile from './userProfile';
 
 function App() {
 
@@ -22,8 +25,11 @@ function App() {
       <Route path="/cart/:id?" component={Cart} />
       <Route path="/signin" component={SignInScreen}/>
       <Route path="/signup" component={SignUpScreen}/>
-      <Route path="/manageproducts" component={CRUDProducts}/>
-      
+      <Route path="/signinemp" component={SignInEmployees}/>
+      <Route path="/profile" component={UserProfile}/>
+      <PrivateRoute path='/manageproducts' component={CRUDProducts} />
+
+
     </Switch>
     </Router>
   );

@@ -30,7 +30,6 @@ function SignUpScreen({  match , history }) {
        if(password==password2){
         e.preventDefault();
         dispatch(signup(name,username,email,password))
-        dispatch(signin(email,password))
        }else{
            alert("Passwords must match")
        }
