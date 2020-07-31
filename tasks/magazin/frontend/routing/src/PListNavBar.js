@@ -24,6 +24,9 @@ import { Select, InputLabel, FormControl } from '@material-ui/core';
 import Filters from './Filters';
 import { listTags } from './actions/tagsActions';
 import HomeIcon from '@material-ui/icons/Home';
+import Cookie from 'js-cookie';
+
+
 
 
 
@@ -129,12 +132,14 @@ function PListNavBar() {
   const tagsList = useSelector((state) => state.tagsList);
   const { tags , loading, error } = tagsList;
   const dispatch = useDispatch();
+  const loggedIn = Cookie.getJSON('userInfo') || null;
+
 
   useEffect(() => {
         dispatch(listTags());
       },[]);   
-  
-  const handleNavMenuOpen = (event) => {
+  console.log(userInfo)
+    const handleNavMenuOpen = (event) => {
     setNavAnchorEl(event.currentTarget);
   };
 
@@ -293,7 +298,7 @@ function PListNavBar() {
                 <ShoppingCartIcon />
             </IconButton>
           </Link> 
-            {userInfo ? <Link to="/profile" style={{ textDecoration: 'none' }}> <Typography className={classes.title} variant="h6" noWrap>
+            {loggedIn ? <Link to="/profile" style={{ textDecoration: 'none' }}> <Typography className={classes.title} variant="h6" noWrap>
             {userInfo.username}
           </Typography></Link> : 
             <IconButton

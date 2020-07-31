@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Checkbox, FormControlLabel, FormGroup, Select, Divider, makeStyles, FormControl, MenuItem, FormHelperText, FormLabel, RadioGroup, Radio, Slider, Typography } from '@material-ui/core';
+import { Checkbox, FormControlLabel, FormGroup, Select, Divider, makeStyles, FormControl, MenuItem, FormHelperText, FormLabel, RadioGroup, Radio, Slider, Typography, Button } from '@material-ui/core';
 import BasicPagination from './BasicPagination';
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import { Link } from 'react-router-dom';
+import Cookie from 'js-cookie';
+
 
 const useStyles = makeStyles((theme) => ({
     formControl: {
@@ -21,8 +25,8 @@ const useStyles = makeStyles((theme) => ({
 export default function Filters(props) {
   const classes = useStyles();
   const [tagid, setTagid] = useState('');
-  const [price, setPrice] = React.useState([0, 100]);
-
+  const [price, setPrice] = React.useState([0, 150]);
+  const [finalPrice, setFinalPrice] = React.useState([0,150]);
   const handleCategoryChange = (event) => {
     setTagid(event.target.value);
   };
@@ -30,9 +34,13 @@ export default function Filters(props) {
   const handlePriceChange = (event, newPrice) => {
     setPrice(newPrice);
   };
-  useEffect(() => {
 
-},[tagid,price]);
+  const logoutHandler = () => {
+    Cookie.remove("userInfo");
+  }
+  useEffect(() => {
+   
+},[tagid]);
   return (
     <div>
       <div className="filterWrapper">

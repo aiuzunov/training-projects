@@ -117,6 +117,10 @@ function ProductDetailsPage({ match , history }) {
      <span >Цена (1бр.) : {Number(product.price).toFixed(2)} лв.</span>
     
     </div>
+    <div className="product-price">
+     <span >Общo ({quantity}бр.) : {Number(product.price*quantity).toFixed(2)} лв.</span>
+    
+    </div>
     {product.count_in_stock > 0 &&  <Button
               style={{marginTop: 30}}
               variant="contained"

@@ -4,43 +4,43 @@ const listProducts = (price,tagid,name) => async (dispatch) => {
     try {
       if(tagid&&name&&price){
         dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`http://localhost:5000/products/all/${name}/${tagid}/${price}`);
+        const { data } = await axios.get(`http://localhost:5000/api/products/all/${name}/${tagid}/${price}`);
         dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });
       }
       else if(tagid&&name){
         dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`http://localhost:5000/products/all/${name}/${tagid}`);
+        const { data } = await axios.get(`http://localhost:5000/api/products/all/${name}/${tagid}`);
         dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });  
       }
       else if(price&&name){
         dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`http://localhost:5000/products/np/${name}/${price}`);
+        const { data } = await axios.get(`http://localhost:5000/api/products/np/${name}/${price}`);
         dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });  
       }
       else if(tagid&&price){
         dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`http://localhost:5000/products/tp/${tagid}/${price}`);
+        const { data } = await axios.get(`http://localhost:5000/api/products/tp/${tagid}/${price}`);
         dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });  
       }
       else if(price){
         dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`http://localhost:5000/products/p/${price}`);
+        const { data } = await axios.get(`http://localhost:5000/api/products/p/${price}`);
         dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });  
       }
       else if(name){
         dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`http://localhost:5000/products/all/${name}`);
+        const { data } = await axios.get(`http://localhost:5000/api/products/all/${name}`);
         dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data }); 
       }
       else if(tagid){
         dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`http://localhost:5000/products/tagsfilter/${tagid}`);
+        const { data } = await axios.get(`http://localhost:5000/api/products/tagsfilter/${tagid}`);
         dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data }); 
       }
       else {
 
         dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`http://localhost:5000/products/all`);
+        const { data } = await axios.get(`http://localhost:5000/api/products/all`);
         dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });  
       }
          
@@ -58,7 +58,7 @@ const saveProduct = (product) => async (dispatch, getState) => {
         employeeSignIn: { employeeInfo },
       } = getState();
       if(product.id){
-        const { data } = await axios.put(`http://localhost:5000/products/${product.id}`, product, {
+        const { data } = await axios.put(`http://localhost:5000/api/products/update/${product.id}`, product, {
         headers: {
           Authorization: 'Bearer ' + employeeInfo.token,
         },
@@ -66,7 +66,7 @@ const saveProduct = (product) => async (dispatch, getState) => {
       dispatch({ type: PRODUCT_SAVE_SUCCESS, payload: data });
 
     }else {
-        const { data } = await axios.post(`http://localhost:5000/products/`, product, {
+        const { data } = await axios.post(`http://localhost:5000/api/products/create`, product, {
             headers: {
               Authorization: 'Bearer ' + employeeInfo.token,
             },
@@ -83,7 +83,7 @@ const saveProduct = (product) => async (dispatch, getState) => {
 const detailsProduct = (productId) => async (dispatch) => {
     try {
         dispatch({type: PRODUCT_DETAILS_REQUEST, payload: productId});
-        const {data} = await axios.get(`http://localhost:5000/product/${productId}`);
+        const {data} = await axios.get(`http://localhost:5000/api/products/${productId}`);
         dispatch({type: PRODUCT_DETAILS_SUCCESS, payload: data});
     } catch (error) {
         dispatch({ type: PRODUCT_DETAILS_FAIL, payload: error.message });
@@ -96,7 +96,7 @@ const deleteProduct = (product) => async (dispatch, getState) => {
       const {
         employeeSignIn: { employeeInfo },
       } = getState();
-      const {data} = await axios.delete(`http://localhost:5000/products/${product.id}`,
+      const {data} = await axios.delete(`http://localhost:5000/api/products/delete/${product.id}`,
       {
         headers:{
           Authorization: 'Bearer' + employeeInfo.token

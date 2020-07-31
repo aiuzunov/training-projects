@@ -21,6 +21,8 @@ import {BrowserRouter as Router, Switch, Route} from 'react-router-dom';
 import {Link, NavLink} from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { listProducts } from './actions/productActions';
+import Cookie from 'js-cookie';
+
 
 
 
@@ -104,7 +106,7 @@ const useStyles = makeStyles((theme) => ({
  
 }));
 
-function NavBar() {
+function NavBar(props) {
   const classes = useStyles();
   const [navAnchorEl,setNavAnchorEl] = React.useState(null);
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -114,8 +116,9 @@ function NavBar() {
   const isProfileMobileMenuOpen = Boolean(mobileMoreAnchorEl);
   const userSignIn = useSelector(state=>state.userSignIn);
   const {userInfo} = userSignIn;
-  
-  
+  const loggedIn = Cookie.getJSON('userInfo') || null;
+
+ 
   const handleNavMenuOpen = (event) => {
     setNavAnchorEl(event.currentTarget);
   };
@@ -241,7 +244,7 @@ function NavBar() {
                 <ShoppingCartIcon />
             </IconButton>
           </Link> 
-            {userInfo ? <Link to="/profile" style={{ textDecoration: 'none' }}> <Typography className={classes.title} variant="h6" noWrap>
+            {loggedIn ? <Link to="/profile" style={{ textDecoration: 'none' }}> <Typography className={classes.title} variant="h6" noWrap>
             {userInfo.username}
           </Typography></Link> : 
             <IconButton

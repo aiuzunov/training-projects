@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { signin } from './actions/userActions';
 import { Button } from '@material-ui/core';
 import NavBar from './NavBar';
+import Cookie from 'js-cookie';
 
 
 
@@ -16,9 +17,9 @@ function SignInScreen({  match , history }) {
     const userSignIn = useSelector(state=>state.userSignIn);
     const {userInfo, loading, error} = userSignIn;
     const dispatch = useDispatch();
-    
+
+   
     useEffect(() => {
-        console.log(userInfo,loading,error)
         if(userInfo){
             history.push('/');
         }

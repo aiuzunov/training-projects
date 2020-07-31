@@ -2,14 +2,14 @@ import React, { useCallback } from 'react';
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { detailsProduct } from './actions/productActions';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import { signin, signup } from './actions/userActions';
 import { Button } from '@material-ui/core';
 import NavBar from './NavBar';
 
 
 
-function SignUpScreen({  match , history }) {
+function SignUpScreen() {
     const [name,setName] = useState('');
     const [username,setUsername] = useState('');
     const [email,setEmail] = useState('');
@@ -18,14 +18,18 @@ function SignUpScreen({  match , history }) {
     const userSignUp = useSelector(state=>state.userSignIn);
     const {userInfo, loading, error} = userSignUp;
     const dispatch = useDispatch();
-    
+    const history = useHistory();
     useEffect(() => {
         console.log(userInfo,loading,error)
-        if(userInfo){
+        if(document.cookie){
             history.push('/');
         }
     },[userInfo]);
  
+
+  
+
+
    const submitInfo = (e) => {
        if(password==password2){
         e.preventDefault();
@@ -99,7 +103,7 @@ function SignUpScreen({  match , history }) {
                     variant="contained"
                     color="primary"
                     >
-                        Създай нов акаунт
+                        Влез в твоя акаунт
                      </Button>
                      
                     </li>

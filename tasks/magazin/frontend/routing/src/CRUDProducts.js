@@ -55,16 +55,19 @@ function CRUDProducts({  match , history }) {
     const popCreateMenu = (product) => {
         if(product.id){
             var tagsstring = ''
+            console.log(pts)
             for(let i =0 ; i<pts.length;i++){
             if(i<pts.length-1){
-                tagsstring += JSON.stringify(pts[i].id) + ',';
+                if(pts[i].product_id == product.id){
+                    tagsstring += JSON.stringify(pts[i].id) + ',';
+                }
             }
-            else{
-                tagsstring += JSON.stringify(pts[i].id);
-    
+
             }
-            }
-        }       
+            tagsstring = tagsstring.substring(0, tagsstring.length - 1);
+
+        }
+        console.log(tagsstring)       
         setCreateProductPop(true);
         setName(product.name);
         setid(product.id);
