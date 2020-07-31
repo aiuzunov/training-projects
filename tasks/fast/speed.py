@@ -1,87 +1,75 @@
-def calc(roads,cities,optimal):
-	stack = []
+class road:
+	def __init__(self,F,T,S):
+		self.F = F
+		self.T = T
+		self.S = S
+	
+def seen_before(for_check,towns):
+	count = 0
+	queue = []
+	seen_before = [0]*num_roads
+	seen_before[1] = 1
+	queue.append(1)
+	count += 1
+	while len(queue) != 0:
+		position = queue[0]
+		queue.pop(0)
+		for i in for_check[position]:
+			if seen_before[i] != 1:
+				seen_before[i] = 1
+				queue.append(i)
+				count += 1
+	return towns == count 
 
-	new_roads  = []
+cur_max = 30000	
+curr_min = 1
+roads = []
 
-	for i in roads:
-		if optimal[0] <= i[2] and optimal[1] >= i[2]:
-			new_roads.append(i)
+print("Въведете 1 за въвеждане от конзолата или 2 за въвеждане от файл")
+choice = int(input())
 
-	seen = [False] * len(new_roads)
-
-	seenCities = [False] * cities
-	seenCities[0] = True
-
-	start_of_graph = 1
-	stack.append(start_of_graph)
-	current_pos = -1
-	while len(stack) != 0:
-		current_pos = stack[-1]
-		for i in range(len(new_roads)):
-			if current_pos == new_roads[i][0] and seen[i] is False:
-				stack.append(new_roads[i][1])
-				seen[i] = True
-				seenCities[new_roads[i][1]-1] = True
-
-			elif current_pos == new_roads[i][1] and seen[i] is False:
-				stack.append(new_roads[i][0])
-				seen[i] = True
-				seenCities[new_roads[i][0]-1] = True
-
-		try:
-			delitem = stack.index(current_pos)
-		except:
-			delitem = -1
-
-		if delitem != -1:		
-			stack = stack[:delitem] + stack[delitem+1:]
-
-	if False in seenCities:
-		return False
-	else:
-		return True		
-
-inputdata = input().split()
-cities = int(inputdata[0])
-num_road = int(inputdata[1])
-
-
-roads= []
-
-for i in range(num_road):
+if choice == 1:
 	inputdata = input().split()
-	tempF = int(inputdata[0])
-	tempT = int(inputdata[1])
-	tempS = int(inputdata[2])
-	roads.append((tempF,tempT,tempS))
+	towns = int(inputdata[0])
+	num_roads = int(inputdata[1])
+	for i in range(num_roads):
+		inputdata = input().split()
+		roads.append(road(int(inputdata[0]),int(inputdata[1]),int(inputdata[2])))
+else:
+	i = 0 
+	print("Моля въведете пътя към файла")
+	filepath = input()
+	file = open('{}'.format(filepath),'r')
+	while 1:
+		line = file.readline()
+		if not line:
+			break;
+		fileline=line.split()
+		if i != 0:
+			roads.append(road(int(fileline[0]),int(fileline[1]),int(fileline[2])))
+		else:
+			towns = int(fileline[0])
+			num_roads = int(fileline[1])
+		i+=1
 
-optimalSpeeds = []
+	file.close()
 
-for i in roads:
-	if i[2] not in optimalSpeeds:
-		optimalSpeeds.append(i[2])
-optimalSpeeds.sort()
+roads.sort(key=lambda x: x.S)
 
-all_tuple = []
-for i in optimalSpeeds:
-	for j in optimalSpeeds:
-		if i < j:
-			all_tuple.append((i,j))
+temp = []
+for_check = [[] for i in range(num_roads)]
 
-
-valid_answers = []
-
-current_optimal_sum = 10000
-
-for i in all_tuple:
-	temp = calc(roads,cities,i)
-	if	temp and (abs(i[0] - i[1]) < current_optimal_sum):
-		valid_answers = valid_answers[:-1]
-		valid_answers.append(i)
-		current_optimal_sum = abs(i[0] - i[1])
-	elif temp and (abs(i[0] - i[1]) == current_optimal_sum):
-		valid_answers.append(i)
-
-valid_answers = sorted(valid_answers, key=lambda tup: tup[0])
-
-print(valid_answers[0])
+for i in range(len(roads)):
+	for_check[roads[i].F].append(roads[i].T)
+	for_check[roads[i].T].append(roads[i].F)
+	temp.append(i)
+	while len(temp) != 0 and seen_before(for_check,towns):
+		oldest = temp[0]
+		if (roads[i].S - roads[oldest].S < cur_max - curr_min):
+			curr_min = roads[oldest].S
+			cur_max = roads[i].S
+		temp.pop(0)
+		for_check[roads[oldest].F].pop(0)
+		for_check[roads[oldest].T].pop(0)
+	
+print(curr_min,cur_max)
