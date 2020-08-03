@@ -8,7 +8,7 @@ router.get("/list",async(req,res) => {
         const allPT = await pool.query("select tags.id,name,tags_products.product_id from tags join tags_products on tags.id = tags_products.tag_id");
         res.json(allPT.rows);
     } catch (err) {
-        console.error(err.message)
+        res.status(500).send({msg: 'There was a problem with the server.'});
     }
 })
 

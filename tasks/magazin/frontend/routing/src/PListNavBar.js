@@ -298,7 +298,7 @@ function PListNavBar() {
                 <ShoppingCartIcon />
             </IconButton>
           </Link> 
-            {loggedIn ? <Link to="/profile" style={{ textDecoration: 'none' }}> <Typography className={classes.title} variant="h6" noWrap>
+            {userInfo ? <Link to="/profile" style={{ textDecoration: 'none' }}> <Typography className={classes.title} variant="h6" noWrap>
             {userInfo.username}
           </Typography></Link> : 
             <IconButton

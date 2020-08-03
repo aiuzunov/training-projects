@@ -63,7 +63,7 @@ function ProductCard(props) {
           {props.name}
         </Typography>
         <Typography className={classes.colortext}>
-         Цена: {Number(props.price).toFixed(2)} лв.
+         Цена: {Number(props.price).toFixed(2)} {props.currency_id}.
         </Typography>
         <Typography className={classes.colortext} variant="body2" component="h3">
          {props.cis?<p>В наличност</p>: <p>Не е в наличност</p>}

@@ -9,7 +9,7 @@ const employeeSign = (email,password) => async (dispatch) => {
         dispatch({type: EMPLOYEE_SIGNIN_SUCCESS,payload:data});
         Cookie.set('employeeInfo', JSON.stringify(data));
     } catch (error) {
-        dispatch({type: EMPLOYEE_SIGNIN_FAIL,payload: error.message});
+        dispatch({type: EMPLOYEE_SIGNIN_FAIL,payload: error.response.data.msg});
     }
 }
 

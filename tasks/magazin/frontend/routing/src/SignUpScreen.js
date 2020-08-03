@@ -4,36 +4,50 @@ import { useSelector, useDispatch } from 'react-redux';
 import { detailsProduct } from './actions/productActions';
 import { Link, useHistory } from 'react-router-dom';
 import { signin, signup } from './actions/userActions';
-import { Button } from '@material-ui/core';
+import { Button, Typography } from '@material-ui/core';
 import NavBar from './NavBar';
+import Cookie from 'js-cookie';
 
 
 
-function SignUpScreen() {
+
+
+function SignUpScreen() {    
     const [name,setName] = useState('');
     const [username,setUsername] = useState('');
     const [email,setEmail] = useState('');
     const [password,setPassword] = useState('');
     const [password2,setPassword2] = useState('');
-    const userSignUp = useSelector(state=>state.userSignIn);
+    const userSignUp = useSelector(state=>state.userSignUp);
     const {userInfo, loading, error} = userSignUp;
     const dispatch = useDispatch();
     const history = useHistory();
+
     useEffect(() => {
-        console.log(userInfo,loading,error)
-        if(document.cookie){
-            history.push('/');
+        
+        if(Cookie.getJSON('userInfo')){
+            history.push("/")
         }
-    },[userInfo]);
+
+        if(loading==false&&error==undefined){
+            setTimeout(
+                () => window.location = "/signin", 
+                10000
+              );
+        }
+    
+        
+        
+    },[userInfo,loading]);
  
 
-  
-
+    
 
    const submitInfo = (e) => {
        if(password==password2){
         e.preventDefault();
         dispatch(signup(name,username,email,password))
+
        }else{
            alert("Passwords must match")
        }
@@ -53,6 +67,10 @@ function SignUpScreen() {
                     <li>
                         {loading && <div>Loading...</div>}
                         {error && <div>{error}</div>}
+                        {loading==false&&error==undefined&&<div>
+                        <Typography color="secondary">Имейл за верификация беше изпратен на следния адрес :  {email}</Typography> 
+                        <Typography color="secondary"> Ще бъдете автоматично прехвърлен към страницата за влизане след 10 секунди</Typography>
+                        </div>}
                     </li>
                     <li>
                         <label htmlFor="name">

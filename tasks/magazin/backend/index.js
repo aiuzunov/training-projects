@@ -10,8 +10,6 @@ const ptRoute = require('./routes/ptRoutes')
 const tagRoute = require('./routes/tagRoutes')
 const userRoute = require('./routes/userRoutes')
 
-//for downloading images
-
 
 
 //middleware
@@ -25,8 +23,6 @@ app.use('/api/products',productRoute)
 app.use('/api/pts',ptRoute)
 app.use('/api/tags',tagRoute)
 app.use('/api/users',userRoute)
-
-
 
 app.listen(5000, ()=>{
  console.log("server has started");

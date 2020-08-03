@@ -18,10 +18,10 @@ const useStyles = makeStyles({
   },
 });
 
-const getProductCard = (productid,productname,productimage,productprice,productcis,productdescription) => {
+const getProductCard = (productid,productname,productimage,productprice,productcis,productdescription,productcurrency) => {
   return(
     <Grid key={productid} item xs={10} sm={4} >
-      <ProductCard cis ={productcis} id={productid} name={productname} image={productimage} price={productprice} description={productdescription}/>
+      <ProductCard cis ={productcis} id={productid} name={productname} image={productimage} price={productprice} description={productdescription} currency_id={productcurrency}/>
     </Grid>
   )
 };
@@ -51,7 +51,7 @@ function NestedGrid(props){
         >
          
         {currentProducts.map(product => (
-          getProductCard(product.id,product.name,product.image,product.price,product.count_in_stock,product.description)
+          getProductCard(product.id,product.name,product.image,product.price,product.count_in_stock,product.description,product.currency_id)
           
         ))}
 

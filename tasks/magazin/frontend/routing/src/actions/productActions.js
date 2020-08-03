@@ -37,12 +37,6 @@ const listProducts = (price,tagid,name) => async (dispatch) => {
         const { data } = await axios.get(`http://localhost:5000/api/products/tagsfilter/${tagid}`);
         dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data }); 
       }
-      else {
-
-        dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`http://localhost:5000/api/products/all`);
-        dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });  
-      }
          
       
       } catch (error) {

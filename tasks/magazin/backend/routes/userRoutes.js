@@ -4,11 +4,20 @@ const pool = require("../db");
 const getToken = require("../util");
 const nodemailer = require("nodemailer");
 
+
+
+var minutes = 120, the_interval = minutes * 60 * 1000;
+setInterval(async function() {
+  console.log("DELETING ALL UNVERIFIED USERS");
+  await pool.query("DELETE FROM users WHERE verified = false");
+}, the_interval);
+
+
 var smtpTransport = nodemailer.createTransport({
     service: "gmail",
     auth: {
         user: "aleksandar.i.uzunov@gmail.com",
-        pass: "aleksandar106810"
+        pass: "Hidden For Github"
     }
 });
 var rand,mailOptions,host,link;
@@ -17,8 +26,7 @@ router.post("/sign",async (req,res) => {
     try {
       
         const {email,password} = req.body;
-        const signUser = await pool.query("SELECT * FROM users WHERE email=$1 AND password=$2",[email,password]);
-        console.log(signUser.rows[0].verified)
+        const signUser = await pool.query("SELECT * FROM users WHERE email=$1 AND password=crypt($2, password);",[email,password]);
         if(signUser.rowCount>0 && signUser.rows[0].verified==true){
             res.json({
                 id: signUser.rows[0].id,
@@ -28,10 +36,10 @@ router.post("/sign",async (req,res) => {
                 token: getToken(signUser),
             });
         }else{
-            res.status(401).send({msg: 'Invalid Email or Password.'});
+            res.status(401).send({msg: 'Грешен имейл или парола.'});
         }
     } catch (err) {
-        console.error(err.message);
+        res.status(500).send({msg: 'There was a problem with the request.'});
     }
 })
 
@@ -54,49 +62,66 @@ router.put("/update",async (req,res) => {
         console.log(updatedUser.rows[0])
         console.log(updatedUser.rowCount)
         }else{
-            res.status(401).send({msg: 'Invalid User Data.'});
+            res.status(401).send({msg: 'Несъществуващ потребител.'});
         } 
     } catch (err) {
-        console.error(err.message);
+        res.status(500).send({msg: 'There was a problem with the request.'});
     }
 })
 
 router.post("/create",async (req,res) => {
     try {
         const {name,username,email,password} = req.body;
-        const newUser = await pool.query(" INSERT INTO users (name,username,email,password) VALUES ($1,$2,$3,$4)",[name,username,email,password]);
-        console.log(newUser);
-        if(newUser){
+        let usernames = 0
+        let emails = 0
+        const checkUsers = await pool.query(" SELECT * FROM users WHERE email = $2 or username =$1",[username,email]);
+        checkUsers.rows.map(user => {
+            user.username == username ? usernames++ : usernames = usernames;
+            user.email == email ? emails++ : emails=emails;
+        });
+        if(usernames>0&&emails>0)
+        {  
+            res.status(401).send({msg: 'Потребителското име и имейла са заети.'});
+        }
+        else if(usernames>0){
+            res.status(401).send({msg: 'Потребителското име са заети.'});
+        }
+        else if(emails>0){
+            res.status(401).send({msg: 'Имейла е зает.'});
+        }
+        else
+        {
+        const newUser = await pool.query(" INSERT INTO users (name,username,email,password) VALUES ($1,$2,$3,crypt($4, gen_salt('bf', 8)))",[name,username,email,password]);
+        if(newUser.rowCount>0){
+        rand=Math.floor((Math.random() * 100) + 54);
+        host=req.get('host');
+        link="http://"+req.get('host')+"/api/users/verify?id="+rand;
+        mailOptions={
+            to : email,
+            subject : "Please confirm your Email account",
+            html : "Hello,<br> Please Click on the link to verify your email.<br><a href="+link+">Click here to verify</a>"
+        }
+        smtpTransport.sendMail(mailOptions, function(error, response){
+        if(error){
+            res.status(500).send({msg: 'There was a problem with sending the verification email.'});
+        }
+        else{
             res.json({
                 name: name,
                 username: username,
                 email: email,
                 token: getToken(newUser),
             });
-        }else{
-            res.status(401).send({msg: 'Invalid User Data.'});
         }
-        rand=Math.floor((Math.random() * 100) + 54);
-        host=req.get('host');
-        link="http://"+req.get('host')+"/verify?id="+rand;
-        mailOptions={
-            to : email,
-            subject : "Please confirm your Email account",
-            html : "Hello,<br> Please Click on the link to verify your email.<br><a href="+link+">Click here to verify</a>"
+        });
         }
-        console.log(mailOptions);
-        smtpTransport.sendMail(mailOptions, function(error, response){
-        if(error){
-            console.log(error);
-            res.end("error");
-        }else{
-            console.log("Message sent: " + response.message);
-            res.end("sent");
-         }
-});
+       
         
+}   
     } catch (err) {
-        console.error(err.message);
+        console.log(err)
+
+        res.status(500).send({msg: 'There was a problem with the request.'});
     }
 })
 
@@ -104,22 +129,22 @@ router.get('/verify',async function(req,res){
     console.log(req.protocol+":/"+req.get('host'));
 if((req.protocol+"://"+req.get('host'))==("http://"+host))
 {
-    console.log("Domain is matched. Information is from Authentic email");
+    console.log("Domai matches. The email is from authentic source");
     if(req.query.id==rand)
     {
         await pool.query("UPDATE users SET verified =TRUE where email=$1",[mailOptions.to])
         console.log("email is verified");
-        res.end("<h1>Email "+mailOptions.to+" has been Successfully verified");
+        res.end("<h1>Your email "+mailOptions.to+" was successfully verified");
     }
     else
     {
-        console.log("email is not verified");
+        console.log("Your email was not verified");
         res.end("<h1>Bad Request</h1>");
     }
 }
 else
 {
-    res.end("<h1>Request is from unknown source");
+    res.end("<h1>The request is from uknown source");
 }
 
 });

@@ -17,11 +17,10 @@ function SignInScreen({  match , history }) {
     const userSignIn = useSelector(state=>state.userSignIn);
     const {userInfo, loading, error} = userSignIn;
     const dispatch = useDispatch();
-
    
     useEffect(() => {
-        if(userInfo){
-            history.push('/');
+        if(Cookie.getJSON('userInfo')){
+            history.push("/")
         }
 
     },[userInfo]);

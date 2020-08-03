@@ -24,6 +24,11 @@ CREATE TABLE tags(
 	name TEXT NOT NULL UNIQUE
 );
 
+	CREATE TABLE currencies{
+		id BIGSERIAL primary key,
+		currency_id TEXT NOT NULL UNIQUE
+	}
+
 
 CREATE TABLE products(
 	id BIGSERIAL primary key,
@@ -34,8 +39,11 @@ CREATE TABLE products(
 	count_in_stock BIGINT NOT NULL,
 	has_image BOOL NOT NULL DEFAULT FALSE,
 	description TEXT NOT NULL,
+	currency_id TEXT NOT NULL DEFAULT 'EUR',
 	create_date TEXT NOT NULL,
 	edit_time TEXT
+	FOREIGN KEY (currency_id) REFERENCES currencies(currency_id),
+
 );
 
 CREATE TABLE tags_products(
@@ -58,14 +66,16 @@ CREATE TABLE products_details(
 );
 
 CREATE TABLE addresses(
-	id BIGSERIAL primary key,
+	id BIGSERIAL,
 	user_id BIGINT NOT NULL,
 	address TEXT NOT NULL,
 	city TEXT NOT NULL,
 	postalcode TEXT NOT NULL,
 	country TEXT NOT NULL,
+	PRIMARY KEY (user_id,address)
 	FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
 
 CREATE TABLE payments(
 	id BIGSERIAL primary key,
@@ -108,4 +118,3 @@ CREATE TABLE cart_items(
 	FOREIGN KEY (product_id) REFERENCES products(id)
 );
 
--- BIGSERIAL // BIGINT

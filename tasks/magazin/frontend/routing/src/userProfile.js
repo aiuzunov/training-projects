@@ -1,13 +1,15 @@
 import React, { useCallback } from 'react';
 import './userProfile.css';
 import { useSelector, useDispatch } from 'react-redux';
-import { useState, useEffect } from 'react';
+import { useState, useEffect,useRef } from 'react';
 import { Link, Redirect, useHistory } from 'react-router-dom';
 import { signup, logout } from './actions/userActions';
-import { listAddresses } from './actions/addressActions';
+import { listAddresses, saveAddress } from './actions/addressActions';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import Cookie from 'js-cookie';
-import { Menu, MenuItem } from '@material-ui/core';
+import { Menu, MenuItem, Button } from '@material-ui/core';
+import ProductsPage from './ProductsPage';
+
 
 
 
@@ -23,15 +25,23 @@ function UserProfile(context) {
   const addressesList = useSelector((state) => state.addressesList);
   const { addresses , loading: loadingAddresses, error: addressesError } = addressesList;  
   const dispatch = useDispatch();
+  const addressSave = useSelector(state=>state.addressSave);
+  const {address:saveAddress2,success, loading, error} = addressSave;
   const [name,setName] = useState(userInfo.name);
   const [username,setUsername] = useState(userInfo.username);
   const [email,setEmail] = useState(userInfo.email);
   const [password,setPassword] = useState('');
+  const [address,setAddress] = useState('')
+  const [city,setCity] = useState('')
+  const [country,setCountry] = useState('')
+  const [postalCode,setPostalCode] = useState('')
   var temp = name.split(" ")
   const [firstName,setFirstName] = useState(temp[0])
   const [secondName,setSecondName] = useState(temp[1])
   const history = useHistory();
-
+    
+  
+  
 
   const handleMenuClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -43,7 +53,7 @@ function UserProfile(context) {
 
   const logoutHandler = () => {
   dispatch(logout());
-  history.push("/")
+  window.location = "/";
   };
 
   const handleEditClick = () => {
@@ -62,11 +72,23 @@ function UserProfile(context) {
     setAddAddress(!addAddress);
   };
 
+
   
 
+
   useEffect(() => {
-    dispatch(listAddresses())
-},[edit]);
+    dispatch(listAddresses(userInfo.id))
+    if(success==true){
+      setAddAddress(!addAddress);
+    }
+},[edit,success]);
+
+const handleSaveAddress = () => {
+  let user_id = userInfo.id
+  console.log(postalCode)
+  dispatch(saveAddress({user_id,address,country,city,postalCode}));
+};
+
 
   return (
     
@@ -141,6 +163,7 @@ function UserProfile(context) {
             :   <a href="#!" onClick={handleEditClick} class="btn btn-info">Промени данните</a>
               }
             <a href="#!" onClick={handleAddAddres} class="btn btn-info">Добави нов адрес</a>
+            
             </div>
           </div>
         </div>
@@ -161,6 +184,8 @@ function UserProfile(context) {
                
               </div>
             </div>
+            {loadingAddresses && <div>Loading...</div>}
+            {addressesError && <div>{addressesError}</div>}
             {!addAddress ? 
             <div class="card-body">
               <form>
@@ -260,7 +285,9 @@ function UserProfile(context) {
             </div>
             :
             <div class="card-body">
-<form>
+<form onSubmit={handleSaveAddress}>
+{loading && <div>Loading...</div>}
+{error && <div>{error}</div>}
   <hr class="my-4"></hr>
   <h6 class="heading-small text-muted mb-4">Добави адрес</h6>
                 <div class="pl-lg-4">
@@ -268,7 +295,7 @@ function UserProfile(context) {
                   <div class="col-md-12">
                     <div class="form-group focused">
                       <label class="form-control-label" for="input-address">Адрес</label>
-                      <input id="input-address" class="form-control form-control-alternative" placeholder="Адрес по местоживеене" value="" type="text"></input>
+                      <input required id="input-address" class="form-control form-control-alternative" placeholder="Адрес по местоживеене" value={address} onChange={(e) => setAddress(e.target.value)} type="text"></input>
                     </div>
                   </div>
                 </div>
@@ -276,23 +303,31 @@ function UserProfile(context) {
                   <div class="col-lg-4">
                     <div class="form-group focused">
                       <label class="form-control-label" for="input-city">Град</label>
-                      <input  type="text" id="input-city" class="form-control form-control-alternative" placeholder="Град" value=""></input>
+                      <input required  type="text" id="input-city" class="form-control form-control-alternative" placeholder="Град" value={city} onChange={(e) => setCity(e.target.value)}></input>
                     </div>
                   </div>
                   <div class="col-lg-4">
                     <div class="form-group focused">
                       <label class="form-control-label" for="input-country">Държава</label>
-                      <input type="text" id="input-country" class="form-control form-control-alternative" placeholder="Държава" value=""></input>
+                      <input required type="text" id="input-country" class="form-control form-control-alternative" placeholder="Държава" value={country} onChange={(e) => setCountry(e.target.value)}></input>
                     </div>
                   </div>
                   <div class="col-lg-4">
                     <div class="form-group">
                       <label class="form-control-label" for="input-country">Пощенски код</label>
-                      <input type="number" id="input-postal-code" class="form-control form-control-alternative" placeholder="Пощенски код" value=""></input>
+                      <input required type="number" id="input-postal-code" class="form-control form-control-alternative" placeholder="Пощенски код" value={postalCode} onChange={(e) => setPostalCode(e.target.value)}></input>
                     </div>
                   </div>
                 </div>
+                
               </div>  
+              <div class="row">
+                  <div class="col-md-12">
+                    <div class="form-group focused">
+                    <button className="AddAddressButton" type="submit">Добави нов адрес</button>
+                    </div>
+                  </div>
+                </div>
   
 </form>
 </div>

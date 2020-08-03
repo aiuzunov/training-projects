@@ -13,15 +13,6 @@ const download = (url, path, callback) => {
     })
   }
 
-// all products
-router.get("/all",async(req,res) => {
-    try {
-        const allProducts = await pool.query("SELECT * FROM products");
-        res.json(allProducts.rows);
-    } catch (err) {
-        console.error(err.message)
-    }
-})
 
 
 //  all products filter by tag
@@ -31,7 +22,7 @@ router.get("/tagsfilter/:tagid",async(req,res) => {
         const allProducts = await pool.query("SELECT DISTINCT products.id,name,image,brand,price,count_in_stock,description,create_date,edit_time FROM products join tags_products on products.id = tags_products.product_id where tags_products.tag_id = $1 ",[tagid]);
         res.json(allProducts.rows);
     } catch (err) {
-        console.error(err.message)
+        res.status(500).send({msg: 'Възникна грешка при визуализирането на продуктите .'});
     }
 })
 
@@ -41,7 +32,7 @@ router.get("/all/:name",async(req,res) => {
         const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%')",[name]);
         res.json(allProducts.rows);
     } catch (err) {
-        console.error(err.message)
+        res.status(500).send({msg: 'Възникна грешка при визуализирането на продуктите .'});
     }
 })
 
@@ -55,7 +46,7 @@ router.get("/p/:price",async(req,res) => {
         const allProducts = await pool.query("SELECT * FROM products WHERE price>=$1 AND price<=$2",[price1,price2]);
         res.json(allProducts.rows);
     } catch (err) {
-        console.error(err.message)
+        res.status(500).send({msg: 'Възникна грешка при визуализирането на продуктите .'});
     }
 })
 
@@ -69,7 +60,7 @@ router.get("/tp/:tagid/:price",async(req,res) => {
         const allProducts = await pool.query("SELECT DISTINCT products.id,name,image,brand,price,count_in_stock,description,create_date,edit_time FROM products join tags_products on products.id = tags_products.product_id WHERE tags_products.tag_id = $1 AND price>=$2 AND price<=$3",[tagid,price1,price2]);
         res.json(allProducts.rows);
     } catch (err) {
-        console.error(err.message)
+        res.status(500).send({msg: 'Възникна грешка при визуализирането на продуктите .'});
     }
 })
 
@@ -83,9 +74,10 @@ router.get("/np/:name/:price",async(req,res) => {
         const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND price>=$2 AND price<=$3",[name,price1,price2]);
         res.json(allProducts.rows);
     } catch (err) {
-        console.error(err.message)
+        res.status(500).send({msg: 'Възникна грешка при визуализирането на продуктите .'});
     }
 })
+
 
 
 
@@ -95,7 +87,7 @@ router.get("/all/:name/:tagid",async(req,res) => {
         const allProducts = await pool.query("SELECT DISTINCT products.id,name,image,brand,price,count_in_stock,description,create_date,edit_time FROM products join tags_products on products.id = tags_products.product_id WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tags_products.tag_id = $2",[name,tagid]);
         res.json(allProducts.rows);
     } catch (err) {
-        console.error(err.message)
+        res.status(500).send({msg: 'Възникна грешка при визуализирането на продуктите .'});
     }
 })
 
@@ -109,7 +101,7 @@ router.get("/all/:name/:tagid/:price",async(req,res) => {
         const allProducts = await pool.query("SELECT DISTINCT products.id,name,image,brand,price,count_in_stock,description,create_date,edit_time FROM products join tags_products on products.id = tags_products.product_id WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tags_products.tag_id = $2 AND price>=$3 AND price<=$4",[name,tagid,price1,price2]);
         res.json(allProducts.rows);
     } catch (err) {
-        console.error(err.message)
+        res.status(500).send({msg: 'Възникна грешка при визуализирането на продуктите .'});
     }
 })
 
@@ -130,7 +122,7 @@ router.put("/update/:id",async (req,res) => {
             console.log('✅ Done!')
           })
     } catch (err) {
-        console.error(err.message);
+        res.status(500).send({msg: 'Възникна грешка при визуализирането на продуктите .'});
     }
 })
 
@@ -151,7 +143,17 @@ router.post("/create",async (req,res) => {
             console.log('Image Downloaded Successfuly!')
           })
     } catch (err) {
-        console.error(err.message);
+        res.status(500).send({msg: 'Възникна грешка при визуализирането на продуктите .'});
+    }
+})
+
+router.get("/:id", async (req, res) => {
+    try {
+        const{id} = req.params;
+        const product = await pool.query("SELECT * FROM products WHERE id = $1",[id]);
+        res.json(product.rows[0]);
+    } catch (err) {
+        res.status(500).send({msg: 'Възникна грешка при визуализирането на продуктите .'});
     }
 })
 
@@ -161,7 +163,7 @@ router.delete("/delete/:id",async (req,res) => {
         const deleteProduct = await pool.query("UPDATE products SET count_in_stock=0 WHERE id = $1",[id]);
         res.json(deleteProduct);
     } catch (err) {
-        console.error(err.message);
+        res.status(500).send({msg: 'Възникна грешка при визуализирането на продуктите .'});
     }
 })
 

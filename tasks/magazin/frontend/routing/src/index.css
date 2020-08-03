@@ -357,7 +357,7 @@ tbody>tr:nth-child(odd){
   height: 120px;
   display: flex;
     display: flex;
-    justify-content: space-between;
+    justify-content: start;
 }
  
 .item:nth-child(3) {
@@ -398,7 +398,7 @@ tbody>tr:nth-child(odd){
 
 .description {
   padding-top: 10px;
-
+  padding-left: 100px;
   width: 115px;
 }
  
@@ -420,6 +420,7 @@ tbody>tr:nth-child(odd){
 
 .quantity {
   padding-top: 25px;
+  padding-left: 50px;
 
 }
 .quantity input {
@@ -451,14 +452,25 @@ button:focus,
 input:focus {
   outline:0;
 }
-
-.total-price {
-  
+.one-price{
+  padding-left: 50px;
   padding-top: 44px;
   text-align: center;
   font-size: 16px;
   color: #43484D;
   font-weight: 300;
+  width:230px;
+}
+.total-price {
+  padding-left:50px;
+  padding-right:50px;
+  padding-top: 44px;
+  text-align: center;
+  font-size: 16px;
+  color: #43484D;
+  font-weight: 300;
+  width:230px;
+
 
 }
 
@@ -471,6 +483,7 @@ input:focus {
   
   .image img {
    height: 120px;
+   width: 120px;
    
   }
   

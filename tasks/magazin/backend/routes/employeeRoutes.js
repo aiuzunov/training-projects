@@ -19,10 +19,10 @@ router.post("/signemployee",async (req,res) => {
                 token: getToken(signEmployee),
             });
         }else{
-            res.status(401).send({msg: 'Invalid Email or Password.'});
+            res.status(401).send({msg: 'Грешна парола или имейл.'});
         }
     } catch (err) {
-        console.error(err.message);
+        res.status(500).send({msg: 'Възникна грешка със заявката,моля опитайте отново .'});
     }
 })
 
@@ -40,11 +40,11 @@ router.post("/createemployee",async (req,res) => {
                 token: getToken(newEmployee),
             });
         }else{
-            res.status(401).send({msg: 'Invalid User Data.'});
+            res.status(401).send({msg: 'Имейла или потребителското име са заети.'});
         }
         
     } catch (err) {
-        console.error(err.message);
+        res.status(500).send({msg: 'Възникна грешка със заявката,моля опитайте отново .'});
     }
 })
 

@@ -1853,6 +1853,10 @@
   .nav-link {
     color: #525f7f;
   }
+
+  .AddAddressButton{
+    margin-left: 40%;
+  }
   
   .nav-link:hover {
     color: #5e72e4;

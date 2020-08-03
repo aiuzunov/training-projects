@@ -45,7 +45,7 @@ function ProductDetailsPage({ match , history }) {
     return(
        
 
-        loading ? <div> <CircularProgress color="secondary" /></div> : error ? <div>Error</div> : 
+        loading ? <div> <CircularProgress color="secondary" /></div> : error ? <div>{error.message}</div> : 
         <div >
             <NavBar/>
            
@@ -114,11 +114,11 @@ function ProductDetailsPage({ match , history }) {
 
 
     <div className="product-price">
-     <span >Цена (1бр.) : {Number(product.price).toFixed(2)} лв.</span>
+     <span >Цена (1бр.) : {Number(product.price).toFixed(2)} {product.currency_id}.</span>
     
     </div>
     <div className="product-price">
-     <span >Общo ({quantity}бр.) : {Number(product.price*quantity).toFixed(2)} лв.</span>
+     <span >Общo ({quantity}бр.) : {Number(product.price*quantity).toFixed(2)} {product.currency_id}.</span>
     
     </div>
     {product.count_in_stock > 0 &&  <Button
