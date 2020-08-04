@@ -3,6 +3,8 @@ const router = express.Router();
 const pool = require("../db");
 const fs = require('fs')
 const request = require('request')
+const Authenticated = require("../util2");
+
 
 
 const download = (url, path, callback) => {
@@ -105,7 +107,7 @@ router.get("/all/:name/:tagid/:price",async(req,res) => {
     }
 })
 
-router.put("/update/:id",async (req,res) => {
+router.put("/update/:id",Authenticated,async (req,res) => {
     try {
         const {create_date,id,tag_id,name,image,brand,price,count_in_stock,description} = req.body;
         const url = image;
@@ -127,7 +129,7 @@ router.put("/update/:id",async (req,res) => {
 })
 
 
-router.post("/create",async (req,res) => {
+router.post("/create",Authenticated, async (req,res) => {
     try {
         const {create_date,tag_id,name,image,brand,price,count_in_stock,description} = req.body;
         var tagarr = tag_id.split(",");
@@ -157,7 +159,7 @@ router.get("/:id", async (req, res) => {
     }
 })
 
-router.delete("/delete/:id",async (req,res) => {
+router.delete("/delete/:id",Authenticated,async (req,res) => {
     try {
         const{id} = req.params;
         const deleteProduct = await pool.query("UPDATE products SET count_in_stock=0 WHERE id = $1",[id]);

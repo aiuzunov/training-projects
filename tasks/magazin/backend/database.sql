@@ -79,23 +79,29 @@ CREATE TABLE addresses(
 
 CREATE TABLE payments(
 	id BIGSERIAL primary key,
-	state TEXT NOT NULL,
+	cancelled TEXT NOT NULL,
+	paid TEXT NOT NULL,
 	time_of_payment timestamp NOT NULL,
+	recipient_name TEXT NOT NULL,
+	recipient_email TEXT NOT NULL,
+	payerID TEXT NOT NULL,
+	paymentID TEXT NOT NULL,
+	paymentToken TEXT NOT NULL,
 	payment_sum NUMERIC NOT NULL,
 	currency TEXT NOT NULL,
 );
 -- Сума на плащането
 CREATE TABLE orders(
 	id BIGSERIAL primary key,
-	user_id BIGINT NOT NULL,
+	user_id BIGINT DEFAULT NULL,
 	address_id BIGINT NOT NULL,
 	payment_id BIGINT NOT NULL,
 	created timestamp NOT NULL,
-	modified timestamp,
 	order_status TEXT NOT NULL,
 	price numeric NOT NULL,
-	FOREIGN KEY (user_id) REFERENCES users(id),
+	currency TEXT DEFAULT 'EUR',
 	FOREIGN KEY (address_id) REFERENCES addresses(id),
+	FOREIGN KEY (user_id) REFERENCES users(id),
 	FOREIGN KEY (payment_id) REFERENCES payments(id)
 );
 
@@ -109,12 +115,13 @@ CREATE TABLE order_items(
 	FOREIGN KEY (product_id) REFERENCES products(id)
 );
 
+
 CREATE TABLE cart_items(
 	id BIGSERIAL primary key,
-	user_id BIGINT NOT NULL,
+	order_id BIGINT NOT NULL,
 	product_id BIGINT NOT NULL,
 	quantity BIGINT NOT NULL,
-	FOREIGN KEY (user_id) REFERENCES users(id),
+	FOREIGN KEY (order_id) REFERENCES orders(id),
 	FOREIGN KEY (product_id) REFERENCES products(id)
 );
 

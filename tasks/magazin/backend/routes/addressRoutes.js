@@ -19,10 +19,12 @@ router.post("/create",async (req,res) => {
         const checkАddress = await pool.query(" SELECT * FROM addresses WHERE address = $1 and user_id =$2",[address,user_id]);
         if(checkАddress.rows>0)
         {
+            res.status(409).send({msg: 'Този адрес вече съществува.'});
+
+           
+        }else{
             const newAddress = await pool.query(" INSERT INTO addresses (user_id,address,city,postalcode,country) VALUES ($1,$2,$3,$4,$5)",[user_id,address,city,postalCode,country]);
             res.json(newAddress);
-        }else{
-            res.status(409).send({msg: 'Този адрес вече съществува.'});
         }
       
     } catch (err) {

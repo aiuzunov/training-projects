@@ -1,34 +1,48 @@
 import React from 'react';
 import PaypalExpressBtn from 'react-paypal-express-checkout';
+import { saveOrder } from './actions/orderActions';
+import { useDispatch } from 'react-redux';
+import Cookie from 'js-cookie';
+
+
  
-export default class PayPal extends React.Component {
-    render(props) {
+function PayPal(props)
+{
+        const dispatch = useDispatch();
+
         const onSuccess = (payment) => {
-            // Congratulation, it came here means everything's fine!
-            		console.log("The payment was succeeded!", payment);
-            		// You can bind the "payment" object's value to your state or props or whatever here, please see below for sample returned data
+                    var currentdate = new Date(); 
+                    var create_date =  currentdate.getDate() + "/"
+                    + (currentdate.getMonth()+1)  + "/" 
+                    + currentdate.getFullYear() + " @ "  
+                    + currentdate.getHours() + ":"  
+                    + currentdate.getMinutes() + ":" 
+                    + currentdate.getSeconds();
+                    let user_id = props.user_id;
+                    let address_id = props.address_id;
+                    let cart_items = props.cart_items;
+                    let price = props.totalprice;
+                    console.log("The payment was succeeded!", payment);
+                    dispatch(saveOrder({create_date,payment,user_id,address_id,price,cart_items,currency}));
+                    Cookie.remove('cartItems');
+                    window.location = "/cart"
+
         }
  
         const onCancel = (data) => {
-            // User pressed "cancel" or close Paypal's popup!
             console.log('The payment was cancelled!', data);
-            // You can bind the "data" object's value to your state or props or whatever here, please see below for sample returned data
         }
  
         const onError = (err) => {
-            // The main Paypal's script cannot be loaded or somethings block the loading of that script!
             console.log("Error!", err);
-            // Because the Paypal's main script is loaded asynchronously from "https://www.paypalobjects.com/api/checkout.js"
-            // => sometimes it may take about 0.5 second for everything to get set, or for the button to appear
         }
  
-        let env = 'sandbox'; // you can set here to 'production' for production
-        let currency = 'USD'; // or you can set this value from your props or state
-        let total = this.props.totalprice; // same as above, this is the total amount (based on currency) to be paid by using Paypal express checkout
-        // Document on Paypal's currency code: https://developer.paypal.com/docs/classic/api/currency_codes/
+        let env = 'sandbox'; 
+        let currency = 'EUR'; 
+        let total = props.totalprice; 
  
         const client = {
-            sandbox:    'HIDDEN-FOR-GITHUB',
+            sandbox:    '',
             production: 'YOUR-PRODUCTION-APP-ID',
         }
         // In order to get production's app-ID, you will have to send your app to Paypal for approval first
@@ -39,12 +53,13 @@ export default class PayPal extends React.Component {
  
         // NB. You can also have many Paypal express checkout buttons on page, just pass in the correct amount and they will work!
         return (
-            <PaypalExpressBtn env={env} client={client} currency={currency} total={total} onError={onError} onSuccess={onSuccess} onCancel={onCancel} style={{ 
+            <PaypalExpressBtn env={env} shipping={2} client={client} currency={currency} total={total} onError={onError} onSuccess={onSuccess} onCancel={onCancel} style={{ 
                 size:'large',
                 color:'blue',
                 shape: 'rect',
                 label: 'checkout'
             }} />
         );
-    }
 }
+
+export default PayPal;
