@@ -19,7 +19,6 @@ const CRUDPagination = ({ postsPerPage,totalPosts, paginate}) => {
     const handleChange = (event, value) => {
         setPage(value);
       };
-    
 
     return (
 

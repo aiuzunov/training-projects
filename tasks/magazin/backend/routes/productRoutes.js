@@ -18,7 +18,7 @@ const download = (url, path, callback) => {
 
 
 //  all products filter by tag
-router.get("/tagsfilter/:tagid",async(req,res) => {
+router.get("/tagsfilter/:tagid/:pageNumber",async(req,res) => {
     try {
         const{tagid} = req.params;
         const allProducts = await pool.query("SELECT DISTINCT products.id,name,image,brand,price,count_in_stock,description,create_date,edit_time FROM products join tags_products on products.id = tags_products.product_id where tags_products.tag_id = $1 ",[tagid]);
@@ -38,28 +38,31 @@ router.get("/all/:name",async(req,res) => {
     }
 })
 
-router.get("/p/:price",async(req,res) => {
+router.get("/p/:price/:pageNumber",async(req,res) => {
     
     try {
-        const{price} = req.params;
+        const{price,pageNumber} = req.params;
         var pricearr = price.split(",")
         price1 = pricearr[0];
         price2 = pricearr[1];
-        const allProducts = await pool.query("SELECT * FROM products WHERE price>=$1 AND price<=$2",[price1,price2]);
+        const allProducts = await pool.query("SELECT DISTINCT t.id,name,image,brand,price,count_in_stock,description,create_date,edit_time from (SELECT *, count(*) OVER (ORDER BY name ) ROWNUM FROM products) as t JOIN tags_products on t.id = tags_products.product_id where rownum>=$3*9-9+1 and rownum <= $3*9 and price>=$1 AND price<=$2",[price1,price2,pageNumber]);
+        console.log(allProducts.rows)
         res.json(allProducts.rows);
+
     } catch (err) {
+        console.log(err)
         res.status(500).send({msg: 'Възникна грешка при визуализирането на продуктите .'});
     }
 })
 
 
-router.get("/tp/:tagid/:price",async(req,res) => {
+router.get("/tp/:tagid/:price/:pageNumber",async(req,res) => {
     try {
-        const{tagid,price} = req.params;
+        const{tagid,price,pageNumber} = req.params;
         var pricearr = price.split(",")
         price1 = pricearr[0];
         price2 = pricearr[1];
-        const allProducts = await pool.query("SELECT DISTINCT products.id,name,image,brand,price,count_in_stock,description,create_date,edit_time FROM products join tags_products on products.id = tags_products.product_id WHERE tags_products.tag_id = $1 AND price>=$2 AND price<=$3",[tagid,price1,price2]);
+        const allProducts = await pool.query("SELECT DISTINCT t.id,name,image,brand,price,count_in_stock,description,create_date,edit_time from (SELECT *, count(*) OVER (ORDER BY name ) ROWNUM FROM products) as t JOIN tags_products on t.id = tags_products.product_id where rownum>=$4*9-9+1 and rownum <= $4*9 AND tags_products.tag_id = $1 AND price>=$2 AND price<=$3",[tagid,price1,price2,pageNumber]);
         res.json(allProducts.rows);
     } catch (err) {
         res.status(500).send({msg: 'Възникна грешка при визуализирането на продуктите .'});
@@ -67,13 +70,13 @@ router.get("/tp/:tagid/:price",async(req,res) => {
 })
 
 
-router.get("/np/:name/:price",async(req,res) => {
+router.get("/np/:name/:price/:pageNumber",async(req,res) => {
     try {
-        const{name,price} = req.params;
+        const{name,price,pageNumber} = req.params;
         var pricearr = price.split(",")
         price1 = pricearr[0];
         price2 = pricearr[1];
-        const allProducts = await pool.query("SELECT * FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND price>=$2 AND price<=$3",[name,price1,price2]);
+        const allProducts = await pool.query("SELECT DISTINCT t.id,name,image,brand,price,count_in_stock,description,create_date,edit_time from (SELECT *, count(*) OVER (ORDER BY name ) ROWNUM FROM products) as t JOIN tags_products on t.id = tags_products.product_id where rownum>=$4*9-9+1 and rownum <= $4*9 and LOWER(name) LIKE concat('%',LOWER($1),'%') AND price>=$2 AND price<=$3",[name,price1,price2,pageNumber]);
         res.json(allProducts.rows);
     } catch (err) {
         res.status(500).send({msg: 'Възникна грешка при визуализирането на продуктите .'});
@@ -83,7 +86,7 @@ router.get("/np/:name/:price",async(req,res) => {
 
 
 
-router.get("/all/:name/:tagid",async(req,res) => {
+router.get("/all/:name/:tagid/:pageNumber",async(req,res) => {
     try {
         const{name,tagid} = req.params;
         const allProducts = await pool.query("SELECT DISTINCT products.id,name,image,brand,price,count_in_stock,description,create_date,edit_time FROM products join tags_products on products.id = tags_products.product_id WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tags_products.tag_id = $2",[name,tagid]);
@@ -94,13 +97,14 @@ router.get("/all/:name/:tagid",async(req,res) => {
 })
 
 
-router.get("/all/:name/:tagid/:price",async(req,res) => {
+router.get("/all/:name/:tagid/:price/:pageNumber",async(req,res) => {
     try {
-        const{name,tagid,price} = req.params;
+        const{name,tagid,price,pageNumber} = req.params;
         var pricearr = price.split(",")
         price1 = pricearr[0];
         price2 = pricearr[1];
-        const allProducts = await pool.query("SELECT DISTINCT products.id,name,image,brand,price,count_in_stock,description,create_date,edit_time FROM products join tags_products on products.id = tags_products.product_id WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tags_products.tag_id = $2 AND price>=$3 AND price<=$4",[name,tagid,price1,price2]);
+        const allProducts = await pool.query("SELECT DISTINCT t.id,name,image,brand,price,count_in_stock,description,create_date,edit_time from (SELECT *, count(*) OVER (ORDER BY name ) ROWNUM FROM products) as t JOIN tags_products on t.id = tags_products.product_id where rownum>=$5*9-9+1 and rownum <= $5*9 and LOWER(name) LIKE concat('%',LOWER($1),'%') AND tags_products.tag_id = $2 AND price>=$3 AND price<=$4",[name,tagid,price1,price2,pageNumber]);
+        
         res.json(allProducts.rows);
     } catch (err) {
         res.status(500).send({msg: 'Възникна грешка при визуализирането на продуктите .'});
@@ -149,7 +153,7 @@ router.post("/create",Authenticated, async (req,res) => {
     }
 })
 
-router.get("/:id", async (req, res) => {
+router.get("/get/:id", async (req, res) => {
     try {
         const{id} = req.params;
         const product = await pool.query("SELECT * FROM products WHERE id = $1",[id]);
@@ -169,8 +173,59 @@ router.delete("/delete/:id",Authenticated,async (req,res) => {
     }
 })
 
+router.get("/:search/:tagid/:price",async(req,res) => {
+    try {
+        const{search,tagid,price} = req.params;
+        var pricearr = price.split(",")
+        price1 = pricearr[0];
+        price2 = pricearr[1];
+        const productCount = await pool.query("SELECT COUNT(*) FROM products join tags_products on tags_products.product_id = products.id WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tags_products.tag_id=$2 AND price>=$3 AND price<=$4 ",[search,tagid,price1,price2]);
+        res.json(productCount.rows[0]);
+        console.log(productCount.rows[0])
 
+    } catch (err) {
+        console.error(err.message)
+    }
+})
 
+router.get("/:search/:price",async(req,res) => {
+    try {
+        const{search,price} = req.params;
+        var pricearr = price.split(",")
+        price1 = pricearr[0];
+        price2 = pricearr[1];
+        const productCount = await pool.query("SELECT COUNT(*) FROM products WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND price>=$2 AND price<=$3",[search,price1,price2]);
+        res.json(productCount.rows[0]);
+    } catch (err) {
+        console.error(err.message)
+    }
+})
+
+router.get("/:tagid/:price",async(req,res) => {
+    try {
+        const{tagid,price} = req.params;
+        var pricearr = price.split(",")
+        price1 = pricearr[0];
+        price2 = pricearr[1];
+        const productCount = await pool.query("SELECT COUNT(*) FROM products join tags_products on tags_products.product_id = products.id WHERE tags_products.tag_id=$1 AND price>=$2 AND price<=$3",[tagid,price1,price2]);
+        res.json(productCount.rows[0]);
+    } catch (err) {
+        console.error(err.message)
+    }
+})
+
+router.get("/:price",async(req,res) => {
+    try {
+        const{price} = req.params;
+        var pricearr = price.split(",")
+        price1 = pricearr[0];
+        price2 = pricearr[1];
+        const productCount = await pool.query("SELECT COUNT(*) FROM products WHERE price>=$1 and price<=$2",[price1,price2]);
+        res.json(productCount.rows[0]);
+    } catch (err) {
+        console.error(err.message)
+    }
+});
 
 
 

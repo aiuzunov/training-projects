@@ -30,16 +30,14 @@ function NestedGrid(props){
     const classes = useStyles();
     const productList = useSelector((state) => state.productList);
     const { products , loading, error } = productList;
+    console.log(products)
     const dispatch = useDispatch();
     useEffect(() => {
-      dispatch(listProducts(props.price,props.tagid,props.search));
+      dispatch(listProducts(props.price,props.tagid,props.search,props.pageNumber));
       console.log(products)
     },[props.pageNumber,props.search,props.tagid,props.price]);    
     
-    const indexOfLastProduct = props.pageNumber * 9;
-    const indexOfFirstProduct = indexOfLastProduct - 9;
-    const currentProducts = products.slice(indexOfFirstProduct,indexOfLastProduct);
-
+   
     return ( 
       loading ?<div>  <CircularProgress color="secondary" /></div>  :
        
@@ -50,7 +48,7 @@ function NestedGrid(props){
             style={{ minHeight: '100vh'}}
         >
          
-        {currentProducts.map(product => (
+        {products.map(product => (
           getProductCard(product.id,product.name,product.image,product.price,product.count_in_stock,product.description,product.currency_id)
           
         ))}

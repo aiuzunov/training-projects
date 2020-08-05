@@ -17,7 +17,7 @@ var smtpTransport = nodemailer.createTransport({
     service: "gmail",
     auth: {
         user: "aleksandar.i.uzunov@gmail.com",
-        pass: "!HIDE FOR GITHUB"
+        pass: ""
     }
 });
 var rand,mailOptions,host,link;

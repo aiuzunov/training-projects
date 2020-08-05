@@ -124,6 +124,8 @@ function PListNavBar() {
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
   const [search, setSearch] = useState("");
   const [finishedSearch, setFinishedSearch] = useState("");
+  const cart = useSelector(state => state.cart);
+  const {cartItems} = cart;
   const isNavMenuOpen = Boolean(navAnchorEl);
   const isProfileMenuOpen = Boolean(anchorEl);
   const isProfileMobileMenuOpen = Boolean(mobileMoreAnchorEl);
@@ -133,7 +135,7 @@ function PListNavBar() {
   const { tags , loading, error } = tagsList;
   const dispatch = useDispatch();
   const loggedIn = Cookie.getJSON('userInfo') || null;
-
+  
 
   useEffect(() => {
         dispatch(listTags());
@@ -295,7 +297,9 @@ function PListNavBar() {
           <div className={classes.sectionDesktop}>
           <Link to="/cart" style={{ color: '#FFF' }} >
             <IconButton color="inherit">
+            <Badge badgeContent={cartItems.length} color="secondary">
                 <ShoppingCartIcon />
+            </Badge>
             </IconButton>
           </Link> 
             {userInfo ? <Link to="/profile" style={{ textDecoration: 'none' }}> <Typography className={classes.title} variant="h6" noWrap>

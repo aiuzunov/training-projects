@@ -40,19 +40,22 @@ export default function BackOfficeFilters(props) {
     console.log(1)
     e.preventDefault();
     setFinishedSearch(search);
+    props.filterName(search);
+
   }
 
 
   const handleCategoryChange = (event) => {
     setTagid(event.target.value);
+    props.filterTag(search);
   };
 
   const handlePriceChange = (event, newPrice) => {
     setPrice(newPrice);
+    props.filterPrice(newPrice);
   };
 
   useEffect(() => {
-   dispatch(listProducts(price,tagid,finishedSearch));
    dispatch(listTags());
 },[tagid,price,finishedSearch,props.deleted,props.saved]);
 

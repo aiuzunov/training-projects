@@ -1,40 +1,41 @@
 import { PRODUCT_LIST_SUCCESS, PRODUCT_LIST_FAIL, PRODUCT_LIST_REQUEST, PRODUCT_DETAILS_REQUEST, PRODUCT_DETAILS_SUCCESS, PRODUCT_DETAILS_FAIL, PRODUCT_SAVE_REQUEST, PRODUCT_SAVE_SUCCESS, PRODUCT_SAVE_FAIL, PRODUCT_DELETE_REQUEST, PRODUCT_DELETE_SUCCESS, PRODUCT_DELETE_FAIL } from "../constants/productConstants";
 import axios from 'axios';
-const listProducts = (price,tagid,name) => async (dispatch) => {
+const listProducts = (price,tagid,name,pageNumber) => async (dispatch) => {
     try {
+      console.log(pageNumber)
       if(tagid&&name&&price){
         dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`http://localhost:5000/api/products/all/${name}/${tagid}/${price}`);
+        const { data } = await axios.get(`http://localhost:5000/api/products/all/${name}/${tagid}/${price}/${pageNumber}`);
         dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });
       }
       else if(tagid&&name){
         dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`http://localhost:5000/api/products/all/${name}/${tagid}`);
+        const { data } = await axios.get(`http://localhost:5000/api/products/all/${name}/${tagid}/${pageNumber}`);
         dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });  
       }
       else if(price&&name){
         dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`http://localhost:5000/api/products/np/${name}/${price}`);
+        const { data } = await axios.get(`http://localhost:5000/api/products/np/${name}/${price}/${pageNumber}`);
         dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });  
       }
       else if(tagid&&price){
         dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`http://localhost:5000/api/products/tp/${tagid}/${price}`);
+        const { data } = await axios.get(`http://localhost:5000/api/products/tp/${tagid}/${price}/${pageNumber}`);
         dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });  
       }
       else if(price){
         dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`http://localhost:5000/api/products/p/${price}`);
+        const { data } = await axios.get(`http://localhost:5000/api/products/p/${price}/${pageNumber}`);
         dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });  
       }
       else if(name){
         dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`http://localhost:5000/api/products/all/${name}`);
+        const { data } = await axios.get(`http://localhost:5000/api/products/all/${name}/${pageNumber}`);
         dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data }); 
       }
       else if(tagid){
         dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`http://localhost:5000/api/products/tagsfilter/${tagid}`);
+        const { data } = await axios.get(`http://localhost:5000/api/products/tagsfilter/${tagid}/${pageNumber}`);
         dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data }); 
       }
          

@@ -13,23 +13,44 @@ export default function BasicPagination(props) {
   const productList = useSelector((state) => state.productList);
   const { products , loading, error } = productList;
   const [count,setCount] = useState([]);
-    const getCount = async () => {
-      try {
-        setCount(products.length);
-        }
-         catch (err) {
-        console.log(err.message);
+  const getCount = async () => {
+    try {
+      if(props.search&&props.tagid&&props.price){
+        const response = await fetch(`http://localhost:5000/api/products/${props.search}/${props.tagid}/${props.price}`);
+        const count = await response.json();
+        console.log(count)
+        setCount(count);
       }
+      else if(props.search&&props.price){
+        const response = await fetch(`http://localhost:5000/api/products/${props.search}/${props.price}`);
+        const count = await response.json();
+        setCount(count);
+      }
+      else if(props.tagid&&props.price){
+        const response = await fetch(`http://localhost:5000/api/products/${props.tagid}/${props.price}`);
+        const count = await response.json();
+        setCount(count);
+      }
+      else if(props.price){
+        const response = await fetch(`http://localhost:5000/api/products/${props.price}`);
+        const count = await response.json();
+        setCount(count);
+      }
+
+    } catch (err) {
+      console.log(err.message);
     }
+  }
     useEffect(() => {
       
       getCount();
-    },[products.length,props.tagid,props.search]);
-  var pagecount = parseInt(count / 9);
-  if (count % 9 !== 0){
-    pagecount = pagecount + 1;
-  }
-  
+     
+    },[products.length,props.price,props.tagid,props.search]);
+ 
+    var pagecount = parseInt(count.count / 9);
+    if (count % 9 !== 0){
+      pagecount = pagecount + 1;
+    }
 
   return (
    

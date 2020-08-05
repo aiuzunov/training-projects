@@ -9,6 +9,8 @@ import { listTags } from './actions/tagsActions';
 import { Select, Button, CircularProgress } from '@material-ui/core';
 import AddBoxIcon from '@material-ui/icons/AddBox';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import { addToCart, removeFromCart, saveCartItem, deleteCartItem } from './actions/cartActions';
+
 
 
 
@@ -25,11 +27,17 @@ function ProductDetailsPage({ match , history }) {
    const { product, loading, error} = productDetails;
    const tagsList = useSelector(state => state.tagsList);
    const { tags , loading: loadingTags, error: tagsError } = tagsList;
+   const userSignIn = useSelector(state=>state.userSignIn);
+   const {userInfo} = userSignIn;
    const dispatch = useDispatch();
 
-   const AddToCart = () => {
-    history.push('/cart/' + match.params.id + '?qty=' + quantity);
-  };
+
+  const AddToCart = () => {
+    let product_id = product.id;
+    let user_id = userInfo.id;
+    dispatch(addToCart(product_id, quantity));
+    dispatch(saveCartItem({product_id,quantity,user_id}));
+    };  
 
    /* const getProduct = async () => {
         try {

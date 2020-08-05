@@ -117,6 +117,8 @@ function NavBar(props) {
   const userSignIn = useSelector(state=>state.userSignIn);
   const {userInfo} = userSignIn;
   const loggedIn = Cookie.getJSON('userInfo') || null;
+  const cart = useSelector(state => state.cart);
+  const {cartItems} = cart;
 
  
   const handleNavMenuOpen = (event) => {
@@ -241,7 +243,9 @@ function NavBar(props) {
           <div className={classes.sectionDesktop}>
           <Link to="/cart" style={{ color: '#FFF' }} >
             <IconButton color="inherit">
+            <Badge badgeContent={cartItems.length} color="secondary">
                 <ShoppingCartIcon />
+            </Badge>
             </IconButton>
           </Link> 
             {loggedIn ? <Link to="/profile" style={{ textDecoration: 'none' }}> <Typography className={classes.title} variant="h6" noWrap>

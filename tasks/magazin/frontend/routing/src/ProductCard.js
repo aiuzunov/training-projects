@@ -12,6 +12,8 @@ import { withRouter } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { useState, useEffect } from 'react';
 import { listPT } from './actions/ptActions';
+import { addToCart, removeFromCart, saveCartItem, deleteCartItem } from './actions/cartActions';
+
 
 
 
@@ -42,9 +44,15 @@ function ProductCard(props) {
     const { pts , loading: loadingPts, error: ptsError } = ptList
     const dispatch = useDispatch();
     const classes = useStyles();
+    const userSignIn = useSelector(state=>state.userSignIn);
+    const {userInfo} = userSignIn;
     const bull = <span className={classes.bullet}>•</span>;
     const AddToCart = () => {
-      props.history.push('/cart/' + props.id + '?qty=' + 1);
+      let product_id = props.id;
+      let user_id = userInfo.id;
+      let quantity = 1;
+      dispatch(addToCart(product_id, quantity));
+      dispatch(saveCartItem({product_id,quantity,user_id}));
     };
 
     useEffect(() => {
@@ -55,7 +63,7 @@ function ProductCard(props) {
         <Card className={classes.root} variant="outlined">
       <CardMedia 
         className={classes.media}
-        image={`http://localhost:5000/${props.name}.png`}
+        image={props.image}
         style={{ width:"100%",maxWidth:"100%",height:"250px", maxHeight:"20%"}}
       />
       <CardContent>

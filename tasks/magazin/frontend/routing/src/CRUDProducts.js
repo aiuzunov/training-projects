@@ -20,7 +20,11 @@ import { listPT } from './actions/ptActions';
 
 function CRUDProducts({  match , history }) {
     const [currentPage, setCurrentPage] = useState(1);
-    const [postsPerPage,setPostsPerPage] = useState(10);
+    const [tagfilter, setTagFilt] = useState('');
+    const [pricefilter, setPriceFilter] = React.useState([0, 150]);
+    const [searchfilter, setSearchFilter] = useState("");
+    const [count,setCount] = useState([]);
+    const [postsPerPage,setPostsPerPage] = useState(9);
     const [createProductPop,setCreateProductPop] = useState(false);
     const [id,setid] = useState('')
     const [name,setName] = useState('');
@@ -42,15 +46,41 @@ function CRUDProducts({  match , history }) {
     const { pts , loading: loadingPts, error: ptsError } = ptList
     const dispatch = useDispatch();
     useEffect(() => {
+        getCount()
         dispatch(listPT());
+        dispatch(listProducts(pricefilter,tagfilter,searchfilter,currentPage));
         if(productSaved){
             setCreateProductPop(false);
         }
-    },[productSaved]);
-
-    const indexOfLastPost = currentPage * postsPerPage;
-    const indexOfFirstPost = indexOfLastPost - postsPerPage;
-    const currentPosts = products.slice(indexOfFirstPost, indexOfLastPost)
+    },[productSaved,pricefilter,tagfilter,searchfilter,currentPage]);
+    const getCount = async () => {
+        try {
+          if(searchfilter&&tagfilter&&pricefilter){
+            const response = await fetch(`http://localhost:5000/api/products/${searchfilter}/${tagfilter}/${pricefilter}`);
+            const count = await response.json();
+            console.log(count)
+            setCount(count);
+          }
+          else if(searchfilter&&pricefilter){
+            const response = await fetch(`http://localhost:5000/api/products/${searchfilter}/${pricefilter}`);
+            const count = await response.json();
+            setCount(count);
+          }
+          else if(tagfilter&&pricefilter){
+            const response = await fetch(`http://localhost:5000/api/products/${tagfilter}/${pricefilter}`);
+            const count = await response.json();
+            setCount(count);
+          }
+          else if(pricefilter){
+            const response = await fetch(`http://localhost:5000/api/products/${pricefilter}`);
+            const count = await response.json();
+            setCount(count);
+          }
+    
+        } catch (err) {
+          console.log(err.message);
+        }
+      }
 
     const popCreateMenu = (product) => {
         if(product.id){
@@ -101,10 +131,18 @@ function CRUDProducts({  match , history }) {
    }
 
    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+   const filterTag = (tagid) => setTagFilt(tagid);
+   const filterName = (search) => setSearchFilter(search);
+   const filterPrice = (price) => setPriceFilter(price);
+
+   var pagecount = parseInt(count.count / 9);
+   if (count % 9 !== 0){
+     pagecount = pagecount + 1;
+   }
     return(
         <div>
             <NavBar/>
-            <BackOfficeFilters saved ={productSaved} deleted={productDeleted} />
+            <BackOfficeFilters filterTag={filterTag} filterName={filterName} filterPrice={filterPrice}  pageNumber={currentPage} saved ={productSaved} deleted={productDeleted} />
         <div className="content content-margined">
           
             <div className="product-header">
@@ -233,7 +271,7 @@ function CRUDProducts({  match , history }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {currentPosts.map(product => (
+                        {products.map(product => (
                             <tr key={product.id}>
                             <td>
                                  {product.create_date}
@@ -292,7 +330,7 @@ function CRUDProducts({  match , history }) {
                     
                     </tbody> 
                 </table>
-                <CRUDPagination postsPerPage={postsPerPage} totalPosts={products.length} paginate={paginate} />
+                <CRUDPagination postsPerPage={postsPerPage} totalPosts={pagecount} paginate={paginate} />
             </div>
         </div>
         
