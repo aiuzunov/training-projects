@@ -12,6 +12,20 @@ router.get("/all/:userid",async(req,res) => {
     }
 })
 
+router.get("/one/:order_id",async(req,res) => {
+    try {
+        const {order_id} = req.params;
+        const Address = await pool.query("select * from addresses join orders on orders.address_id = addresses.id where orders.id = $1",[order_id]);
+        res.json(Address.rows);
+
+    } catch (err) {
+        console.log(err)
+        res.status(500).send({msg: 'Възникна проблем при взимането на информацията за адресите.'});
+    }
+})
+
+
+
 
 router.post("/create",async (req,res) => {
     try {

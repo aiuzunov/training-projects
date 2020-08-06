@@ -1,5 +1,5 @@
 import axios from "axios";
-import { ADDRESS_LIST_REQUEST, ADDRESS_LIST_SUCCESS, ADDRESS_LIST_FAIL, ADDRESS_SAVE_SUCCESS, ADDRESS_SAVE_REQUEST, ADDRESS_SAVE_FAIL } from "../constants/addressConstants";
+import { ADDRESS_LIST_REQUEST, ADDRESS_LIST_SUCCESS, ADDRESS_LIST_FAIL, ADDRESS_SAVE_SUCCESS, ADDRESS_SAVE_REQUEST, ADDRESS_SAVE_FAIL, GET_ADDRESS_REQUEST, GET_ADDRESS_SUCCESS, GET_ADDRESS_FAIL } from "../constants/addressConstants";
 
 
 const listAddresses = (userid) => async (dispatch) => {
@@ -12,6 +12,16 @@ const listAddresses = (userid) => async (dispatch) => {
       }
 };
 
+const listAddress = (order_id) => async (dispatch) => {
+  try {
+      console.log(order_id)
+      dispatch({ type: GET_ADDRESS_REQUEST });
+      const { data } = await axios.get(`http://localhost:5000/api/addresses/one/${order_id}`);
+      dispatch({ type: GET_ADDRESS_SUCCESS, payload: data });    
+    } catch (error) {
+      dispatch({ type: GET_ADDRESS_FAIL, payload: error.response.data.msg });
+    }
+};
 
 const saveAddress = (address) => async (dispatch, getState) => {
   try {
@@ -23,4 +33,4 @@ const saveAddress = (address) => async (dispatch, getState) => {
   }
 };
 
-export {listAddresses,saveAddress};
+export {listAddresses,saveAddress,listAddress};

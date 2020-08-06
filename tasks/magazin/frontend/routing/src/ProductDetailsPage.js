@@ -31,6 +31,7 @@ function ProductDetailsPage({ match , history }) {
    const {userInfo} = userSignIn;
    const dispatch = useDispatch();
 
+   console.log(product)
 
   const AddToCart = () => {
     let product_id = product.id;

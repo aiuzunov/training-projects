@@ -6,6 +6,7 @@ const pool = require("../db");
 
 router.post("/create",async (req,res) => {
     try {
+        console.log("New order")
         const {payment,user_id,address_id,price,cart_items,currency,create_date} = req.body;
         console.log(payment.paid)
         console.log(cart_items[0].product)
@@ -28,6 +29,42 @@ router.post("/create",async (req,res) => {
         res.status(500).send({msg: 'Възникна проблем при създаването на нов адрес.'});
     }
 })
+
+router.get("/list/:userid",async(req,res) => {
+    try {
+        const {userid} = req.params;
+        const allOrders = await pool.query("SELECT * FROM orders where user_id = $1",[userid]);
+        res.json(allOrders.rows);
+    } catch (err) {
+        res.status(500).send({msg: 'Възникна проблем при взимането на информацията за адресите.'});
+    }
+})
+
+router.get("/listItems/:order_id",async(req,res) => {
+    try {
+        console.log(1)
+        const {order_id} = req.params;
+        console.log(order_id)
+        const allOrderItems = await pool.query("select * from order_items join products on order_items.product_id = products.id where products.id=order_items.product_id and order_id = $1",[order_id]);
+        
+        res.json(allOrderItems.rows);
+        console.log(allOrderItems.rows)
+    } catch (err) {
+        res.status(500).send({msg: 'Възникна проблем при взимането на информацията за адресите.'});
+    }
+})
+
+router.get("/order/:order_id",async(req,res) => {
+    try {
+        const {order_id} = req.params;
+        const Order = await pool.query("select * from orders where id = $1",[order_id]);
+        res.json(Order.rows);
+    } catch (err) {
+        res.status(500).send({msg: 'Възникна проблем при взимането на информацията за адресите.'});
+    }
+})
+
+
 
 
 module.exports = router;

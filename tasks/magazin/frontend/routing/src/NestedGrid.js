@@ -7,6 +7,8 @@ import {useEffect,useState} from  'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { listProducts } from './actions/productActions';
 import { CircularProgress } from '@material-ui/core';
+import { listPT } from './actions/ptActions';
+
 
 
 
@@ -18,26 +20,23 @@ const useStyles = makeStyles({
   },
 });
 
-const getProductCard = (productid,productname,productimage,productprice,productcis,productdescription,productcurrency) => {
+const getProductCard = (pageNumber,products_2,productid,productname,productimage,productprice,productcis,productdescription,productcurrency) => {
   return(
     <Grid key={productid} item xs={10} sm={4} >
-      <ProductCard cis ={productcis} id={productid} name={productname} image={productimage} price={productprice} description={productdescription} currency_id={productcurrency}/>
+      <ProductCard pageNumber={pageNumber} products = {products_2} cis ={productcis} id={productid} name={productname} image={productimage} price={productprice} description={productdescription} currency_id={productcurrency}/>
     </Grid>
   )
 };
 
 function NestedGrid(props){
-    const classes = useStyles();
+    const classes = useStyles(); 
     const productList = useSelector((state) => state.productList);
     const { products , loading, error } = productList;
-    console.log(products)
     const dispatch = useDispatch();
     useEffect(() => {
       dispatch(listProducts(props.price,props.tagid,props.search,props.pageNumber));
       console.log(products)
     },[props.pageNumber,props.search,props.tagid,props.price]);    
-    
-   
     return ( 
       loading ?<div>  <CircularProgress color="secondary" /></div>  :
        
@@ -49,7 +48,7 @@ function NestedGrid(props){
         >
          
         {products.map(product => (
-          getProductCard(product.id,product.name,product.image,product.price,product.count_in_stock,product.description,product.currency_id)
+          getProductCard(props.pageNumber,products,product.id,product.name,product.image,product.price,product.count_in_stock,product.description,product.currency_id)
           
         ))}
 

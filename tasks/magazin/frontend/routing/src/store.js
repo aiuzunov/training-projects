@@ -7,8 +7,9 @@ import { userSignInReducer, userSignUpReducer, userLogoutReducer } from './reduc
 import { tagListReducer } from './reducer/tagsReducers';
 import { ptListReducer } from './reducer/ptReducers';
 import { employeeSignInReducer, employeeSignUpReducer } from './reducer/employeeReducers';
-import { addressListReducer, addressSaveReducer } from './reducer/addressReducers';
-import { orderSaveReducer } from './reducer/orderReducers';
+import { addressListReducer, addressSaveReducer, singleAddressListReducer } from './reducer/addressReducers';
+import { orderSaveReducer, orderListReducer, orderItemsListReducer, getOrderReducer } from './reducer/orderReducers';
+import { getPaymentReducer } from './reducer/paymentReducers';
 
 const cartItems = Cookie.getJSON('cartItems') || [];
 const userInfo = Cookie.getJSON('userInfo') || null;
@@ -32,7 +33,12 @@ const reducer = combineReducers({
     cartSave: CartItemSaveReducer,
     cartDelete: CartItemDeleteReducer,
     employeeSignUp: employeeSignUpReducer,
-    orderSave: orderSaveReducer
+    orderSave: orderSaveReducer,
+    ordersList: orderListReducer,
+    orderItemsList: orderItemsListReducer,
+    getOrder: getOrderReducer,
+    addressList: singleAddressListReducer,
+    singlePaymentList: getPaymentReducer
 })
 
 const composeEnhancer = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;

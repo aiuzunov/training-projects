@@ -10,6 +10,7 @@ const ptRoute = require('./routes/ptRoutes')
 const tagRoute = require('./routes/tagRoutes')
 const userRoute = require('./routes/userRoutes')
 const orderRoute = require('./routes/orderRoutes')
+const paymentRoute = require('./routes/paymentRoutes')
 
 
 
@@ -25,6 +26,7 @@ app.use('/api/pts',ptRoute)
 app.use('/api/tags',tagRoute)
 app.use('/api/users',userRoute)
 app.use('/api/orders',orderRoute)
+app.use('/api/payments',paymentRoute)
 
 app.listen(5000, ()=>{
  console.log("server has started");

@@ -15,11 +15,13 @@ import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import { listTags } from './actions/tagsActions';
 import BackOfficeFilters from './BackOfficeFilters';
 import { listPT } from './actions/ptActions';
+import StoreIcon from '@material-ui/icons/Store';
 
 
 
 function CRUDProducts({  match , history }) {
     const [currentPage, setCurrentPage] = useState(1);
+    const [orderPop, setOrderPop] = useState(0);
     const [tagfilter, setTagFilt] = useState('');
     const [pricefilter, setPriceFilter] = React.useState([0, 150]);
     const [searchfilter, setSearchFilter] = useState("");
@@ -43,22 +45,33 @@ function CRUDProducts({  match , history }) {
     const tagsList = useSelector((state) => state.tagsList);
     const { tags , loading: loadingTags, error: tagsError } = tagsList;
     const ptList = useSelector((state) => state.ptList);
-    const { pts , loading: loadingPts, error: ptsError } = ptList
+    const { pts , loading: loadingPts, error: ptsError } = ptList;
     const dispatch = useDispatch();
+  
+      
     useEffect(() => {
         getCount()
-        dispatch(listPT());
-        dispatch(listProducts(pricefilter,tagfilter,searchfilter,currentPage));
+        dispatch(listProducts(pricefilter,tagfilter,searchfilter,currentPage,loadingPts));
+        dispatch(listPT(currentPage));
+
+
         if(productSaved){
             setCreateProductPop(false);
         }
+
+
+
+
+
     },[productSaved,pricefilter,tagfilter,searchfilter,currentPage]);
+    console.log(pts)
+
     const getCount = async () => {
+
         try {
           if(searchfilter&&tagfilter&&pricefilter){
             const response = await fetch(`http://localhost:5000/api/products/${searchfilter}/${tagfilter}/${pricefilter}`);
             const count = await response.json();
-            console.log(count)
             setCount(count);
           }
           else if(searchfilter&&pricefilter){
@@ -85,7 +98,6 @@ function CRUDProducts({  match , history }) {
     const popCreateMenu = (product) => {
         if(product.id){
             var tagsstring = ''
-            console.log(pts)
             for(let i =0 ; i<pts.length;i++){
             if(i<pts.length){
                 if(pts[i].product_id == product.id){
@@ -97,7 +109,6 @@ function CRUDProducts({  match , history }) {
             tagsstring = tagsstring.substring(0, tagsstring.length - 1);
 
         }
-        console.log(tagsstring)       
         setCreateProductPop(true);
         setName(product.name);
         setid(product.id);
@@ -112,6 +123,7 @@ function CRUDProducts({  match , history }) {
         setCountinstock(product.count_in_stock);
         setDescription(product.description);
     }
+  
 
    const submitInfo = (e) => {
        e.preventDefault();
@@ -129,12 +141,15 @@ function CRUDProducts({  match , history }) {
        
        dispatch(deleteProduct(product));
    }
+   const handleOrdersButton = () => {
+    setOrderPop(1);
+};
 
    const paginate = (pageNumber) => setCurrentPage(pageNumber);
    const filterTag = (tagid) => setTagFilt(tagid);
    const filterName = (search) => setSearchFilter(search);
    const filterPrice = (price) => setPriceFilter(price);
-
+    
    var pagecount = parseInt(count.count / 9);
    if (count % 9 !== 0){
      pagecount = pagecount + 1;
@@ -153,6 +168,14 @@ function CRUDProducts({  match , history }) {
               endIcon={<AddBoxIcon/>}
              >
                 Нов Продукт
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+             onClick={() => handleOrdersButton({})}
+              startIcon={<StoreIcon/>}
+             >
+                Поръчки
             </Button>
               
             </div>
@@ -236,8 +259,8 @@ function CRUDProducts({  match , history }) {
                 </ul>
             </form>
         </div>)}
-            
-            <div className="product-list">
+            {products&&
+            (<div className="product-list">
                 <table className="table">
                     <thead>
                         <tr> 
@@ -271,7 +294,7 @@ function CRUDProducts({  match , history }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {products.map(product => (
+                        {pts && products.map(product => (
                             <tr key={product.id}>
                             <td>
                                  {product.create_date}
@@ -331,11 +354,10 @@ function CRUDProducts({  match , history }) {
                     </tbody> 
                 </table>
                 <CRUDPagination postsPerPage={postsPerPage} totalPosts={pagecount} paginate={paginate} />
-            </div>
+            </div>)}
         </div>
         
         </div>
-        
         
     );
 }

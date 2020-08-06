@@ -19,12 +19,11 @@ const CRUDPagination = ({ postsPerPage,totalPosts, paginate}) => {
     const handleChange = (event, value) => {
         setPage(value);
       };
-
     return (
 
         <div className={classes.root}>
         <Pagination style={{ backgroundColor: 'white'}}
-              color="secondary" count={Math.ceil(totalPosts / postsPerPage)} page={page} onChange={handleChange}  onChangePage={paginate(page)}/>
+              color="secondary" count={totalPosts} page={page} onChange={handleChange}  onChangePage={paginate(page)}/>
          </div>
             
     );

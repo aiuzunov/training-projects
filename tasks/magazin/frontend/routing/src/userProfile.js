@@ -85,6 +85,11 @@ function UserProfile(context) {
 
 },[edit,success]);
 
+
+const handleordersClick = () => {
+  window.location="/orders";
+};
+
 const handleSaveAddress = () => {
   let user_id = userInfo.id
   console.log(postalCode)
@@ -121,7 +126,7 @@ const handleSaveAddress = () => {
               open={Boolean(anchorEl)}
               onClose={handleMenuClose}
             >
-            <MenuItem onClick={handleMenuClose}>Поръчки</MenuItem>
+            <MenuItem onClick={handleordersClick}>Поръчки</MenuItem>
             <MenuItem onClick={logoutHandler}>Излизане</MenuItem>
 
             </Menu>

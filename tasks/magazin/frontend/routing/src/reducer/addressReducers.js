@@ -1,4 +1,4 @@
-import { ADDRESS_LIST_REQUEST, ADDRESS_LIST_SUCCESS, ADDRESS_LIST_FAIL, ADDRESS_SAVE_REQUEST, ADDRESS_SAVE_FAIL, ADDRESS_SAVE_SUCCESS } from "../constants/addressConstants";
+import { ADDRESS_LIST_REQUEST, ADDRESS_LIST_SUCCESS, ADDRESS_LIST_FAIL, ADDRESS_SAVE_REQUEST, ADDRESS_SAVE_FAIL, ADDRESS_SAVE_SUCCESS, GET_ADDRESS_FAIL, GET_ADDRESS_SUCCESS, GET_ADDRESS_REQUEST } from "../constants/addressConstants";
 
 
 function addressListReducer(state = { addresses: [] }, action) {
@@ -14,6 +14,20 @@ function addressListReducer(state = { addresses: [] }, action) {
     }
   }
 
+
+function singleAddressListReducer(state = { address: [] }, action) {
+  switch (action.type) {
+    case GET_ADDRESS_REQUEST:
+      return { loading: true, address: [] };
+    case GET_ADDRESS_SUCCESS:
+      return { loading: false, address: action.payload };
+    case GET_ADDRESS_FAIL:
+      return { loading: false, error: action.payload };
+    default:
+      return state;
+  }
+}
+
   function addressSaveReducer(state = { address: {} }, action) {
     switch (action.type) {
       case ADDRESS_SAVE_REQUEST:
@@ -27,4 +41,4 @@ function addressListReducer(state = { addresses: [] }, action) {
     }
   } 
 
-  export { addressListReducer,addressSaveReducer }
+  export { addressListReducer,addressSaveReducer,singleAddressListReducer }

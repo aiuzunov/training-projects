@@ -129,8 +129,8 @@ cartItems.length === 0 ?
         </Select>
       </FormControl>
             </div>
-                 <div className="one-price">Единична цена: {Number(item.price).toFixed(2)} {item.currency_id}.</div>
-                 <div className="total-price">Oбща сума: {(item.price*item.quantity).toFixed(2)} {item.currency_id}.</div>
+                 <div className="one-price">Единична цена: {Number(item.price).toFixed(2)} {item.currency_id}</div>
+                 <div className="total-price">Oбща сума: {(item.price*item.quantity).toFixed(2)} {item.currency_id}</div>
                  <div className="item-remove">
                     <Button
                     onClick={() => removeFromCartHandler(item.product)}
@@ -155,7 +155,7 @@ cartItems.length === 0 ?
                 Общо ( {cartItems.reduce((a,c) => parseInt(a) + parseInt(c.quantity),0)} продукт/а )
                 :
                   
-                {(cartItems.reduce((a,c)=>a +c.price*c.quantity,0)).toFixed(2)} EUR.
+                {(cartItems.reduce((a,c)=>a +c.price*c.quantity,0)).toFixed(2)} EUR
             </h3>
 
             {defAddress ? <PayPal  address_id={defAddress} cart_items={cartItems} user_id={userInfo.id} totalprice={(cartItems.reduce((a,c)=>a +c.price*c.quantity,0)).toFixed(2)}/>:<h3>Моля изберете адрес за доставка</h3>}

@@ -70,7 +70,7 @@ async function  generateProducts(arrayLength,minCategory, maxCategory,minCost, m
         "productName": name,
         "productImage": `https://picsum.photos/400?image=${Math.floor(Math.random()*1000)}`,
         "productStock": randomStock,
-        "productPrice": randomPrice.toFixed(3),
+        "productPrice": randomPrice.toFixed(2),
         "productDescription": description
       }
       var currentdate = new Date(); 
