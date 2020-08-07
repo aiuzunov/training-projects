@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const pool = require("../db");
 
-// get a single product 
 router.get("/:id", async (req, res) => {
     try {
         const{id} = req.params;
@@ -41,7 +40,7 @@ router.post("/delete",async (req,res) => {
         const deleteCartItem = await pool.query("DELETE FROM cart_items WHERE product_id = $1 and user_id=$2",[product_id,user_id]);
         res.json(deleteCartItem);
     } catch (err) {
-        res.status(500).send({msg: 'Възникна грешка при визуализирането на продуктите .'});
+        res.status(500).send({msg: 'Възникна грешка при изтриването на продуктите .'});
     }
 })
 

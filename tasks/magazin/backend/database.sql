@@ -111,6 +111,7 @@ CREATE TABLE order_items(
 	order_id BIGINT NOT NULL,
 	product_id BIGINT NOT NULL,
 	quantity BIGINT NOT NULL,
+	product_price numeric NOT NULL,
 	FOREIGN KEY (order_id) REFERENCES orders(id),
 	FOREIGN KEY (product_id) REFERENCES products(id)
 );

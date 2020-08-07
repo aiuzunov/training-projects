@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { detailsProduct, saveProduct, listProducts, deleteProduct } from './actions/productActions';
 import { Link } from 'react-router-dom';
-import { signin } from './actions/userActions';
+import { signin, listUsers } from './actions/userActions';
 import Pagination from '@material-ui/lab/Pagination';
 import CRUDPagination from './CRUDPagination';
 import NavBar from './NavBar';
@@ -25,6 +25,8 @@ function CRUDProducts({  match , history }) {
     const [tagfilter, setTagFilt] = useState('');
     const [pricefilter, setPriceFilter] = React.useState([0, 150]);
     const [searchfilter, setSearchFilter] = useState("");
+    const [usersCount,setUsersCount] = useState([]);
+    const [userOrdersPop,setUserOrdersPop] = useState(0);
     const [count,setCount] = useState([]);
     const [postsPerPage,setPostsPerPage] = useState(9);
     const [createProductPop,setCreateProductPop] = useState(false);
@@ -46,30 +48,31 @@ function CRUDProducts({  match , history }) {
     const { tags , loading: loadingTags, error: tagsError } = tagsList;
     const ptList = useSelector((state) => state.ptList);
     const { pts , loading: loadingPts, error: ptsError } = ptList;
+    const usersList = useSelector((state) => state.usersList);
+    const { users , loading: loadingUsers, error: usersError } = usersList;
     const dispatch = useDispatch();
-  
       
     useEffect(() => {
         getCount()
         dispatch(listProducts(pricefilter,tagfilter,searchfilter,currentPage,loadingPts));
         dispatch(listPT(currentPage));
+        dispatch(listUsers(currentPage));
+
 
 
         if(productSaved){
             setCreateProductPop(false);
         }
-
-
-
-
-
     },[productSaved,pricefilter,tagfilter,searchfilter,currentPage]);
-    console.log(pts)
+    console.log(users)
 
     const getCount = async () => {
 
         try {
-          if(searchfilter&&tagfilter&&pricefilter){
+            const users_response = await fetch(`http://localhost:5000/api/users/count`);
+            const usersc = await users_response.json();
+            setUsersCount(usersc);
+            if(searchfilter&&tagfilter&&pricefilter){
             const response = await fetch(`http://localhost:5000/api/products/${searchfilter}/${tagfilter}/${pricefilter}`);
             const count = await response.json();
             setCount(count);
@@ -142,7 +145,12 @@ function CRUDProducts({  match , history }) {
        dispatch(deleteProduct(product));
    }
    const handleOrdersButton = () => {
-    setOrderPop(1);
+    setOrderPop(!orderPop);
+};
+
+const handleUserOrdersButton = () => {
+    console.log(userOrdersPop)
+    setUserOrdersPop(!userOrdersPop);
 };
 
    const paginate = (pageNumber) => setCurrentPage(pageNumber);
@@ -151,31 +159,35 @@ function CRUDProducts({  match , history }) {
    const filterPrice = (price) => setPriceFilter(price);
     
    var pagecount = parseInt(count.count / 9);
-   if (count % 9 !== 0){
+   if (count.count % 9 !== 0){
      pagecount = pagecount + 1;
+   }
+   var userpagecount = parseInt(usersCount.count / 9);
+   if (usersCount.count%9!==0){
+       userpagecount += 1;
    }
     return(
         <div>
             <NavBar/>
-            <BackOfficeFilters filterTag={filterTag} filterName={filterName} filterPrice={filterPrice}  pageNumber={currentPage} saved ={productSaved} deleted={productDeleted} />
+            {!orderPop && <BackOfficeFilters filterTag={filterTag} filterName={filterName} filterPrice={filterPrice}  pageNumber={currentPage} saved ={productSaved} deleted={productDeleted} />}
         <div className="content content-margined">
           
             <div className="product-header">
-            <Button
+           {!orderPop && <Button
               variant="contained"
               color="primary"
              onClick={() => popCreateMenu({})}
               endIcon={<AddBoxIcon/>}
              >
                 Нов Продукт
-            </Button>
+            </Button>}
             <Button
               variant="contained"
               color="primary"
              onClick={() => handleOrdersButton({})}
               startIcon={<StoreIcon/>}
              >
-                Поръчки
+                {orderPop ? <div>Продукти</div> :<div>Потребители</div>}
             </Button>
               
             </div>
@@ -259,7 +271,7 @@ function CRUDProducts({  match , history }) {
                 </ul>
             </form>
         </div>)}
-            {products&&
+            {!userOrdersPop && !orderPop&& products&&
             (<div className="product-list">
                 <table className="table">
                     <thead>
@@ -349,14 +361,139 @@ function CRUDProducts({  match , history }) {
                             </th>
                         </tr>
                         ))}
+                        
                       
                     
                     </tbody> 
                 </table>
-                <CRUDPagination postsPerPage={postsPerPage} totalPosts={pagecount} paginate={paginate} />
+            </div>)}
+            {!userOrdersPop && orderPop&& products&&
+            (<div className="product-list">
+                <table className="table">
+                    <thead>
+                        <tr> 
+                            <th>
+                                Дата на регистрация
+                            </th>
+                            <th>
+                                Име
+                            </th>
+                           
+                            <th>
+                                Потребителско име
+                            </th>
+                            <th>
+                                E-mail
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {users.map(user => (
+                            <tr key={user.id}>
+                            <td>
+                                {user.create_date}
+                            </td>
+                            <td>
+                                 {user.name}
+                            </td>
+                            <td>
+                                 {user.username}
+                            </td>
+                            <td>
+                                 {user.email}
+                            </td>
+                           
+                            <th>
+                            <Button
+                                variant="contained"
+                                size="large"
+                                color="primary"
+                                endIcon={<EditIcon/>}>
+                                Обнови
+                            </Button>
+                            <Button
+                                onClick={() => handleUserOrdersButton()}
+                                variant="contained"
+                                size="large"
+                                color="secondary"
+                                endIcon={<StoreIcon/>}>
+                                Поръчки
+                            </Button>
+                            </th>
+                        </tr>
+                        ))}
+                        
+                      
+                    
+                    </tbody> 
+                </table>
+            </div>)}
+            {userOrdersPop&& products&&
+            (<div className="product-list">
+                <table className="table">
+                    <thead>
+                        <tr> 
+                            <th>
+                                id на поръчката
+                            </th>
+                            <th>
+                                Сума 
+                            </th>
+                           
+                            <th>
+                                Статус на поръчката
+                            </th>
+                            <th>
+                                Продукти
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {users.map(user => (
+                            <tr key={user.id}>
+                            <td>
+                                In progress
+                            </td>
+                            <td>
+                                 In progress
+                            </td>
+                            <td>
+                            In progress
+                            </td>
+                            <td>
+                            In progress
+                            </td>
+                           
+                            <th>
+                            <Button
+                                variant="contained"
+                                size="large"
+                                color="primary"
+                                endIcon={<EditIcon/>}>
+                                Обнови
+                            </Button>
+                            <Button
+                                onClick={() => handleUserOrdersButton({})}
+                                
+                                variant="contained"
+                                size="large"
+                                color="secondary"
+                                endIcon={<StoreIcon/>}>
+                                Поръчки
+                            </Button>
+                            </th>
+                        </tr>
+                        ))}
+                        
+                      
+                    
+                    </tbody> 
+                </table>
             </div>)}
         </div>
         
+        {orderPop && <CRUDPagination postsPerPage={postsPerPage} totalPosts={userpagecount} paginate={paginate} />}
+        {!orderPop && <CRUDPagination postsPerPage={postsPerPage} totalPosts={pagecount} paginate={paginate} />}
         </div>
         
     );

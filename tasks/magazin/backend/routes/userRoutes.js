@@ -17,7 +17,7 @@ var smtpTransport = nodemailer.createTransport({
     service: "gmail",
     auth: {
         user: "aleksandar.i.uzunov@gmail.com",
-        pass: ""
+        pass: "hidden for github"
     }
 });
 var rand,mailOptions,host,link;
@@ -45,7 +45,7 @@ router.post("/sign",async (req,res) => {
         }
     } catch (err) {
         console.log(err)
-        res.status(500).send({msg: 'There was a problem with the request.'});
+        res.status(500).send({msg: 'Възникна проблем, моля опитайте по-късно.'});
     }
 })
 
@@ -68,7 +68,7 @@ router.put("/update",async (req,res) => {
             res.status(401).send({msg: 'Несъществуващ потребител.'});
         } 
     } catch (err) {
-        res.status(500).send({msg: 'There was a problem with the request.'});
+        res.status(500).send({msg: 'Възникна проблем, моля опитайте по-късно.'});
     }
 })
 
@@ -77,6 +77,13 @@ router.post("/create",async (req,res) => {
         const {name,username,email,password} = req.body;
         let usernames = 0
         let emails = 0
+        var currentdate = new Date(); 
+        var create_date =  currentdate.getDate() + "/"
+                + (currentdate.getMonth()+1)  + "/" 
+                + currentdate.getFullYear() + " @ "  
+                + currentdate.getHours() + ":"  
+                + currentdate.getMinutes() + ":" 
+                + currentdate.getSeconds();
         const checkUsers = await pool.query(" SELECT * FROM users WHERE email = $2 or username =$1",[username,email]);
         checkUsers.rows.map(user => {
             user.username == username ? usernames++ : usernames = usernames;
@@ -94,19 +101,19 @@ router.post("/create",async (req,res) => {
         }
         else
         {
-        const newUser = await pool.query(" INSERT INTO users (name,username,email,password) VALUES ($1,$2,$3,crypt($4, gen_salt('bf', 8)))",[name,username,email,password]);
+        const newUser = await pool.query(" INSERT INTO users (name,username,email,password,create_date) VALUES ($1,$2,$3,crypt($4, gen_salt('bf', 8)),$5)",[name,username,email,password,create_date]);
         if(newUser.rowCount>0){
         rand=Math.floor((Math.random() * 100) + 54);
         host=req.get('host');
         link="http://"+req.get('host')+"/api/users/verify?id="+rand;
         mailOptions={
             to : email,
-            subject : "Please confirm your Email account",
-            html : "Hello,<br> Please Click on the link to verify your email.<br><a href="+link+">Click here to verify</a>"
+            subject : "Моля потвърдете вашият имейл адрес",
+            html : "Здравейте,<br> Моля Кликнете на линка за да потвърдите вашият имейл.<br><a href="+link+">Кликнете тук за да потвърдите имейла</a>"
         }
         smtpTransport.sendMail(mailOptions, function(error, response){
         if(error){
-            res.status(500).send({msg: 'There was a problem with sending the verification email.'});
+            res.status(500).send({msg: 'Възникна грешка с изпращането на имейл за потвърждение.'});
         }
         else{
             res.json({
@@ -124,7 +131,7 @@ router.post("/create",async (req,res) => {
     } catch (err) {
         console.log(err)
 
-        res.status(500).send({msg: 'There was a problem with the request.'});
+        res.status(500).send({msg: 'Възникна проблем, моля опитайте по-късно.'});
     }
 });
 
@@ -132,24 +139,46 @@ router.get('/verify',async function(req,res){
     console.log(req.protocol+":/"+req.get('host'));
 if((req.protocol+"://"+req.get('host'))==("http://"+host))
 {
-    console.log("Domain matches. The email is from authentic source");
     if(req.query.id==rand)
     {
         await pool.query("UPDATE users SET verified =TRUE where email=$1",[mailOptions.to])
-        console.log("email is verified");
-        res.end("<h1>Your email "+mailOptions.to+" was successfully verified");
+        res.end("<h1>Вашият email "+mailOptions.to+" беше успешно потвърден");
     }
     else
     {
-        console.log("Your email was not verified");
         res.end("<h1>Bad Request</h1>");
     }
 }
 else
 {
-    res.end("<h1>The request is from uknown source");
+    res.end("<h1>Заявката е от неизвестен източник");
 }
 
 });
+
+router.get("/get/:pageNumber",async(req,res) => {
+    try {
+        console.log("wtf")
+        const {pageNumber} = req.params;
+        const indexOfLastPost = pageNumber * 9;
+        const indexOfFirstPost = indexOfLastPost - 9;
+        console.log(indexOfFirstPost,indexOfLastPost)
+        const users = await pool.query(`select * from (SELECT t.*,name, count(*) OVER (ORDER BY t.id) as rownum FROM users as t)d where rownum >= $1 and rownum<=$2 `,[indexOfFirstPost,indexOfLastPost]);
+        res.json(users.rows);
+    } catch (err) {
+        console.log(err)
+        res.status(500).send({msg: 'There was a problem with the server.'});
+    }
+})
+
+router.get("/count", async (req, res) => {
+    try {
+      const usersCount = await pool.query(
+        "SELECT COUNT(*) FROM users");
+      res.json(usersCount.rows[0]);
+    } catch (err) {
+      console.error(err.message);
+    }
+  });
 
 module.exports = router;

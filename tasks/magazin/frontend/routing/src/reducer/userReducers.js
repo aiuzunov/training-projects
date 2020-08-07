@@ -1,4 +1,4 @@
-import { USER_SIGNIN_FAIL, USER_SIGNIN_SUCCESS, USER_SIGNIN_REQUEST, USER_SIGNUP_REQUEST, USER_SIGNUP_SUCCESS, USER_SIGNUP_FAIL, USER_LOGOUT_REQUEST, USER_LOGOUT_SUCCESS, USER_LOGOUT_FAIL } from "../constants/userConstants";
+import { USER_SIGNIN_FAIL, USER_SIGNIN_SUCCESS, USER_SIGNIN_REQUEST, USER_SIGNUP_REQUEST, USER_SIGNUP_SUCCESS, USER_SIGNUP_FAIL, USER_LOGOUT_REQUEST, USER_LOGOUT_SUCCESS, USER_LOGOUT_FAIL, USER_LIST_REQUEST, USER_LIST_SUCCESS, USER_LIST_FAIL } from "../constants/userConstants";
 
 function userSignInReducer(state = {}, action) {
     switch (action.type) {
@@ -36,4 +36,19 @@ function userSignInReducer(state = {}, action) {
     }
   }
 
-export {userSignInReducer,userSignUpReducer,userLogoutReducer};
+
+function userListReducer(state = { users: [] }, action) {
+  switch (action.type) {
+    case USER_LIST_REQUEST:
+      return { loading: true, users: [] };
+    case USER_LIST_SUCCESS:
+      return { loading: false, users: action.payload };
+    case USER_LIST_FAIL:
+      return { loading: false, error: action.payload };
+    default:
+      return state;
+  }
+}
+
+
+export {userSignInReducer,userSignUpReducer,userLogoutReducer,userListReducer};

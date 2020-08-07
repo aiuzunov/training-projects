@@ -82,9 +82,7 @@ router.post("/create",async (req,res) => {
        
         
 }   catch (err) {
-        console.log(err)
-
-        res.status(500).send({msg: 'There was a problem with the request.'});
+        res.status(500).send({msg: 'Възникна грешка със заявката,моля опитайте отново.'});
     }
 });
 

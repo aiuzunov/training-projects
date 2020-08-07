@@ -1,5 +1,5 @@
 import Cookie from 'js-cookie';
-import { USER_SIGNIN_FAIL, USER_SIGNIN_SUCCESS, USER_SIGNIN_REQUEST, USER_SIGNUP_FAIL, USER_SIGNUP_SUCCESS, USER_SIGNUP_REQUEST, USER_LOGOUT_REQUEST, USER_LOGOUT_SUCCESS, USER_LOGOUT_FAIL } from '../constants/userConstants';
+import { USER_SIGNIN_FAIL, USER_SIGNIN_SUCCESS, USER_SIGNIN_REQUEST, USER_SIGNUP_FAIL, USER_SIGNUP_SUCCESS, USER_SIGNUP_REQUEST, USER_LOGOUT_REQUEST, USER_LOGOUT_SUCCESS, USER_LOGOUT_FAIL, USER_LIST_REQUEST, USER_LIST_SUCCESS, USER_LIST_FAIL } from '../constants/userConstants';
 import Axios from 'axios';
 
 const signin = (email,password) => async (dispatch) => {
@@ -43,6 +43,15 @@ const logout = () => async (dispatch) => {
     }
 }
 
+const listUsers = (pageNumber) => async (dispatch) => {
+    try {
+        dispatch({ type: USER_LIST_REQUEST });
+        const { data } = await Axios.get(`http://localhost:5000/api/users/get/${pageNumber}`);
+        dispatch({ type: USER_LIST_SUCCESS, payload: data });         
+      } catch (error) {
+        dispatch({ type: USER_LIST_FAIL, payload: error.message });
+      }
+};
 
 
-export {signin, signup,logout}
+export {signin, signup,logout,listUsers}

@@ -19,7 +19,7 @@ router.get("/:id",async(req,res) => {
         const productTags = await pool.query("select name from tags join tags_products on tags.id = tags_products.tag_id where product_id = $1",[id]);
         res.json(productTags.rows);
     } catch (err) {
-        res.status(500).send({msg: 'There was a problem with the server.'});
+        res.status(500).send({msg: 'Възкникна грешка, моля опитайте отново.'});
     }
 })
 

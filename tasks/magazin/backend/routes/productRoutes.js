@@ -177,7 +177,7 @@ router.put("/update/:id", Authenticated, async (req, res) => {
   } catch (err) {
     res
       .status(500)
-      .send({ msg: "Възникна грешка при визуализирането на продуктите ." });
+      .send({ msg: "Възникна грешка при актуализирането на продуктa ." });
   }
 });
 
@@ -216,7 +216,7 @@ router.post("/create", Authenticated, async (req, res) => {
   } catch (err) {
     res
       .status(500)
-      .send({ msg: "Възникна грешка при визуализирането на продуктите ." });
+      .send({ msg: "Възникна грешка при създаването на продукта ." });
   }
 });
 
@@ -277,8 +277,9 @@ router.get("/:search/:price", async (req, res) => {
     );
     res.json(productCount.rows[0]);
   } catch (err) {
-    console.error(err.message);
-  }
+    res
+    .status(500)
+    .send({ msg: "Възникна грешка при визуализирането на продуктите ." });  }
 });
 
 router.get("/:tagid/:price", async (req, res) => {
@@ -293,8 +294,9 @@ router.get("/:tagid/:price", async (req, res) => {
     );
     res.json(productCount.rows[0]);
   } catch (err) {
-    console.error(err.message);
-  }
+    res
+    .status(500)
+    .send({ msg: "Възникна грешка при визуализирането на продуктите ." });  }
 });
 
 router.get("/:price", async (req, res) => {
@@ -309,8 +311,9 @@ router.get("/:price", async (req, res) => {
     );
     res.json(productCount.rows[0]);
   } catch (err) {
-    console.error(err.message);
-  }
+    res
+    .status(500)
+    .send({ msg: "Възникна грешка при визуализирането на продуктите ." });  }
 });
 
 module.exports = router;

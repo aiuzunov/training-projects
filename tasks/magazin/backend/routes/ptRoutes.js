@@ -14,7 +14,7 @@ router.post("/list/:pageNumber",async(req,res) => {
         res.json(allPT.rows);
     } catch (err) {
         console.log(err)
-        res.status(500).send({msg: 'There was a problem with the server.'});
+        res.status(500).send({msg: 'Възкникна грешка, моля опитайте отново.'});
     }
 })
 
