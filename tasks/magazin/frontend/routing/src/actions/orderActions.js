@@ -17,11 +17,19 @@ const saveOrder = (order) => async (dispatch, getState) => {
     }
   };
 
-  const listOrders = (user_id) => async (dispatch) => {
+  const listOrders = (user_id,currentPage) => async (dispatch) => {
     try {
+      console.log("test:",currentPage)
+      if(!currentPage){
         dispatch({ type: ORDER_LIST_REQUEST });
         const { data } = await Axios.get(`http://localhost:5000/api/orders/list/${user_id}`);
-        dispatch({ type: ORDER_LIST_SUCCESS, payload: data });    
+        dispatch({ type: ORDER_LIST_SUCCESS, payload: data }); 
+      }else{
+        dispatch({ type: ORDER_LIST_REQUEST });
+        const { data } = await Axios.get(`http://localhost:5000/api/orders/listall/${currentPage}`);
+        dispatch({ type: ORDER_LIST_SUCCESS, payload: data }); 
+      }
+           
       } catch (error) {
         dispatch({ type: ORDER_LIST_FAIL, payload: error.response.data.msg });
       }

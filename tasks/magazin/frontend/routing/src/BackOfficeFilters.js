@@ -47,7 +47,7 @@ export default function BackOfficeFilters(props) {
 
   const handleCategoryChange = (event) => {
     setTagid(event.target.value);
-    props.filterTag(search);
+    props.filterTag(event.target.value);
   };
 
   const handlePriceChange = (event, newPrice) => {

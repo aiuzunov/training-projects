@@ -51,7 +51,7 @@ router.get("/p/:price/:pageNumber", async (req, res) => {
     const indexOfLastPost = pageNumber * 9;
     const indexOfFirstPost = indexOfLastPost - 9;
     const allProducts = await pool.query(
-      "SELECT DISTINCT t.id,name,image,brand,price,count_in_stock,description,create_date,edit_time,currency_id from (SELECT *, count(*) OVER (ORDER BY id ) ROWNUM FROM products) as t JOIN tags_products on t.id = tags_products.product_id where rownum>$3 and rownum <= $4 and price>=$1 AND price<=$2",
+      "SELECT DISTINCT t.id,name,image,brand,price,count_in_stock,description,create_date,edit_time,currency_id from (SELECT *, count(*) OVER (ORDER BY id ) ROWNUM FROM products where price>=$1 AND price<=$2) as t JOIN tags_products on t.id = tags_products.product_id where rownum>$3 and rownum <= $4",
       [price1, price2, indexOfFirstPost,indexOfLastPost]
     );
     res.json(allProducts.rows);

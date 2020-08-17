@@ -17,7 +17,7 @@ var smtpTransport = nodemailer.createTransport({
     service: "gmail",
     auth: {
         user: "aleksandar.i.uzunov@gmail.com",
-        pass: "hidden for github"
+        pass: ""
     }
 });
 var rand,mailOptions,host,link;
@@ -52,6 +52,7 @@ router.post("/sign",async (req,res) => {
 router.put("/update",async (req,res) => {
     try {
         const {name,username,email,password} = req.body;
+        console.log(name)
         await pool.query(" UPDATE users SET name=$1,username=$2,email=$3 WHERE password=crypt($4, password)",[name,username,email,password]);
         const updatedUser = await pool.query(" SELECT * from users where email=$1",[email]);
 
@@ -68,6 +69,7 @@ router.put("/update",async (req,res) => {
             res.status(401).send({msg: 'Несъществуващ потребител.'});
         } 
     } catch (err) {
+        console.log(err)
         res.status(500).send({msg: 'Възникна проблем, моля опитайте по-късно.'});
     }
 })
@@ -94,7 +96,7 @@ router.post("/create",async (req,res) => {
             res.status(401).send({msg: 'Потребителското име и имейла са заети.'});
         }
         else if(usernames>0){
-            res.status(401).send({msg: 'Потребителското име са заети.'});
+            res.status(401).send({msg: 'Потребителското име e заетo.'});
         }
         else if(emails>0){
             res.status(401).send({msg: 'Имейла е зает.'});
@@ -114,6 +116,8 @@ router.post("/create",async (req,res) => {
         smtpTransport.sendMail(mailOptions, function(error, response){
         if(error){
             res.status(500).send({msg: 'Възникна грешка с изпращането на имейл за потвърждение.'});
+            pool.query(" DELETE FROM users where email=$1",[email])
+
         }
         else{
             res.json({

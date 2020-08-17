@@ -20,10 +20,10 @@ const useStyles = makeStyles({
   },
 });
 
-const getProductCard = (pageNumber,products_2,productid,productname,productimage,productprice,productcis,productdescription,productcurrency) => {
+const getProductCard = (pricefilter,tagfilter,searchfilter,pageNumber,products_2,productid,productname,productimage,productprice,productcis,productdescription,productcurrency) => {
   return(
     <Grid key={productid} item xs={10} sm={4} >
-      <ProductCard pageNumber={pageNumber} products = {products_2} cis ={productcis} id={productid} name={productname} image={productimage} price={productprice} description={productdescription} currency_id={productcurrency}/>
+      <ProductCard pricefilter={pricefilter} tagfilter={tagfilter} searchfilter={searchfilter} pageNumber={pageNumber} products = {products_2} cis ={productcis} id={productid} name={productname} image={productimage} price={productprice} description={productdescription} currency_id={productcurrency}/>
     </Grid>
   )
 };
@@ -48,7 +48,7 @@ function NestedGrid(props){
         >
          
         {products.map(product => (
-          getProductCard(props.pageNumber,products,product.id,product.name,product.image,product.price,product.count_in_stock,product.description,product.currency_id)
+          getProductCard(props.price,props.tagid,props.search,props.pageNumber,products,product.id,product.name,product.image,product.price,product.count_in_stock,product.description,product.currency_id)
           
         ))}
 

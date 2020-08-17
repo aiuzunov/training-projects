@@ -6,7 +6,7 @@ import ProductDetailsPage from './ProductDetailsPage';
 import Cart from './Cart';
 import SignInScreen from './SignInScreen';
 import SignUpScreen from './SignUpScreen';
-import CRUDProducts from './CRUDProducts';
+import BackOffice from './BackOffice';
 import SignInEmployees from './signInEmployees';
 import PrivateRoute from './PrivateRoute';
 import UserProfile from './userProfile';
@@ -34,7 +34,7 @@ function App() {
       <Route path="/orders" component={ProfileOrderList}/>
       <Route path="/order/:id" component={OrderDetailsPage}/>
       
-      <PrivateRoute path='/manageproducts' component={CRUDProducts} />
+      <PrivateRoute path='/backoffice' component={BackOffice} />
       
 
 

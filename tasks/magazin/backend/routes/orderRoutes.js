@@ -40,6 +40,18 @@ router.get("/list/:userid",async(req,res) => {
     }
 })
 
+router.get("/listall/:currentPage",async(req,res) => {
+    try {
+        const {currentPage} = req.params;
+        const indexOfLastPost = currentPage * 9;
+        const indexOfFirstPost = indexOfLastPost - 9;
+        const allOrders = await pool.query("select * from (SELECT t.*, count(*) OVER (ORDER BY t.id) as rownum FROM orders as t)d where rownum >= $1 and rownum<=$2",[indexOfFirstPost,indexOfLastPost]);
+        res.json(allOrders.rows);
+    } catch (err) {
+        res.status(500).send({msg: 'Възникна проблем при взимането на информацията за адресите.'});
+    }
+})
+
 router.get("/listItems/:order_id",async(req,res) => {
     try {
         console.log(1)
@@ -63,6 +75,26 @@ router.get("/order/:order_id",async(req,res) => {
         res.status(500).send({msg: 'Възникна проблем при взимането на информацията за адресите.'});
     }
 })
+
+router.get("/count", async (req, res) => {
+    try {
+      const ordersCount = await pool.query(
+        "SELECT COUNT(*) FROM orders");
+      res.json(ordersCount.rows[0]);
+    } catch (err) {
+      console.error(err.message);
+    }
+  });
+
+  router.get("/count", async (req, res) => {
+    try {
+      const ordersCount = await pool.query(
+        "SELECT COUNT(*) FROM orders");
+      res.json(ordersCount.rows[0]);
+    } catch (err) {
+      console.error(err.message);
+    }
+  });
 
 
 

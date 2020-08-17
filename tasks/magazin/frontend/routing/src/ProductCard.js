@@ -57,7 +57,12 @@ function ProductCard(props) {
   };
 
   useEffect(() => {
-    dispatch(listPT(props.pageNumber));
+    var currentPage = props.pageNumber;
+    var pricefilter = props.pricefilter;
+    var tagfilter = props.tagfilter;
+    var searchfilter = props.searchfilter;
+    console.log(props.pricefilter,props.tagfilter,props.searchfilter)
+    dispatch(listPT({currentPage,pricefilter,tagfilter,searchfilter}));
   }, [props.pageNumber]);
   return (
     <Card className={classes.root} variant="outlined">

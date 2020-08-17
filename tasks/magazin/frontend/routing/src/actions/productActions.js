@@ -24,6 +24,7 @@ const listProducts = (price,tagid,name,pageNumber) => async (dispatch) => {
         dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });  
       }
       else if(price){
+        console.log(123)
         dispatch({ type: PRODUCT_LIST_REQUEST });
         const { data } = await axios.get(`http://localhost:5000/api/products/p/${price}/${pageNumber}`);
         dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });  
