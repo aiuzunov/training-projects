@@ -5,7 +5,7 @@ const { default: Axios } = require("axios")
 
 const addToCart = (productId, quantity)  => async (dispatch, getState) => {
         try {
-            const { data } = await Axios.get(`http://localhost:5000/api/cart/${productId}`)
+            const { data } = await Axios.get(`/api/cart/${productId}`)
             dispatch({type: CART_ADD_ITEM, payload:{
                 product: data.id,
                 name: data.name,
@@ -28,7 +28,7 @@ const addToCart = (productId, quantity)  => async (dispatch, getState) => {
         try {
 
           dispatch({ type: CARTITEM_SAVE_REQUEST, payload: cartItem });
-          const { data } = await Axios.post(`http://localhost:5000/api/cart/create`, cartItem);
+          const { data } = await Axios.post(`/api/cart/create`, cartItem);
           dispatch({ type: CARTITEM_SAVE_SUCCESS, payload: data });
         } catch (error) {
           dispatch({ type: CARTITEM_SAVE_FAIL, payload: error.response.data.msg });
@@ -41,7 +41,7 @@ const addToCart = (productId, quantity)  => async (dispatch, getState) => {
             console.log(cartItem)
 
             dispatch({type: CARTITEM_DELETE_REQUEST, payload: cartItem});
-            const {data} = await Axios.post(`http://localhost:5000/api/cart/delete`,cartItem);
+            const {data} = await Axios.post(`/api/cart/delete`,cartItem);
             dispatch({type: CARTITEM_DELETE_SUCCESS, payload: data, success: true});
         } catch (error) {
             dispatch({ type: CARTITEM_DELETE_FAIL, payload: error.message });

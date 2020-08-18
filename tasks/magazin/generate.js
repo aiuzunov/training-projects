@@ -1,5 +1,23 @@
 
+const express = require('express');
+const router = express.Router();
+const pool = require("./db");
+const fs = require('fs')
+const request = require('request');
+const { create } = require('domain');
+
+
+
+const download = (url, path, callback) => {
+  request.head(url, (err, res, body) => {
+    request(url)
+      .pipe(fs.createWriteStream(path))
+      .on('close', callback)
+  })
+}
+
 function capFirst(string) {
+  
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
@@ -27,29 +45,63 @@ function generateDescription(length) {
   }
   return result;
 }
-const generateProducts = (arrayLength) => (minCategory, maxCategory) => (minCost, maxCost) => {
-
+async function  generateProducts(arrayLength,minCategory, maxCategory,minCost, maxCost){
+    try{
     let a = new Array(arrayLength);
   
-    for (let i = 0; i < a.length; i++) {
+    for (let i = 0; i < a.length-1; i++) {
+      console.log('loop')
       const minCat = minCategory;
       const maxCat = maxCategory;
       const minPrice = minCost;
       const maxPrice = maxCost;
-      const randomCategory = Math.floor(Math.random() * (+maxCat - +minCat)) + +minCat;
-      const randomStock = Math.floor((Math.random() * 1000) % 2);
-      const randomPrice = (Math.random() * (+maxPrice - +minPrice)) + +minPrice;
-      const name = generateName();
-      const description = generateDescription(3);
+      var randomCategory = '';
+      for (var cats = [1, 2, 3, 4,5,6], j = cats.length-3; j--; ) {
+        var random = cats.splice(Math.floor(Math.random() * (j + 1)), 1)[0];
+        randomCategory = randomCategory + random + ",";
+      }
+      randomCategory = randomCategory = randomCategory.substring(0, randomCategory.length - 1);
+      const randomStock = Math.floor(Math.random() * 20) + 1  ;
+      const randomPrice = (Math.random() * (+maxPrice - +minPrice)) +minPrice;
+      const name = 'Книга'+i;
+      const description = 'Рандом описание'+i;
       a[i] = {
-        "productCategory": `Category ${randomCategory}`,
+        "productCategory": randomCategory,
         "productName": name,
         "productImage": `https://picsum.photos/400?image=${Math.floor(Math.random()*1000)}`,
-        "productStock": !!randomStock,
-        "productPrice": randomPrice.toFixed(3),
+        "productStock": randomStock,
+        "productPrice": randomPrice.toFixed(2),
         "productDescription": description
       }
+      var currentdate = new Date(); 
+       var create_date =  currentdate.getDate() + "/"
+                + (currentdate.getMonth()+1)  + "/" 
+                + currentdate.getFullYear() + " @ "  
+                + currentdate.getHours() + ":"  
+                + currentdate.getMinutes() + ":" 
+                + currentdate.getSeconds();
+      const newProduct = await pool.query("INSERT INTO products (name,image,price,count_in_stock,description,create_date) VALUES ($1,$2,$3,$4,$5,$6)",[a[i].productName,a[i].productImage,a[i].productPrice,a[i].productStock,a[i].productDescription,create_date]);
+      var tagarr = a[i].productCategory.split(",");
+      console.log(tagarr)
+      if(newProduct){
+        const url = a[i].productImage;
+        const path = `./public/${name}.png`;
+        download(url, path, () => {
+            console.log('Image Downloaded Successfuly!')
+          })
+      console.log(a[i].productCategory)
+      await pool.query("UPDATE products SET has_image = 'true' where name = $1",[a[i].productName]);
+      const productId = await pool.query(" SELECT id FROM products WHERE name=$1 ",[a[i].productName])
+      for(let k = 0; k< tagarr.length;k++){
+        await pool.query("INSERT INTO tags_products (product_id,tag_id) VALUES($1,$2)",[productId.rows[0].id,tagarr[k]]);
     }
-    console.log(JSON.stringify(a));
+      }
+    }
+  }catch(error){
+    console.log(error)
+
   }
-  generateProducts(20)(1, 5)(1000, 4000);
+
+  }
+  generateProducts(15000,1, 5,1, 100);
+

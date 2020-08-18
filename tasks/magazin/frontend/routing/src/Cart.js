@@ -102,7 +102,7 @@ cartItems.length === 0 ?
             </div>
 
              <div className="image">
-                  <img src={`http://localhost:5000/${item.name}.png`} alt="" />
+                  <img src={`/${item.name}.png`} alt="" />
             </div>
                 
             <div className="description">

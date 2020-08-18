@@ -68,7 +68,7 @@ function ProductCard(props) {
     <Card className={classes.root} variant="outlined">
       <CardMedia
         className={classes.media}
-        image={`http://localhost:5000/${props.name}.png`}
+        image={`/${props.name}.png`}
         style={{
           width: "100%",
           maxWidth: "100%",

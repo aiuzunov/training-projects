@@ -5,7 +5,7 @@ import Axios from 'axios';
 const signin = (email,password) => async (dispatch) => {
     dispatch({type: USER_SIGNIN_REQUEST,payload:{email,password}});
     try {
-        const {data} = await Axios.post(`http://localhost:5000/api/users/sign`,{email,password});
+        const {data} = await Axios.post(`/api/users/sign`,{email,password});
         dispatch({type: USER_SIGNIN_SUCCESS,payload:data});
         Cookie.set('userInfo', JSON.stringify(data));
     } catch (error) {
@@ -18,11 +18,11 @@ const signup = (name,username,email,password,update) => async (dispatch) => {
     try {
     if(!update)
     {
-        const {data} = await Axios.post(`http://localhost:5000/api/users/create`,{name,username,email,password});
+        const {data} = await Axios.post(`/api/users/create`,{name,username,email,password});
         dispatch({type: USER_SIGNUP_SUCCESS,payload:data});
     }
     else{
-        const {data} = await Axios.put(`http://localhost:5000/api/users/update`,{name,username,email,password});
+        const {data} = await Axios.put(`/api/users/update`,{name,username,email,password});
         dispatch({type: USER_SIGNUP_SUCCESS,payload:data});
         Cookie.set('userInfo', JSON.stringify(data));
     }
@@ -46,7 +46,7 @@ const logout = () => async (dispatch) => {
 const listUsers = (pageNumber) => async (dispatch) => {
     try {
         dispatch({ type: USER_LIST_REQUEST });
-        const { data } = await Axios.get(`http://localhost:5000/api/users/get/${pageNumber}`);
+        const { data } = await Axios.get(`/api/users/get/${pageNumber}`);
         dispatch({ type: USER_LIST_SUCCESS, payload: data });         
       } catch (error) {
         dispatch({ type: USER_LIST_FAIL, payload: error.message });

@@ -10,6 +10,7 @@ import { employeeSignInReducer, employeeSignUpReducer } from './reducer/employee
 import { addressListReducer, addressSaveReducer, singleAddressListReducer } from './reducer/addressReducers';
 import { orderSaveReducer, orderListReducer, orderItemsListReducer, getOrderReducer } from './reducer/orderReducers';
 import { getPaymentReducer } from './reducer/paymentReducers';
+import { incomesListReducer,soldProductsListReducer,registeredUsersListReducer } from './reducer/statsReducers';
 
 const cartItems = Cookie.getJSON('cartItems') || [];
 const userInfo = Cookie.getJSON('userInfo') || null;
@@ -39,7 +40,10 @@ const reducer = combineReducers({
     getOrder: getOrderReducer,
     addressList: singleAddressListReducer,
     singlePaymentList: getPaymentReducer,
-    usersList: userListReducer
+    usersList: userListReducer,
+    incomesList: incomesListReducer,
+    soldProductsList: soldProductsListReducer,
+    regUsersList: registeredUsersListReducer,
 })
 
 const composeEnhancer = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;

@@ -13,7 +13,7 @@ function ProductsPage(){
     const getCount = async () => {
         try {
             const response = await fetch(
-              `http://localhost:5000/api/orders/count`
+              `/api/orders/count`
             );
             const count = await response.json();
             console.log(count);

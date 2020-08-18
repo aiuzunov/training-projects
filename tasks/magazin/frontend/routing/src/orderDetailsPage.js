@@ -94,7 +94,7 @@ function OrderDetailsPage(props) {
               {orderItems.map(item =>
                     <li key={item.id}>
                       <div className="cart-image">
-                        <img src={`http://localhost:5000/${item.name}.png`} alt="product" />
+                        <img src={`/${item.name}.png`} alt="product" />
                       </div>
                       <div className="cart-name">
                         <div>

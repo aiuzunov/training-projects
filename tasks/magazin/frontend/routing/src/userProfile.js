@@ -87,7 +87,7 @@ function UserProfile(context) {
 
 
 const handleordersClick = () => {
-  window.location="/orders";
+  history.push="/orders";
 };
 
 const handleSaveAddress = () => {

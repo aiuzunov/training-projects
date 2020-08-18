@@ -13,6 +13,7 @@ import UserProfile from './userProfile';
 import EmpSignUpScreen from './EmpSignUpScreen';
 import ProfileOrderList from './ProfileOrderList';
 import OrderDetailsPage from './orderDetailsPage';
+import BackOfficeStats from './BackOfficeStats';
 
 function App() {
 
@@ -20,7 +21,7 @@ function App() {
     <Router>
       <Switch>
 
-  
+
       <Route path="/" exact>
         <ProductsPage/>
       </Route>
@@ -33,9 +34,10 @@ function App() {
       <Route path="/empsign" component={EmpSignUpScreen}/>
       <Route path="/orders" component={ProfileOrderList}/>
       <Route path="/order/:id" component={OrderDetailsPage}/>
-      
+      <Route path="/backoffice/stats" component={BackOfficeStats}/>
+
       <PrivateRoute path='/backoffice' component={BackOffice} />
-      
+
 
 
     </Switch>

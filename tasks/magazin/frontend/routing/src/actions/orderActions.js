@@ -10,7 +10,7 @@ const saveOrder = (order) => async (dispatch, getState) => {
     try {
       console.log(order)
       dispatch({ type: ORDER_SAVE_REQUEST, payload: order });
-      const { data } = await Axios.post(`http://localhost:5000/api/orders/create`, order);
+      const { data } = await Axios.post(`/api/orders/create`, order);
       dispatch({ type: ORDER_SAVE_SUCCESS, payload: data });
     } catch (error) {
       dispatch({ type: ORDER_SAVE_FAIL, payload: error.response.data.msg });
@@ -22,11 +22,11 @@ const saveOrder = (order) => async (dispatch, getState) => {
       console.log("test:",currentPage)
       if(!currentPage){
         dispatch({ type: ORDER_LIST_REQUEST });
-        const { data } = await Axios.get(`http://localhost:5000/api/orders/list/${user_id}`);
+        const { data } = await Axios.get(`/api/orders/list/${user_id}`);
         dispatch({ type: ORDER_LIST_SUCCESS, payload: data }); 
       }else{
         dispatch({ type: ORDER_LIST_REQUEST });
-        const { data } = await Axios.get(`http://localhost:5000/api/orders/listall/${currentPage}`);
+        const { data } = await Axios.get(`/api/orders/listall/${currentPage}`);
         dispatch({ type: ORDER_LIST_SUCCESS, payload: data }); 
       }
            
@@ -38,7 +38,7 @@ const saveOrder = (order) => async (dispatch, getState) => {
 const getSingleOrder = (order_id) => async (dispatch) => {
   try {
       dispatch({ type: GET_ORDER_REQUEST });
-      const { data } = await Axios.get(`http://localhost:5000/api/orders/order/${order_id}`);
+      const { data } = await Axios.get(`/api/orders/order/${order_id}`);
       dispatch({ type: GET_ORDER_SUCCESS, payload: data });    
     } catch (error) {
       dispatch({ type: GET_ORDER_FAIL, payload: error.response.data.msg });
@@ -49,7 +49,7 @@ const listOrderItems = (order_id) => async (dispatch) => {
   try {
       console.log(1)
       dispatch({ type: ORDERITEMS_LIST_REQUEST });
-      const { data } = await Axios.get(`http://localhost:5000/api/orders/listItems/${order_id}`);
+      const { data } = await Axios.get(`/api/orders/listItems/${order_id}`);
       dispatch({ type: ORDERITEMS_LIST_SUCCESS, payload: data });    
     } catch (error) {
       dispatch({ type: ORDERITEMS_LIST_FAIL, payload: error.response.data.msg });
