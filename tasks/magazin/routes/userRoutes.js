@@ -24,7 +24,7 @@ var rand,mailOptions,host,link;
 
 router.post("/sign",async (req,res) => {
     try {
-      
+
         const {email,password} = req.body;
         const signUser = await pool.query("SELECT * FROM users WHERE email=$1 AND password=crypt($2, password);",[email,password]);
         if(signUser.rowCount>0){
@@ -67,7 +67,7 @@ router.put("/update",async (req,res) => {
             console.log(updatedUser.rows[0].name)
         }else{
             res.status(401).send({msg: 'Несъществуващ потребител.'});
-        } 
+        }
     } catch (err) {
         console.log(err)
         res.status(500).send({msg: 'Възникна проблем, моля опитайте по-късно.'});
@@ -79,12 +79,12 @@ router.post("/create",async (req,res) => {
         const {name,username,email,password} = req.body;
         let usernames = 0
         let emails = 0
-        var currentdate = new Date(); 
+        var currentdate = new Date();
         var create_date =  currentdate.getDate() + "/"
-                + (currentdate.getMonth()+1)  + "/" 
-                + currentdate.getFullYear() + " @ "  
-                + currentdate.getHours() + ":"  
-                + currentdate.getMinutes() + ":" 
+                + (currentdate.getMonth()+1)  + "/"
+                + currentdate.getFullYear() + " @ "
+                + currentdate.getHours() + ":"
+                + currentdate.getMinutes() + ":"
                 + currentdate.getSeconds();
         const checkUsers = await pool.query(" SELECT * FROM users WHERE email = $2 or username =$1",[username,email]);
         checkUsers.rows.map(user => {
@@ -92,7 +92,7 @@ router.post("/create",async (req,res) => {
             user.email == email ? emails++ : emails=emails;
         });
         if(usernames>0&&emails>0)
-        {  
+        {
             res.status(401).send({msg: 'Потребителското име и имейла са заети.'});
         }
         else if(usernames>0){
@@ -129,9 +129,9 @@ router.post("/create",async (req,res) => {
         }
         });
         }
-       
-        
-}   
+
+
+}
     } catch (err) {
         console.log(err)
 
