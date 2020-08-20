@@ -1,98 +1,111 @@
 #include<iostream>
-#include<map>
-#include<vector>
-#include<string>
+#include<cstdio>
 #include<algorithm>
+#include<cmath>
+#include<cstring>
+#include<string>
 using namespace std;
+
+
 struct bukva
 {
-    char firstword;
-    int ct;
-    bukva(){};
-    bukva(char c,int otherwords)
-    {
-        firstword=c;
-        ct=otherwords;
-    }
+    int ct, x;
 };
-bool operator<(bukva firstletter,bukva secondletter)
+bukva bukvi[26];
+
+int n, numUsedLetters,used[26];
+bool couples[26][26];
+
+bool compare (bukva a, bukva b)
 {
-    return firstletter.ct<secondletter.ct;
+    if (a.ct>b.ct)return true;
+    if (a.ct==b.ct)
+        if (couples[a.x][b.x])return true;
+    return false;
+
 }
-map<char,int> after;
-vector<bukva> bukvi;
-int main(){
-    int n,x,y;
-    cin>>n;
-    string firstword,otherwords;
-    cin >> firstword;
-    while(firstword.length() > 10)
+
+
+int main ()
+{
+    int i,j,k;
+
+    scanf("%d", &n);
+    string s[n];
+
+    for (i=0; i<n; i++)
     {
-    cin >> firstword;
-    }
-    for(int i=0;i<firstword.size();i++)
-    {
-        after[firstword[i]]=1;
-    }
-    for(int i=1;i<n;i++)
-    {
-        cin >> otherwords;
-        while(otherwords.length() > 10)
-        {
-          cin >> otherwords;
+        cin>>s[i];
+        while(s[i].size()>10){
+          cout<<"Думите трябва да бъдат по-малко от 10 символа"<<endl;
+          cin>>s[i];
         }
-        x=0;
-        y=0;
-        while(x<firstword.size()&&y<otherwords.size())
+        for (j=0; j<s[i].size(); j++){
+            used[ int(s[i][j]-'a') ]=1;
+          }
+    }
+
+    for (i=0; i<26; i++){
+        if (used[i])
+          numUsedLetters++;
+      }
+
+    for (i=0; i<n; i++)
+        for (j=i+1; j<n; j++)
         {
-            if(firstword[x]!=otherwords[y])
-            {
-                if(!after[otherwords[y]])
-                {
-                    after[otherwords[y]]=1;
+            k=0;
+            while (s[i][k]==s[j][k] && k<s[i].size() && k<s[j].size())
+              k++;
+
+            if (k<s[i].size() && k<s[j].size())
+                if (s[i][k]!=s[j][k]){
+                    couples[ int(s[i][k]-'a') ][ int(s[j][k]-'a') ]=true;
                 }
-                after[otherwords[y]]++;
-                y++;
-                break;
+        }
+
+
+    for (i=0; i<26; i++)
+        for (j=0; j<26; j++){
+            if (couples[i][j] && couples[j][i]){
+
+              cout<<"No"<<endl;
+              return 0;
             }
-            x++;
-            y++;
         }
-        while(y<otherwords.size())
+    cout<<"Yes"<<endl;
+
+
+
+    for (i=0; i<26; i++)
+    {
+        bukvi[i].x=i;
+        for (j=0; j<26; j++)
         {
-            if(!after[otherwords[y]])
-            {
-                after[otherwords[y]]=1;
-            }
-            y++;
+            if (couples[i][j])bukvi[i].ct++;
         }
-        firstword=otherwords;
     }
-    map<char,int>::iterator it=after.begin();
-    for(;it!=after.end();it++)
+
+    for (i=0; i<numUsedLetters; i++)
     {
-        bukvi.push_back(bukva(it->first,it->second));
-    }
-    sort(bukvi.begin(),bukvi.end());
-    if(bukvi[0].ct>1)
-    {
-        cout<<"No\n";
-        return 0;
-    }
-    cout<<"Yes\n";
-    for(int i=0;i<bukvi.size();i++)
-    {
-            cout<<bukvi[i].firstword;
-    }
-    char c;
-    for(int i=0;i<26;i++)
-    {
-        if(!after['a'+i])
+        sort(bukvi, bukvi+26, compare);
+        if (bukvi[0].ct)
         {
-            c='a'+i;
-            cout<<c;
+            cout<<char(bukvi[0].x+'a');
+            used[ bukvi[0].x ]++;
+            bukvi[0].ct=0;
         }
+        else break;
     }
-    cout<<"\n";
+
+    for (i=0; i<26; i++)
+        if (used[i]==1)
+          cout<<char(i+'a');
+
+    for (i=0; i<26; i++)
+        if (!used[i])
+          cout<<char(i+'a');
+
+    cout<<endl;
+
     return 0;
 }
