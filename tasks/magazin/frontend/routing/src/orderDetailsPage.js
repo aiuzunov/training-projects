@@ -36,109 +36,181 @@ function OrderDetailsPage(props) {
       <div className="placeorder">
         <div className="placeorder-info">
           <div>
-            <h2>
+            <h3>
                 Адрес на доставката
-          </h2>
+          </h3>
 
-          <h4>
-              Адрес:
-          </h4>
-          <div>{address[0]&&address[0].address}</div>
+          <div className="product-list">
 
-          <h4>
-              Град
-          </h4>
-          <div>{address[0]&&address[0].city}</div>
+                  <table border="1" align className="table">
+                      <thead>
+                              <th>
+                                  Адрес
+                              </th>
+                              <th>
+                                  Град
+                              </th>
+                              <th>
+                                  Държава
+                              </th>
+                              <th>
+                                  Пощенски код
+                              </th>
 
-          <h4>
-              Държава
-          </h4>
-          <div>{address[0]&&address[0].country}</div>
+                      </thead>
+                      <tbody>
+                            <tr>
+                              <td>
+                                   {address[0]&&address[0].address}
+                              </td>
+                              <td>
+                                   {address[0]&&address[0].city}
+                              </td>
+                              <td>
+                                   {address[0]&&address[0].country}
+                              </td>
+                              <td align="right">
+                                   {address[0]&&address[0].postalcode}
+                              </td>
+                            </tr>
 
-          <h4>
-              Пощенски код
-          </h4>
-          <div>{address[0]&&address[0].postalcode}</div>
+                    </tbody>
+                      <h3>Детайли за потребителя</h3>
+                    <thead>
+                      <th>
+                          Име на потребителя
+                      </th>
+                      <th>
+                          Потребителско име
+                      </th>
+                      <th>
+                          Имейл на потребителя
+                      </th>
+                    </thead>
+                    <tbody>
+                      <tr>
+                              <td>
+                                   {user&&user.name}
+                              </td>
+                              <td>
+                                   {user&&user.username}
+                              </td>
+                              <td>
+                                   {user&&user.email}
+                              </td>
+                          </tr>
+                    </tbody>
+                    <h3>Детайли за плащането</h3>
+                    <thead>
+                      <th>
+                          Дата на плащането
+                      </th>
+                      <th>
+                          Лице извършило плащането
+                      </th>
+                      <th>
+                          Имейл на плащача
+                      </th>
+                      <th>
+                          Платена сума
+                      </th>
+                    </thead>
+                    <tbody>
+                    <tr>
+                              <td>
+                                   {payment[0]&&payment[0].time_of_payment}
+                              </td>
+                              <td>
+                                   {payment[0]&&payment[0].recipient_name}
+                              </td>
+                              <td>
+                                    {payment[0]&&payment[0].recipient_email}
+                              </td>
+                              <td align="right">
+                                    {payment[0]&&payment[0].payment_sum} EUR
+                              </td>
+
+                    </tr>
+                    </tbody>
+                    <h3>Информация за поръчката</h3>
+                    <thead>
+                      <th>
+                          Дата на създаване
+                      </th>
+                      <th>
+                          Статус на поръчката
+                      </th>
+                      <th>
+                          Обща сума на поръчката
+                      </th>
+                    </thead>
+                    <tbody>
+                    <tr>
+                              <td>
+                                   {order[0] && order[0].created}
+                              </td>
+                              <td>
+                                   {order[0] && order[0].status}
+                              </td>
+                              <td align="right">
+                                    {order[0] && order[0].price} EUR
+                              </td>
+
+                    </tr>
+                    </tbody>
+                  </table>
+              </div>
 
 
-         <div>{payment[0]&&payment[0].paymentid}</div>
 
 
           </div>
-          <div>
-            <h2>Детайли за потребителя</h2>
-            <h4>Име на потребителя</h4>
-             <div>{user&&user.name}</div>
-            <h4>Потребителско име</h4>
-            <div>{user&&user.username}</div>
-            <h4>Имейл на потребителя</h4>
-            <div>{user&&user.email}</div>
-          </div>
-          <div>
-            <h2>Детайли за плащането</h2>
-            <h4>
-              Лице извършило плащането:
-          </h4>
-          <div>{payment[0]&&payment[0].recipient_name}</div>
-          <h4>
-              Имейл на плащача:
-          </h4>
-          <div>{payment[0]&&payment[0].recipient_email}</div>
-          <h4>
-              Дата на плащането:
-          </h4>
-          <div>{payment[0]&&payment[0].time_of_payment}</div>
-          <h4>
-              Сума на плащането:
-          </h4>
-          <div>{payment[0]&&payment[0].payment_sum}</div>
-          </div>
-          <div>
-            <ul className="cart-list-container">
-              <li>
-                <h2>
-                Продуки:
-                </h2>
-                <div>
-                  Цена
-          </div>
-              </li>
-              {orderItems.map(item =>
-                    <li key={item.id}>
-                      <div className="cart-image">
-                        <img src={`/${item.name}.png`} alt="product" />
-                      </div>
-                      <div className="cart-name">
-                        <div>
-                          <Link to={"/product/" + item.product_id}>
-                            {item.name}
-                          </Link>
+          <div className="item-list">
+                <table border="1" className="table">
+                    <thead>
+                      <h2>
+                      Продуки:
+                      </h2>
+                        <tr>
+                          <th>
+                              Изображение
+                          </th>
+                            <th>
+                                Име
+                            </th>
+                            <th>
+                                Цена
+                            </th>
+                            <th>
+                                Описание
+                            </th>
 
-                        </div>
-                        <div>
-                          Количество: {item.quantity} бр.
-                        </div>
-                      </div>
-                      <div className="">
-                        {item.price} {item.currency_id}
-                      </div>
-                    </li>
-                  )
-              }
-            </ul>
-          </div>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {orderItems.map(item => (
+                            <tr key={item.id}>
+                            <td className="image">
+                                   <img  src={item.image}></img>
+                            </td>
+                            <td>
+                                 {item.name}
+                            </td>
+                            <td align="right">
+                                 {Number(item.price).toFixed(2)} EUR
+                            </td>
+                            <td>
+                                 {item.description}
+                            </td>
+
+                        </tr>
+                        ))}
 
 
-        </div>
-        <div className="placeorder-action">
-              <h3>Информация за поръчката</h3>
-              <div><h3>Статус на поръчката</h3></div>
-              <div>{order[0] && order[0].order_status}</div>
-              <div><h3>Дата на създаване</h3></div>
-              <div>{order[0] && order[0].created}</div>
-              <div><h3>Обща сума на поръчката</h3></div>
-              <div>{order[0] && order[0].price} {order[0] && order[0].currency}</div>
 
+                    </tbody>
+                </table>
+            </div>
 
 
         </div>

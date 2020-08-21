@@ -485,7 +485,7 @@ const handleUserOrdersButton = (user_id) => {
                             <td>
                                  {product.name}
                             </td>
-                            <td>
+                            <td align="right">
                                  {Number(product.price).toFixed(2)}
                             </td>
                             <td>
@@ -500,7 +500,7 @@ const handleUserOrdersButton = (user_id) => {
 
                                 ))}
                             </td>
-                            <td>
+                            <td align="right">
                                  {product.count_in_stock}
                             </td>
                             <td>
@@ -624,11 +624,12 @@ const handleUserOrdersButton = (user_id) => {
                             <td>
                             {order.created}
                             </td>
-                            {order.price}
+                            <td align="right">
+                              {order.price}
+                            </td>
                             <td>
                             {order.order_status}
                             </td>
-
                             <th>
                             <Link to={"/order/" + order.id}>
                             <Button
@@ -678,7 +679,10 @@ const handleUserOrdersButton = (user_id) => {
                             <td>
                             {order.created}
                             </td>
-                            {order.price}
+                            <td align="right">
+                                {order.price}
+                            </td>
+
                             <td>
                             {order.order_status}
                             </td>
