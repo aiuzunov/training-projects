@@ -4,6 +4,7 @@ const pool = require("../db");
 const getToken = require("../util");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
+var CryptoJS = require("crypto-js");
 
 
 
@@ -107,8 +108,11 @@ router.post("/create",async (req,res) => {
         const newUser = await pool.query(" INSERT INTO users (name,username,email,password,create_date) VALUES ($1,$2,$3,crypt($4, gen_salt('bf', 8)),$5)",[name,username,email,password,create_date]);
         if(newUser.rowCount>0){
         rand=Math.floor((Math.random() * 100) + 54);
+        rand = rand.toString(2);
+        var ciphertext = CryptoJS.AES.encrypt(rand, process.env.CRYPTO_SECRET).toString();
+        await pool.query("INSERT INTO email_codes (email,ver_code) VALUES($1,$2)",[email,ciphertext]);
         host=req.get('host');
-        link="http://"+req.get('host')+"/api/users/verify?id="+rand;
+        link="http://"+req.get('host')+"/api/users/verify?id="+ciphertext;
         mailOptions={
             to : email,
             subject : "Моля потвърдете вашият имейл адрес",
@@ -141,11 +145,15 @@ router.post("/create",async (req,res) => {
 });
 
 router.get('/verify',async function(req,res){
-    console.log(req.protocol+":/"+req.get('host'));
+    console.log("http://"+host);
 if((req.protocol+"://"+req.get('host'))==("http://"+host))
 {
-    if(req.query.id==rand)
+
+    const code = await pool.query("SELECT ver_code from email_codes where email=$1",[mailOptions.to]);
+    console.log(code.rows[0].ver_code,req.query.id)
+    if(req.query.id==code.rows[0].ver_code)
     {
+        await pool.query("DELETE FROM email_codes where email=$1",[mailOptions.to])
         await pool.query("UPDATE users SET verified =TRUE where email=$1",[mailOptions.to])
         res.end("<h1>Вашият email "+mailOptions.to+" беше успешно потвърден");
     }
