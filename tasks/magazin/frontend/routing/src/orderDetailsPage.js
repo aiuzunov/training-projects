@@ -78,11 +78,12 @@ function OrderDetailsPage(props) {
                       <h3>Детайли за потребителя</h3>
                     <thead>
                       <th>
-                          Име на потребителя
-                      </th>
-                      <th>
                           Потребителско име
                       </th>
+                      <th>
+                          Име на потребителя
+                      </th>
+
                       <th>
                           Имейл на потребителя
                       </th>
@@ -90,10 +91,10 @@ function OrderDetailsPage(props) {
                     <tbody>
                       <tr>
                               <td>
-                                   {user&&user.name}
+                                   {user&&user.username}
                               </td>
                               <td>
-                                   {user&&user.username}
+                                   {user&&user.name}
                               </td>
                               <td>
                                    {user&&user.email}
