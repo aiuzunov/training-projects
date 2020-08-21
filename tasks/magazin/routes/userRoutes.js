@@ -163,13 +163,23 @@ else
 
 router.get("/get/:pageNumber",async(req,res) => {
     try {
-        console.log("wtf")
         const {pageNumber} = req.params;
         const indexOfLastPost = pageNumber * 9;
         const indexOfFirstPost = indexOfLastPost - 9;
-        console.log(indexOfFirstPost,indexOfLastPost)
         const users = await pool.query(`select * from (SELECT t.*,name, count(*) OVER (ORDER BY t.id) as rownum FROM users as t)d where rownum >= $1 and rownum<=$2 `,[indexOfFirstPost,indexOfLastPost]);
         res.json(users.rows);
+    } catch (err) {
+        console.log(err)
+        res.status(500).send({msg: 'There was a problem with the server.'});
+    }
+})
+
+router.get("/info/:id",async(req,res) => {
+    try {
+        const {id} = req.params;
+        const user = await pool.query(`select users.name,users.username,users.email from users join orders on orders.user_id = users.id where orders.id=$1`,[id]);
+        console.log(user.rows[0])
+        res.json(user.rows[0]);
     } catch (err) {
         console.log(err)
         res.status(500).send({msg: 'There was a problem with the server.'});

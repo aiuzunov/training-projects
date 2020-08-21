@@ -1,5 +1,5 @@
 import Cookie from 'js-cookie';
-import { USER_SIGNIN_FAIL, USER_SIGNIN_SUCCESS, USER_SIGNIN_REQUEST, USER_SIGNUP_FAIL, USER_SIGNUP_SUCCESS, USER_SIGNUP_REQUEST, USER_LOGOUT_REQUEST, USER_LOGOUT_SUCCESS, USER_LOGOUT_FAIL, USER_LIST_REQUEST, USER_LIST_SUCCESS, USER_LIST_FAIL } from '../constants/userConstants';
+import { USER_GET_REQUEST,USER_GET_SUCCESS,USER_GET_FAIL,USER_SIGNIN_FAIL, USER_SIGNIN_SUCCESS, USER_SIGNIN_REQUEST, USER_SIGNUP_FAIL, USER_SIGNUP_SUCCESS, USER_SIGNUP_REQUEST, USER_LOGOUT_REQUEST, USER_LOGOUT_SUCCESS, USER_LOGOUT_FAIL, USER_LIST_REQUEST, USER_LIST_SUCCESS, USER_LIST_FAIL } from '../constants/userConstants';
 import Axios from 'axios';
 
 const signin = (email,password) => async (dispatch) => {
@@ -53,5 +53,16 @@ const listUsers = (pageNumber) => async (dispatch) => {
       }
 };
 
+const getUser = (id) => async (dispatch) => {
+    try {
+        console.log("User id:",id)
+        dispatch({ type: USER_GET_REQUEST });
+        const { data } = await Axios.get(`/api/users/info/${id}`);
+        dispatch({ type: USER_GET_SUCCESS, payload: data });
+      } catch (error) {
+        dispatch({ type: USER_GET_FAIL, payload: error.message });
+      }
+};
 
-export {signin, signup,logout,listUsers}
+
+export {signin, signup,logout,listUsers,getUser}

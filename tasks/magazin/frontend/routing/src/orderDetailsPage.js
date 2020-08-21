@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { listOrderItems, getSingleOrder } from './actions/orderActions';
 import { listAddress } from './actions/addressActions';
 import { getPayment } from './actions/paymentActions';
+import {getUser} from './actions/userActions';
 import NavBar from './NavBar';
 function OrderDetailsPage(props) {
   const orderItemsList = useSelector(state => state.orderItemsList);
@@ -14,15 +15,17 @@ function OrderDetailsPage(props) {
   const { loading:paymentLoading, payment, error:paymentError } = singlePaymentList;
   const getOrder = useSelector(state => state.getOrder);
   const { loading:orderloading, order, error:ordererror } = getOrder;
+  const userGetInfo = useSelector(state => state.userGetInfo);
+  const {user} = userGetInfo;
   const dispatch = useDispatch();
+
   useEffect(() => {
     console.log(1)
     dispatch(getSingleOrder(props.match.params.id));
     dispatch(listOrderItems(props.match.params.id));
     dispatch(listAddress(props.match.params.id));
     dispatch(getPayment(props.match.params.id));
-
-
+    dispatch(getUser(props.match.params.id));
 
   }, []);
   console.log(address)
@@ -36,7 +39,7 @@ function OrderDetailsPage(props) {
             <h2>
                 Адрес на доставката
           </h2>
-          
+
           <h4>
               Адрес:
           </h4>
@@ -61,6 +64,15 @@ function OrderDetailsPage(props) {
          <div>{payment[0]&&payment[0].paymentid}</div>
 
 
+          </div>
+          <div>
+            <h2>Детайли за потребителя</h2>
+            <h4>Име на потребителя</h4>
+             <div>{user&&user.name}</div>
+            <h4>Потребителско име</h4>
+            <div>{user&&user.username}</div>
+            <h4>Имейл на потребителя</h4>
+            <div>{user&&user.email}</div>
           </div>
           <div>
             <h2>Детайли за плащането</h2>

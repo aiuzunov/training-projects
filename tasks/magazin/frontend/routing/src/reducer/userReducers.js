@@ -1,4 +1,4 @@
-import { USER_SIGNIN_FAIL, USER_SIGNIN_SUCCESS, USER_SIGNIN_REQUEST, USER_SIGNUP_REQUEST, USER_SIGNUP_SUCCESS, USER_SIGNUP_FAIL, USER_LOGOUT_REQUEST, USER_LOGOUT_SUCCESS, USER_LOGOUT_FAIL, USER_LIST_REQUEST, USER_LIST_SUCCESS, USER_LIST_FAIL } from "../constants/userConstants";
+import { USER_GET_REQUEST,USER_GET_SUCCESS,USER_GET_FAIL,USER_SIGNIN_FAIL, USER_SIGNIN_SUCCESS, USER_SIGNIN_REQUEST, USER_SIGNUP_REQUEST, USER_SIGNUP_SUCCESS, USER_SIGNUP_FAIL, USER_LOGOUT_REQUEST, USER_LOGOUT_SUCCESS, USER_LOGOUT_FAIL, USER_LIST_REQUEST, USER_LIST_SUCCESS, USER_LIST_FAIL } from "../constants/userConstants";
 
 function userSignInReducer(state = {}, action) {
     switch (action.type) {
@@ -50,5 +50,17 @@ function userListReducer(state = { users: [] }, action) {
   }
 }
 
+function userGetReducer(state = {}, action) {
+    switch (action.type) {
+      case USER_GET_REQUEST:
+        return { loading: true };
+      case USER_GET_SUCCESS:
+        return { loading: false, user: action.payload };
+      case USER_GET_FAIL:
+        return { loading: false, error: action.payload };
+      default: return state;
+    }
+  }
 
-export {userSignInReducer,userSignUpReducer,userLogoutReducer,userListReducer};
+
+export {userSignInReducer,userSignUpReducer,userLogoutReducer,userListReducer,userGetReducer};
