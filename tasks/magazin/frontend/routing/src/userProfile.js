@@ -86,10 +86,6 @@ function UserProfile(context) {
 },[edit,success]);
 
 
-const handleordersClick = () => {
-  history.push="/orders";
-};
-
 const handleSaveAddress = () => {
   let user_id = userInfo.id
   console.log(postalCode)
@@ -111,7 +107,7 @@ const handleSaveAddress = () => {
             <a style={{cursor:'pointer'}} type="button" class="nav-link pr-0" role="button" aria-controls="simple-menu" aria-haspopup="true" onClick={handleMenuClick}>
               <div class="media align-items-center">
                 <span class="avatar avatar-sm rounded-circle">
-                  <img alt="Image placeholder" src="http://localhost:5000/bookprofilepic.png"></img>
+                  <img alt="Image placeholder" src="/bookprofilepic.png"></img>
                 </span>
                 <div class="media-body ml-2 d-none d-lg-block">
                   <span class="mb-0 text-sm  font-weight-bold">{userInfo.name}</span>
@@ -126,8 +122,12 @@ const handleSaveAddress = () => {
               open={Boolean(anchorEl)}
               onClose={handleMenuClose}
             >
-            <MenuItem onClick={handleordersClick}>Поръчки</MenuItem>
-            <MenuItem onClick={logoutHandler}>Излизане</MenuItem>
+            <Link style={{color:"black"}} to="/orders">
+              <MenuItem> Поръчки</MenuItem>
+            </Link>
+            <Link style={{color:"black"}} to="/">
+              <MenuItem onClick={logoutHandler}>Излизане</MenuItem>
+            </Link>
 
             </Menu>
             <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-right">
