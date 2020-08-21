@@ -14,19 +14,19 @@ function SignInEmployees({  match , history }) {
     const employeeSignIn = useSelector(state=>state.employeeSignIn);
     const {employeeInfo, loading, error} = employeeSignIn;
     const dispatch = useDispatch();
-    
+
     useEffect(() => {
         if(employeeInfo){
-            history.push('/manageproducts');
+            history.push('/backoffice');
         }
 
     },[employeeInfo]);
- 
+
    const submitInfo = (e) => {
        e.preventDefault();
        dispatch(employeeSign(email,password))
    };
- 
+
     return(
         <div>
             <NavBar/>
@@ -54,7 +54,7 @@ function SignInEmployees({  match , history }) {
                     </li>
                     <li>
                     <Button
-                    type="submit" 
+                    type="submit"
                     variant="contained"
                     color="primary"
                     >
@@ -65,9 +65,9 @@ function SignInEmployees({  match , history }) {
                 </ul>
             </form>
         </div>
-        
+
         </div>
-        
+
     );
 }
 

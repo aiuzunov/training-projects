@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require("../db");
 const getToken = require("../util");
 const nodemailer = require("nodemailer");
+require("dotenv").config();
 
 
 
@@ -16,8 +17,8 @@ setInterval(async function() {
 var smtpTransport = nodemailer.createTransport({
     service: "gmail",
     auth: {
-        user: "aleksandar.i.uzunov@gmail.com",
-        pass: "secret"
+        user: process.env.EMAIL_SENDER_EMAIL,
+        pass: process.env.EMAIL_SENDER_PASSWORD
     }
 });
 var rand,mailOptions,host,link;
@@ -51,9 +52,9 @@ router.post("/sign",async (req,res) => {
 
 router.put("/update",async (req,res) => {
     try {
-        const {name,username,email,password} = req.body;
-        console.log(name)
-        await pool.query(" UPDATE users SET name=$1,username=$2,email=$3 WHERE password=crypt($4, password)",[name,username,email,password]);
+        const {name,username,email,password,id} = req.body;
+        console.log("dada",id)
+        await pool.query(" UPDATE users SET name=$1,username=$2,email=$3,password=crypt($4, gen_salt('bf', 8)) WHERE id=$5",[name,username,email,password,id]);
         const updatedUser = await pool.query(" SELECT * from users where email=$1",[email]);
 
         if(updatedUser){

@@ -145,7 +145,7 @@ router.put("/update/:id", Authenticated, async (req, res) => {
     const {
       create_date,
       id,
-      tag_id,
+      submitTags,
       name,
       image,
       brand,
@@ -155,13 +155,13 @@ router.put("/update/:id", Authenticated, async (req, res) => {
     } = req.body;
     const url = image;
     const path = `./public/${name}.png`;
-    var tagarr = tag_id.split(",");
+    var tagarr = submitTags.split(",");
     const newProduct = await pool.query(
       " UPDATE products SET name=$1,image=$2,brand=$3,price=$4,count_in_stock=$5,description=$6,edit_time=$7 WHERE id=$8",
       [name, image, brand, price, count_in_stock, description, create_date, id]
     );
     await pool.query(
-      `DELETE from tags_products where tag_id NOT IN (${tag_id}) AND product_id=${id}`
+      `DELETE from tags_products where tag_id NOT IN (${submitTags}) AND product_id=${id}`
     );
 
     for (let i = 0; i < tagarr.length; i++) {
@@ -185,7 +185,7 @@ router.post("/create", Authenticated, async (req, res) => {
   try {
     const {
       create_date,
-      tag_id,
+      submitTags,
       name,
       image,
       brand,
@@ -193,7 +193,7 @@ router.post("/create", Authenticated, async (req, res) => {
       count_in_stock,
       description,
     } = req.body;
-    var tagarr = tag_id.split(",");
+    var tagarr = submitTags.split(",");
     const url = image;
     const path = `./public/${name}.png`;
     const newProduct = await pool.query(
@@ -214,6 +214,7 @@ router.post("/create", Authenticated, async (req, res) => {
       console.log("Image Downloaded Successfuly!");
     });
   } catch (err) {
+    console.log(err.message)
     res
       .status(500)
       .send({ msg: "Възникна грешка при създаването на продукта ." });
@@ -317,4 +318,3 @@ router.get("/:price", async (req, res) => {
 });
 
 module.exports = router;
-

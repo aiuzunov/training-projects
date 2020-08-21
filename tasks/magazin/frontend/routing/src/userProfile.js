@@ -23,7 +23,7 @@ function UserProfile(context) {
   const userSignIn = useSelector(state=>state.userSignIn);
   const {userInfo} = userSignIn;
   const addressesList = useSelector((state) => state.addressesList);
-  const { addresses , loading: loadingAddresses, error: addressesError } = addressesList;  
+  const { addresses , loading: loadingAddresses, error: addressesError } = addressesList;
   const dispatch = useDispatch();
   const addressSave = useSelector(state=>state.addressSave);
   const {address:saveAddress2,success, loading, error} = addressSave;
@@ -39,9 +39,9 @@ function UserProfile(context) {
   const [firstName,setFirstName] = useState(temp[0])
   const [secondName,setSecondName] = useState(temp[1])
   const history = useHistory();
-    
-  
-  
+
+
+
 
   const handleMenuClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -63,10 +63,10 @@ function UserProfile(context) {
 
   const handleSaveClick = () => {
     var update = 1;
-    dispatch(signup(firstName+" "+secondName,username,email,password,update));
+    dispatch(signup(firstName+" "+secondName,username,email,password,update,userInfo.id));
     setEdit(!edit);
 
-    
+
   };
 
   const handleAddAddres = () => {
@@ -74,7 +74,7 @@ function UserProfile(context) {
   };
 
 
-  
+
 
 
   useEffect(() => {
@@ -98,9 +98,9 @@ const handleSaveAddress = () => {
 
 
   return (
-    
+
   <div class="main-content">
-  
+
     <nav class="navbar navbar-top navbar-expand-md navbar-dark" id="navbar-main">
       <div class="container-fluid">
        <Link to="/">
@@ -147,7 +147,7 @@ const handleSaveAddress = () => {
                 <span>Дейност</span>
               </a>
               <div class="dropdown-divider"></div>
-              
+
               <a href="#!" class="dropdown-item">
                 <i class="ni ni-user-run"></i>
                 <span>Излизане</span>
@@ -170,7 +170,7 @@ const handleSaveAddress = () => {
             :   <a href="#!" onClick={handleEditClick} class="btn btn-info">Промени данните</a>
               }
             <a href="#!" onClick={handleAddAddres} class="btn btn-info">Добави нов адрес</a>
-            
+
             </div>
           </div>
         </div>
@@ -178,7 +178,7 @@ const handleSaveAddress = () => {
     </div>
     <div class="container-fluid mt--7">
       <div class="row">
-        
+
         <div class="col-xl-8 order-xl-1">
           <div class="card bg-secondary shadow">
             <div class="card-header bg-white border-0">
@@ -188,12 +188,12 @@ const handleSaveAddress = () => {
                 </div>
                 <div class="col-4 text-right">
                 </div>
-               
+
               </div>
             </div>
             {loadingAddresses && <div>Loading...</div>}
             {addressesError && <div>{addressesError}</div>}
-            {!addAddress ? 
+            {!addAddress ?
             <div class="card-body">
               <form>
                 <h6 class="heading-small text-muted mb-4">Информация за потребителя</h6>
@@ -239,7 +239,7 @@ const handleSaveAddress = () => {
                       </div>
                     </div>
                     { edit?
-                    
+
                     <div class="col-lg-6">
                       <div class="form-group focused">
                         <label class="form-control-label" for="input-password">Парола</label>
@@ -252,7 +252,7 @@ const handleSaveAddress = () => {
                 <hr class="my-4"></hr>
                 <h6 class="heading-small text-muted mb-4">Контакти</h6>
                 {addresses.map(address => (
-                              
+
                               userInfo.id == address.user_id ?
                               <div class="pl-lg-4">
                               <div class="row">
@@ -284,10 +284,10 @@ const handleSaveAddress = () => {
                                 </div>
                               </div>
                             </div>: <div></div>
-                              
+
                               ))}
-                
-                
+
+
               </form>
             </div>
             :
@@ -326,8 +326,8 @@ const handleSaveAddress = () => {
                     </div>
                   </div>
                 </div>
-                
-              </div>  
+
+              </div>
               <div class="row">
                   <div class="col-md-12">
                     <div class="form-group focused">
@@ -335,7 +335,7 @@ const handleSaveAddress = () => {
                     </div>
                   </div>
                 </div>
-  
+
 </form>
 </div>
             }
@@ -344,10 +344,10 @@ const handleSaveAddress = () => {
       </div>
     </div>
   </div>
-  
+
     );
   }
-  
-  
-  
+
+
+
   export default UserProfile;

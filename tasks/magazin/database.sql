@@ -4,7 +4,8 @@ CREATE TABLE users(
 	username TEXT NOT NULL,
 	email TEXT NOT NULL UNIQUE,
 	verified BOOLEAN DEFAULT NULL,
-	password TEXT NOT NULL
+	password TEXT NOT NULL,
+	create_date TEXT NOT NULL
 );
 CREATE TABLE employees(
 	id BIGSERIAL primary key,
@@ -81,7 +82,7 @@ CREATE TABLE payments(
 	id BIGSERIAL primary key,
 	cancelled TEXT NOT NULL,
 	paid TEXT NOT NULL,
-	time_of_payment timestamp NOT NULL,
+	time_of_payment TEXT NOT NULL,
 	recipient_name TEXT NOT NULL,
 	recipient_email TEXT NOT NULL,
 	payerID TEXT NOT NULL,
@@ -96,7 +97,7 @@ CREATE TABLE orders(
 	user_id BIGINT DEFAULT NULL,
 	address_id BIGINT NOT NULL,
 	payment_id BIGINT NOT NULL,
-	created timestamp NOT NULL,
+	created TEXT NOT NULL,
 	order_status TEXT NOT NULL,
 	price numeric NOT NULL,
 	currency TEXT DEFAULT 'EUR',
@@ -125,4 +126,3 @@ CREATE TABLE cart_items(
 	FOREIGN KEY (order_id) REFERENCES orders(id),
 	FOREIGN KEY (product_id) REFERENCES products(id)
 );
-

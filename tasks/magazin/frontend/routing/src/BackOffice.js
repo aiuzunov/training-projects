@@ -120,38 +120,42 @@ function CRUDProducts({  match , history }) {
             const count = await response.json();
             setCount(count);
           }
-    
+
         } catch (err) {
           console.log(err.message);
         }
       }
-    
+
     const popCreateUserMenu = (user) => {
         setCreateUserPop(true);
         if(user.id){
             var names = (user.name).split(" ");
+            console.log(names)
             setFirstName(names[0]);
             setSecondName(names[1]);
         }
-        
+
         setUserId(user.id);
         setUsername(user.username);
         setName(user.name);
         setEmail(user.email);
     }
-    
+
     const popCreateMenu = (product) => {
         if(product.id){
-            var tagsstring = ''
+            var showtagsstring = '';
+            var tagsstring = '';
             for(let i =0 ; i<pts.length;i++){
             if(i<pts.length){
                 if(pts[i].product_id == product.id){
+                    showtagsstring += pts[i].name + ',';
                     tagsstring += JSON.stringify(pts[i].tag_id) + ',';
                 }
             }
 
             }
             tagsstring = tagsstring.substring(0, tagsstring.length - 1);
+            showtagsstring = showtagsstring.substring(0, showtagsstring.length - 1);
 
         }
         setCreateProductPop(true);
@@ -161,25 +165,35 @@ function CRUDProducts({  match , history }) {
         setImage(product.image);
         setBrand(product.brand);
         if(product.id){
-            setTag_id(tagsstring);
+            setTag_id(showtagsstring);
         }else{
             setTag_id(product.tag_id);
         }
         setCountinstock(product.count_in_stock);
         setDescription(product.description);
     }
-  
+
 
    const submitInfo = (e) => {
        e.preventDefault();
-       var currentdate = new Date(); 
+       var submitTags = '';
+       var temptags = tag_id.split(',');
+       for(let i =0 ; i<temptags.length;i++){
+         for(let j =0;j<tags.length;j++){
+           if(temptags[i] == tags[j].name){
+               submitTags += JSON.stringify(tags[j].id) + ',';
+           }
+         }
+       }
+       submitTags = submitTags.substring(0, submitTags.length - 1);
+       var currentdate = new Date();
        var create_date =  currentdate.getDate() + "/"
-                + (currentdate.getMonth()+1)  + "/" 
-                + currentdate.getFullYear() + " @ "  
-                + currentdate.getHours() + ":"  
-                + currentdate.getMinutes() + ":" 
+                + (currentdate.getMonth()+1)  + "/"
+                + currentdate.getFullYear() + " @ "
+                + currentdate.getHours() + ":"
+                + currentdate.getMinutes() + ":"
                 + currentdate.getSeconds();
-       dispatch(saveProduct({create_date,id,name,price,image,brand,description,count_in_stock,tag_id}));
+       dispatch(saveProduct({create_date,id,name,price,image,brand,description,count_in_stock,submitTags}));
    };
 
    const submitUserInfo = (e) => {
@@ -188,12 +202,12 @@ function CRUDProducts({  match , history }) {
     if(userId){
         update = 1;
     }
-    dispatch(signup(firstName+" "+secondName,username,email,password,update));
+    dispatch(signup(firstName+" "+secondName,username,email,password,update,userId));
 };
 
 
    const deleteProductHandler = (product) => {
-       
+
        dispatch(deleteProduct(product));
    }
    const handleOrdersButton = () => {
@@ -220,7 +234,7 @@ const handleUserOrdersButton = (user_id) => {
    const filterTag = (tagid) => setTagFilt(tagid);
    const filterName = (search) => setSearchFilter(search);
    const filterPrice = (price) => setPriceFilter(price);
-    
+
    var pagecount = parseInt(count.count / 9);
    if (count.count % 9 !== 0){
      pagecount = pagecount + 1;
@@ -238,7 +252,7 @@ const handleUserOrdersButton = (user_id) => {
             <NavBar/>
             {!usersListPop && <BackOfficeFilters filterTag={filterTag} filterName={filterName} filterPrice={filterPrice}  pageNumber={currentPage} saved ={productSaved} deleted={productDeleted} />}
         <div className="content content-margined">
-          
+
             <div className="product-header">
            {!usersListPop && <Button
              style={{ marginRight: theme.spacing(2) }}
@@ -276,12 +290,12 @@ const handleUserOrdersButton = (user_id) => {
              >
                 {!ordersPop&&usersListPop&&!userOrdersPop ? <div>Продукти</div> : ordersPop ? <div>Поръчки</div> : userOrdersPop ? <div>Потребители</div> : <div>Потребители</div> }
             </Button>
-              
+
             </div>
             {createProductPop && (<div className="signinform">
             <form onSubmit={submitInfo}>
                 <ul className="form-container">
-                    
+
                     <li>
                         <h2>{id ?  "Обновяване на продукта" : "Нов Продукт"}</h2>
                     </li>
@@ -331,7 +345,7 @@ const handleUserOrdersButton = (user_id) => {
                         </label>
                         <textarea name="description" id="description" value={description} onChange={(e) => setDescription(e.target.value)}/>
                     </li>
-                   
+
                     <li>
                     <Button
                         variant="contained"
@@ -342,8 +356,8 @@ const handleUserOrdersButton = (user_id) => {
                       >
                          {id ?  "Обнови Информацията за Продукта" : "Добави Нов Продукт"}
                     </Button>
-                      
-                    </li>    
+
+                    </li>
                     <li>
                     <Button
                         onClick={() =>  setCreateProductPop(false)}
@@ -354,14 +368,14 @@ const handleUserOrdersButton = (user_id) => {
                       >
                         Затвори
                     </Button>
-                    </li>   
+                    </li>
                 </ul>
             </form>
         </div>)}
         {createUserPop && (<div className="signinform">
             <form onSubmit={submitUserInfo}>
                 <ul className="form-container">
-                    
+
                     <li>
                         <h2>{userId ?  "Обновяване на потребител" : "Нов Потребител"}</h2>
                     </li>
@@ -409,8 +423,8 @@ const handleUserOrdersButton = (user_id) => {
                       >
                          {userId ?  "Обнови Информацията за Потребителя" : "Добави нов потребител"}
                     </Button>
-                      
-                    </li>    
+
+                    </li>
                     <li>
                     <Button
                         onClick={() =>  setCreateUserPop(false)}
@@ -421,7 +435,7 @@ const handleUserOrdersButton = (user_id) => {
                       >
                         Затвори
                     </Button>
-                    </li>   
+                    </li>
                 </ul>
             </form>
         </div>)}
@@ -429,7 +443,7 @@ const handleUserOrdersButton = (user_id) => {
             (<div className="product-list">
                 <table className="table">
                     <thead>
-                        <tr> 
+                        <tr>
                             <th>
                                 Дата на създаване
                             </th>
@@ -479,11 +493,11 @@ const handleUserOrdersButton = (user_id) => {
                             </td>
                             <td>
                              {pts.map(pt => (
-                              
+
                                 pt.product_id == product.id ? <div>
                                     {pt.name}
                                 </div> : <div></div>
-                                
+
                                 ))}
                             </td>
                             <td>
@@ -510,29 +524,29 @@ const handleUserOrdersButton = (user_id) => {
                                 size="large"
                                 color="secondary"
                                 endIcon={<DeleteForeverIcon/>}>
-                                Изтрий
+                                Скрий
                             </Button>
                             </th>
                         </tr>
                         ))}
-                        
-                      
-                    
-                    </tbody> 
+
+
+
+                    </tbody>
                 </table>
             </div>)}
             {!ordersPop && !userOrdersPop && usersListPop&& products&&
             (<div className="product-list">
                 <table className="table">
                     <thead>
-                        <tr> 
+                        <tr>
                             <th>
                                 Дата на регистрация
                             </th>
                             <th>
                                 Име
                             </th>
-                           
+
                             <th>
                                 Потребителско име
                             </th>
@@ -556,7 +570,7 @@ const handleUserOrdersButton = (user_id) => {
                             <td>
                                  {user.email}
                             </td>
-                           
+
                             <th>
                             <Button
                                 onClick={() => popCreateUserMenu(user)}
@@ -577,25 +591,25 @@ const handleUserOrdersButton = (user_id) => {
                             </th>
                         </tr>
                         ))}
-                        
-                      
-                    
-                    </tbody> 
+
+
+
+                    </tbody>
                 </table>
             </div>)}
             {!ordersPop && userOrdersPop&& products&&
             (<div className="product-list">
                 <table className="table">
                     <thead>
-                        <tr> 
+                        <tr>
                             <th>
                              Направена на
                             </th>
                             <th>
                              Обща сума на поръчката
- 
+
                             </th>
-                           
+
                             <th>
                                 Статус на поръчката
                             </th>
@@ -608,7 +622,7 @@ const handleUserOrdersButton = (user_id) => {
                         {orders.map(order => (
                             <tr key={order.id}>
                             <td>
-                            {order.created}                              
+                            {order.created}
                             </td>
                             {order.price}
                             <td>
@@ -625,31 +639,31 @@ const handleUserOrdersButton = (user_id) => {
                                 Детайли за поръчката
                             </Button>
                             </Link>
-                            
+
                             </th>
                         </tr>
                         ))}
-                     
-                        
-                        
-                      
-                    
-                    </tbody> 
+
+
+
+
+
+                    </tbody>
                 </table>
             </div>)}
             {ordersPop &&
             (<div className="product-list">
                 <table className="table">
                     <thead>
-                        <tr> 
+                        <tr>
                             <th>
                              Направена на
                             </th>
                             <th>
                              Обща сума на поръчката
- 
+
                             </th>
-                           
+
                             <th>
                                 Статус на поръчката
                             </th>
@@ -662,7 +676,7 @@ const handleUserOrdersButton = (user_id) => {
                         {orders.map(order => (
                             <tr key={order.id}>
                             <td>
-                            {order.created}                              
+                            {order.created}
                             </td>
                             {order.price}
                             <td>
@@ -679,25 +693,25 @@ const handleUserOrdersButton = (user_id) => {
                                 Детайли за поръчката
                             </Button>
                             </Link>
-                            
+
                             </th>
                         </tr>
                         ))}
-                     
-                        
-                        
-                      
-                    
-                    </tbody> 
+
+
+
+
+
+                    </tbody>
                 </table>
             </div>)}
         </div>
-        
+
         {ordersPop && <CRUDPagination postsPerPage={postsPerPage} totalPosts={orderspagecount} paginate={paginate} />}
         {!ordersPop &&usersListPop && <CRUDPagination postsPerPage={postsPerPage} totalPosts={userpagecount} paginate={paginate} />}
         {!ordersPop && !usersListPop && <CRUDPagination postsPerPage={postsPerPage} totalPosts={pagecount} paginate={paginate} />}
         </div>
-        
+
     );
 }
 

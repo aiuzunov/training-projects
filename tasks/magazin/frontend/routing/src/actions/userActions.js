@@ -13,7 +13,7 @@ const signin = (email,password) => async (dispatch) => {
     }
 }
 
-const signup = (name,username,email,password,update) => async (dispatch) => {
+const signup = (name,username,email,password,update,id) => async (dispatch) => {
     dispatch({type: USER_SIGNUP_REQUEST,payload:{name,username,email,password}});
     try {
     if(!update)
@@ -22,11 +22,11 @@ const signup = (name,username,email,password,update) => async (dispatch) => {
         dispatch({type: USER_SIGNUP_SUCCESS,payload:data});
     }
     else{
-        const {data} = await Axios.put(`/api/users/update`,{name,username,email,password});
+        const {data} = await Axios.put(`/api/users/update`,{name,username,email,password,id});
         dispatch({type: USER_SIGNUP_SUCCESS,payload:data});
         Cookie.set('userInfo', JSON.stringify(data));
     }
-        
+
     } catch (error) {
         dispatch({type: USER_SIGNUP_FAIL,payload: error.response.data.msg});
     }
@@ -47,7 +47,7 @@ const listUsers = (pageNumber) => async (dispatch) => {
     try {
         dispatch({ type: USER_LIST_REQUEST });
         const { data } = await Axios.get(`/api/users/get/${pageNumber}`);
-        dispatch({ type: USER_LIST_SUCCESS, payload: data });         
+        dispatch({ type: USER_LIST_SUCCESS, payload: data });
       } catch (error) {
         dispatch({ type: USER_LIST_FAIL, payload: error.message });
       }
