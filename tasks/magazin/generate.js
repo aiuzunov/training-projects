@@ -5,19 +5,16 @@ const pool = require("./db");
 const fs = require('fs')
 const request = require('request');
 const { create } = require('domain');
+const jdenticon = require("jdenticon");
+
+const size = 200;
 
 
 
-const download = (url, path, callback) => {
-  request.head(url, (err, res, body) => {
-    request(url)
-      .pipe(fs.createWriteStream(path))
-      .on('close', callback)
-  })
-}
+
 
 function capFirst(string) {
-  
+
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
@@ -48,7 +45,7 @@ function generateDescription(length) {
 async function  generateProducts(arrayLength,minCategory, maxCategory,minCost, maxCost){
     try{
     let a = new Array(arrayLength);
-  
+
     for (let i = 0; i < a.length-1; i++) {
       console.log('loop')
       const minCat = minCategory;
@@ -73,22 +70,21 @@ async function  generateProducts(arrayLength,minCategory, maxCategory,minCost, m
         "productPrice": randomPrice.toFixed(2),
         "productDescription": description
       }
-      var currentdate = new Date(); 
-       var create_date =  currentdate.getDate() + "/"
-                + (currentdate.getMonth()+1)  + "/" 
-                + currentdate.getFullYear() + " @ "  
-                + currentdate.getHours() + ":"  
-                + currentdate.getMinutes() + ":" 
+      var currentdate = new Date();
+      const path = `./public/${name}.png`;
+      var create_date =  currentdate.getDate() + "/"
+                + (currentdate.getMonth()+1)  + "/"
+                + currentdate.getFullYear() + " @ "
+                + currentdate.getHours() + ":"
+                + currentdate.getMinutes() + ":"
                 + currentdate.getSeconds();
-      const newProduct = await pool.query("INSERT INTO products (name,image,price,count_in_stock,description,create_date) VALUES ($1,$2,$3,$4,$5,$6)",[a[i].productName,a[i].productImage,a[i].productPrice,a[i].productStock,a[i].productDescription,create_date]);
+      const newProduct = await pool.query("INSERT INTO products (name,image,price,count_in_stock,description,create_date) VALUES ($1,$2,$3,$4,$5,$6)",[a[i].productName,path,a[i].productPrice,a[i].productStock,a[i].productDescription,create_date]);
       var tagarr = a[i].productCategory.split(",");
       console.log(tagarr)
       if(newProduct){
-        const url = a[i].productImage;
-        const path = `./public/${name}.png`;
-        download(url, path, () => {
-            console.log('Image Downloaded Successfuly!')
-          })
+        const png = jdenticon.toPng(name, size);
+        fs.writeFileSync(`./public/${name}.png`, png);
+
       console.log(a[i].productCategory)
       await pool.query("UPDATE products SET has_image = 'true' where name = $1",[a[i].productName]);
       const productId = await pool.query(" SELECT id FROM products WHERE name=$1 ",[a[i].productName])
@@ -104,4 +100,3 @@ async function  generateProducts(arrayLength,minCategory, maxCategory,minCost, m
 
   }
   generateProducts(15000,1, 5,1, 100);
-
