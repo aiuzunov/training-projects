@@ -1,4 +1,4 @@
-import { ORDER_SAVE_REQUEST, ORDER_SAVE_SUCCESS, ORDER_SAVE_FAIL, ORDER_LIST_REQUEST, ORDER_LIST_SUCCESS, ORDER_LIST_FAIL, ORDERITEMS_LIST_REQUEST, ORDERITEMS_LIST_SUCCESS, ORDERITEMS_LIST_FAIL, GET_ORDER_REQUEST, GET_ORDER_SUCCESS, GET_ORDER_FAIL } from "../constants/orderConstants";
+import {UPDATE_STATUS_FAIL,UPDATE_STATUS_REQUEST,UPDATE_STATUS_SUCCESS, ORDER_SAVE_REQUEST, ORDER_SAVE_SUCCESS, ORDER_SAVE_FAIL, ORDER_LIST_REQUEST, ORDER_LIST_SUCCESS, ORDER_LIST_FAIL, ORDERITEMS_LIST_REQUEST, ORDERITEMS_LIST_SUCCESS, ORDERITEMS_LIST_FAIL, GET_ORDER_REQUEST, GET_ORDER_SUCCESS, GET_ORDER_FAIL } from "../constants/orderConstants";
 
 function orderSaveReducer(state = { order: {} }, action) {
     switch (action.type) {
@@ -11,7 +11,20 @@ function orderSaveReducer(state = { order: {} }, action) {
       default:
         return state;
     }
-  } 
+  }
+
+  function orderUpdateReducer(state = { order: {} }, action) {
+      switch (action.type) {
+        case UPDATE_STATUS_REQUEST:
+          return { loading: true };
+        case UPDATE_STATUS_SUCCESS:
+          return { loading: false, success: true, order: action.payload };
+        case UPDATE_STATUS_FAIL:
+          return { loading: false, error: action.payload };
+        default:
+          return state;
+      }
+    }
 
 function orderListReducer(state = { orders: [] }, action) {
     switch (action.type) {
@@ -53,4 +66,4 @@ function orderListReducer(state = { orders: [] }, action) {
   }
 
 
-  export { orderSaveReducer,orderListReducer,orderItemsListReducer,getOrderReducer }
+  export { orderUpdateReducer,orderSaveReducer,orderListReducer,orderItemsListReducer,getOrderReducer }

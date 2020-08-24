@@ -8,7 +8,7 @@ import { tagListReducer } from './reducer/tagsReducers';
 import { ptListReducer } from './reducer/ptReducers';
 import { employeeSignInReducer, employeeSignUpReducer } from './reducer/employeeReducers';
 import { addressListReducer, addressSaveReducer, singleAddressListReducer } from './reducer/addressReducers';
-import { orderSaveReducer, orderListReducer, orderItemsListReducer, getOrderReducer } from './reducer/orderReducers';
+import {orderUpdateReducer, orderSaveReducer, orderListReducer, orderItemsListReducer, getOrderReducer } from './reducer/orderReducers';
 import { getPaymentReducer } from './reducer/paymentReducers';
 import { incomesListReducer,soldProductsListReducer,registeredUsersListReducer } from './reducer/statsReducers';
 
@@ -45,6 +45,7 @@ const reducer = combineReducers({
     soldProductsList: soldProductsListReducer,
     regUsersList: registeredUsersListReducer,
     userGetInfo: userGetReducer,
+    updateStatus: orderUpdateReducer,
 })
 
 const composeEnhancer = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;

@@ -34,8 +34,6 @@ function App() {
       <Route path="/empsign" component={EmpSignUpScreen}/>
       <Route path="/orders" component={ProfileOrderList}/>
       <Route path="/order/:id" component={OrderDetailsPage}/>
-      <Route path="/backoffice/stats" component={BackOfficeStats}/>
-
       <PrivateRoute path='/backoffice' component={BackOffice} />
 
 

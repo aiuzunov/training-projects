@@ -17,9 +17,9 @@ router.post("/create",async (req,res) => {
         cart_items.map(cart_item =>  {
             pool.query("INSERT INTO order_items (order_id,product_id,quantity) VALUES($1,$2,$3)",[order_id,cart_item.product,cart_item.quantity]);
             pool.query("UPDATE products SET count_in_stock = count_in_stock-$2 where id = $1 and count_in_stock-$2>=0",[cart_item.product,cart_item.quantity]);
-            pool.query("DELETE FROM cart_items where product_id = $1 and user_id = $2",[cart_item.product,user_id])    
-    });  
-        
+            pool.query("DELETE FROM cart_items where product_id = $1 and user_id = $2",[cart_item.product,user_id])
+    });
+
         /*
         const newPayment = await pool.query(" INSERT INTO")
         const newOrder = await pool.query(" INSERT INTO addresses (user_id,address,city,postalcode,country) VALUES ($1,$2,$3,$4,$5)",[user_id,address,city,postalCode,country]);
@@ -37,6 +37,16 @@ router.get("/list/:userid",async(req,res) => {
         res.json(allOrders.rows);
     } catch (err) {
         res.status(500).send({msg: 'Възникна проблем при взимането на информацията за адресите.'});
+    }
+})
+
+router.post("/update",async(req,res) => {
+    try {
+        const {order_id,order_status} = req.body;
+        const updateOrder = await pool.query("UPDATE orders SET order_status=$1 WHERE id = $2",[order_status,order_id]);
+        res.json(updateOrder);
+    } catch (err) {
+        res.status(500).send({msg: 'Възникна проблем при обновяването на статуса на поръчката.'});
     }
 })
 
@@ -58,7 +68,7 @@ router.get("/listItems/:order_id",async(req,res) => {
         const {order_id} = req.params;
         console.log(order_id)
         const allOrderItems = await pool.query("select * from order_items join products on order_items.product_id = products.id where products.id=order_items.product_id and order_id = $1",[order_id]);
-        
+
         res.json(allOrderItems.rows);
         console.log(allOrderItems.rows)
     } catch (err) {
