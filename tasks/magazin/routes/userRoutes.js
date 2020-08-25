@@ -169,13 +169,69 @@ else
 
 });
 
-router.get("/get/:pageNumber",async(req,res) => {
+router.post("/get",async(req,res) => {
     try {
-        const {pageNumber} = req.params;
-        const indexOfLastPost = pageNumber * 9;
+        console.log(req.body)
+        const {currentPage} = req.body;
+        const filters = req.body;
+        const indexOfLastPost = currentPage * 9;
         const indexOfFirstPost = indexOfLastPost - 9;
-        const users = await pool.query(`select * from (SELECT t.*,name, count(*) OVER (ORDER BY t.id) as rownum FROM users as t)d where rownum >= $1 and rownum<=$2 `,[indexOfFirstPost,indexOfLastPost]);
-        res.json(users.rows);
+        console.log('ww',filters)
+        if(!filters.userFilters.filter){
+          const users = await pool.query(`select * from (SELECT t.*,name, count(*) OVER (ORDER BY t.id) as rownum FROM users as t)d where rownum >= $1 and rownum<=$2 `,[indexOfFirstPost,indexOfLastPost]);
+          res.json(users.rows);
+        }
+        else{
+          var filteredUsers = await pool.query('select * from (SELECT t.*,name, count(*) OVER (ORDER BY t.id) as rownum FROM users as t)d')
+          filteredUsers= (filteredUsers.rows).filter(function(item) {
+            for (var key in filters.userFilters) {
+              switch(key){
+                case 'username':
+                  if(filters.userFilters.username){
+                    if (item[key] === undefined || !item[key].includes(filters.userFilters[key]))
+                      return false;
+                    }
+                  break;
+                case 'fromDate':
+                if(filters.userFilters.fromDate){
+                    if (item['create_date'] === undefined || (item['create_date'].getFullYear()<new Date(filters.userFilters[key]).getFullYear()||item['create_date'].getMonth()<new Date(filters.userFilters[key]).getMonth()||item['create_date'].getDate()<new Date(filters.userFilters[key]).getDate()))
+                      return false
+                    }
+                  break;
+                case 'toDate':
+                if(filters.userFilters.toDate){
+                    if (item['create_date'] === undefined || (item['create_date'].getFullYear()>new Date(filters.userFilters[key]).getFullYear()||item['create_date'].getMonth()>new Date(filters.userFilters[key]).getMonth()||item['create_date'].getDate()>new Date(filters.userFilters[key]).getDate()))
+                      return false
+                    }
+                  break;
+                case 'email':
+                  if(filters.userFilters.email){
+                    if (item[key] === undefined || !item[key].includes(filters.userFilters[key]))
+                      return false;
+                    }
+                    break;
+
+                case 'filter':
+                  break;
+                case 'verified':
+                  if(filters.userFilters.verified){
+                      console.log("Item",(item[key] != filters.userFilters[key]))
+                      if (item[key] === undefined || (item[key] != filters.userFilters[key]))
+                        return false
+                      }
+                      break;
+                default:
+                  if (item[key] === undefined || item[key] != filters.UsersFilters[key])
+                    return false;
+                  break;
+              }
+            }
+            return true;
+          });
+          console.log(filteredUsers)
+          res.json(filteredUsers);
+        }
+
     } catch (err) {
         console.log(err)
         res.status(500).send({msg: 'There was a problem with the server.'});

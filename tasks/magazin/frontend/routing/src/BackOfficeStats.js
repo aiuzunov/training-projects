@@ -118,7 +118,7 @@ function BackOfficeStats(props){
 
         <div style={{marginLeft:"80px"}}>
           {incomeListPop ?
-          <h2> Приходи по месец</h2> : soldProductsPop ?
+          <h2> Приходи от поръчки</h2> : soldProductsPop ?
           <h2> Общ брой продадени продукти</h2> : registeredUsersPop ?
           <h2> Общ брой регистрации</h2> : <div></div>}
 

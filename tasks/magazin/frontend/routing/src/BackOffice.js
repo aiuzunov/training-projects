@@ -14,7 +14,9 @@ import CancelIcon from '@material-ui/icons/Cancel';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import { listTags } from './actions/tagsActions';
-import BackOfficeFilters from './BackOfficeFilters';
+import ProductsFilters from './ProductsFilters';
+import UsersFilters from './UsersFilters';
+import OrdersFilters from './OrdersFilters';
 import { listPT } from './actions/ptActions';
 import BackOfficeStats from './BackOfficeStats';
 import StoreIcon from '@material-ui/icons/Store';
@@ -212,9 +214,12 @@ function CRUDProducts({  match , history }) {
 
     useEffect(() => {
         getCount();
+        var userFilters = {
+          filter: 0
+        };
         dispatch(listPT({currentPage,pricefilter,tagfilter,searchfilter}));
         dispatch(listProducts(pricefilter,tagfilter,searchfilter,currentPage,loadingPts));
-        dispatch(listUsers(currentPage));
+        dispatch(listUsers({userFilters,currentPage}));
         dispatch(listOrders(null,currentPage));
 
         if(userSignedUp){
@@ -421,12 +426,17 @@ const handleUserOrdersButton = (user_id) => {
 
     setUserOrdersPop(!userOrdersPop);
 };
-
+const handleUserFilter = (userFilters) => {
+   dispatch(listUsers({currentPage,userFilters}));
+}
 
    const paginate = (pageNumber) => setCurrentPage(pageNumber);
    const filterTag = (tagid) => setTagFilt(tagid);
    const filterName = (search) => setSearchFilter(search);
    const filterPrice = (price) => setPriceFilter(price);
+   const [userFilters,setUserFilters] = useState({});
+   const filterUser = (userFilters) => handleUserFilter(userFilters);
+
 
    var pagecount = parseInt(count.count / 9);
    if (count.count % 9 !== 0){
@@ -513,7 +523,9 @@ const handleUserOrdersButton = (user_id) => {
          </List>
        </Drawer>
      </div>
-            {productsPop && !usersListPop ? <div style={{marginTop: theme.spacing(10)}}><BackOfficeFilters  filterTag={filterTag} filterName={filterName} filterPrice={filterPrice}  pageNumber={currentPage} saved ={productSaved} deleted={productDeleted} /> </div>: <div></div>}
+     {usersListPop ? <div style={{marginTop: theme.spacing(10)}}><UsersFilters filterUser={filterUser} /> </div>: <div></div>}
+     {ordersPop ? <div style={{marginTop: theme.spacing(10)}}><OrdersFilters filterUser={filterUser} /> </div>: <div></div>}
+     {productsPop && !usersListPop ? <div style={{marginTop: theme.spacing(10)}}><ProductsFilters filterTag={filterTag} filterName={filterName} filterPrice={filterPrice}  pageNumber={currentPage} saved ={productSaved} deleted={productDeleted} /> </div>: <div></div>}
         <div className="content content-margined">
 
 
@@ -528,7 +540,7 @@ const handleUserOrdersButton = (user_id) => {
                 Създай Продукт
             </Button>  :<div></div>}
             {usersListPop && !ordersPop ? <Button
-            style={{ marginTop: theme.spacing(10) ,marginRight: theme.spacing(2) }}
+            style={{ marginTop: theme.spacing(2) ,marginRight: theme.spacing(2) }}
               variant="contained"
               color="primary"
              onClick={() => popCreateUserMenu({})}
@@ -860,7 +872,7 @@ const handleUserOrdersButton = (user_id) => {
                                 E-mail
                             </th>
                             <th>
-                              Верифициран
+                              Потвърден
                             </th>
                         </tr>
                     </thead>

@@ -28,7 +28,7 @@ function OrderDetailsPage(props) {
     dispatch(getUser(props.match.params.id));
 
   }, []);
-  console.log(address)
+  console.log(orderItems)
   return orderloading ? <div>Loading ...</div> : ordererror ? <div>{error}</div> :
     <div>
     <NavBar/>
@@ -104,7 +104,7 @@ function OrderDetailsPage(props) {
                     <h3>Детайли за плащането</h3>
                     <thead>
                       <th>
-                          Дата на плащането
+                          Дата на плащане
                       </th>
                       <th>
                           Лице извършило плащането
@@ -185,6 +185,9 @@ function OrderDetailsPage(props) {
                             <th>
                                 Описание
                             </th>
+                            <th>
+                                Брой
+                            </th>
 
                         </tr>
                     </thead>
@@ -202,6 +205,9 @@ function OrderDetailsPage(props) {
                             </td>
                             <td>
                                  {item.description}
+                            </td>
+                            <td  align="right">
+                                {item.quantity} брой/я
                             </td>
 
                         </tr>

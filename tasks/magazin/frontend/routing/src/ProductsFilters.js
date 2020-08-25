@@ -19,8 +19,8 @@ const useStyles = makeStyles((theme) => ({
     marginTop: theme.spacing(2),
   },
 }));
-  
-export default function BackOfficeFilters(props) {
+
+export default function ProductsFilters(props) {
   const classes = useStyles();
   const [search, setSearch] = useState("");
   const [finishedSearch, setFinishedSearch] = useState("");
@@ -31,7 +31,7 @@ export default function BackOfficeFilters(props) {
   const tagsList = useSelector((state) => state.tagsList);
   const { tags , loading: tagsLoading, error:tagsError } = tagsList;
   const dispatch = useDispatch();
-  
+
   const updateSearch = e => {
     setSearch(e.target.value);
   }
@@ -60,11 +60,11 @@ export default function BackOfficeFilters(props) {
 },[tagid,price,finishedSearch,props.deleted,props.saved]);
 
   return (
-   
+
     <div>
-    
-   
-  
+
+
+
   <div className="filterWrapper">
   <div>
   <form onSubmit={getSearch}>
@@ -80,7 +80,7 @@ export default function BackOfficeFilters(props) {
             />
     </form>
   </div>
-  
+
        <div className="categoryFilter">
        <Select
      value={tagid}
@@ -93,7 +93,7 @@ export default function BackOfficeFilters(props) {
        </MenuItem>
        {tags.map(tag => (
           <MenuItem key={tag.id} value={tag.id}>{tag.name}</MenuItem>
-         
+
        ))}
    </Select>
    <FormHelperText>Изберете категория</FormHelperText>
@@ -110,11 +110,11 @@ export default function BackOfficeFilters(props) {
        aria-labelledby="range-slider"
      />
        </div>
-  
+
      </div>
-  
+
     </div>
 
-   
+
   );
 }

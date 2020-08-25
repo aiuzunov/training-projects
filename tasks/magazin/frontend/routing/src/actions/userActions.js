@@ -43,10 +43,10 @@ const logout = () => async (dispatch) => {
     }
 }
 
-const listUsers = (pageNumber) => async (dispatch) => {
+const listUsers = (filterObject) => async (dispatch) => {
     try {
         dispatch({ type: USER_LIST_REQUEST });
-        const { data } = await Axios.get(`/api/users/get/${pageNumber}`);
+        const { data } = await Axios.post(`/api/users/get`,filterObject);
         dispatch({ type: USER_LIST_SUCCESS, payload: data });
       } catch (error) {
         dispatch({ type: USER_LIST_FAIL, payload: error.message });

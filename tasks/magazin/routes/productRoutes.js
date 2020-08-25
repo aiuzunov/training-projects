@@ -27,6 +27,42 @@ router.get("/tagsfilter/:tagid/:pageNumber", async (req, res) => {
   }
 });
 
+router.get("/testingfilters", async (req, res) => {
+  try {
+    var testProducts = await pool.query("SELECT DISTINCT t.id,name,image,brand,price,count_in_stock,description,create_date,edit_time,currency_id,rownum from (SELECT *, count(*) OVER (ORDER BY id ) ROWNUM FROM products) as t JOIN tags_products on t.id = tags_products.product_id order by rownum");
+    var filter = {
+      name: 'Книга',
+      price:[50,100]
+    };
+    testProducts= (testProducts.rows).filter(function(item) {
+      for (var key in filter) {
+        switch(key){
+          case 'name':
+            if (item[key] === undefined || !item[key].includes(filter[key]))
+              return false;
+            break;
+          case 'price':
+            if(item[key] === undefined || (item[key] <= filter[key][0] || item[key] >= filter[key][1]))
+              return false;
+            break;
+          default:
+            if (item[key] === undefined || item[key] != filter[key])
+              return false;
+            break;
+        }
+      }
+      return true;
+    });
+    console.log(testProducts)
+    res.json(testProducts);
+  } catch (err) {
+    console.log(err.message)
+    res
+      .status(500)
+      .send({ msg: "Възникна грешка при визуализирането на продуктите ." });
+  }
+});
+
 router.get("/all/:name", async (req, res) => {
   try {
     const { name } = req.params;
