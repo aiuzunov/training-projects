@@ -16,15 +16,15 @@ const saveOrder = (order) => async (dispatch, getState) => {
     }
   };
 
-  const listOrders = (user_id,currentPage) => async (dispatch) => {
+  const listOrders = (user_id,filterObject) => async (dispatch) => {
     try {
-      if(!currentPage){
+      if(!filterObject){
         dispatch({ type: ORDER_LIST_REQUEST });
         const { data } = await Axios.get(`/api/orders/list/${user_id}`);
         dispatch({ type: ORDER_LIST_SUCCESS, payload: data });
       }else{
         dispatch({ type: ORDER_LIST_REQUEST });
-        const { data } = await Axios.get(`/api/orders/listall/${currentPage}`);
+        const { data } = await Axios.post(`/api/orders/listall`,filterObject);
         dispatch({ type: ORDER_LIST_SUCCESS, payload: data });
       }
 

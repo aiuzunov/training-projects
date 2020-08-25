@@ -217,10 +217,13 @@ function CRUDProducts({  match , history }) {
         var userFilters = {
           filter: 0
         };
+        var orderFilters = {
+          filter: 0
+        };
         dispatch(listPT({currentPage,pricefilter,tagfilter,searchfilter}));
         dispatch(listProducts(pricefilter,tagfilter,searchfilter,currentPage,loadingPts));
         dispatch(listUsers({userFilters,currentPage}));
-        dispatch(listOrders(null,currentPage));
+        dispatch(listOrders(null,{currentPage,orderFilters}));
 
         if(userSignedUp){
             setCreateUserPop(false);
@@ -430,13 +433,20 @@ const handleUserFilter = (userFilters) => {
    dispatch(listUsers({currentPage,userFilters}));
 }
 
+const handleOrdersFilter = (orderFilters) => {
+    console.log(orderFilters)
+    dispatch(listOrders(null,{currentPage,orderFilters}));
+}
+
    const paginate = (pageNumber) => setCurrentPage(pageNumber);
    const filterTag = (tagid) => setTagFilt(tagid);
    const filterName = (search) => setSearchFilter(search);
    const filterPrice = (price) => setPriceFilter(price);
    const [userFilters,setUserFilters] = useState({});
-   const filterUser = (userFilters) => handleUserFilter(userFilters);
+   const [orderFilters,setOrderFilters] = useState({});
 
+   const filterUser = (userFilters) => handleUserFilter(userFilters);
+   const filterOrders = (orderFilters) => handleOrdersFilter(orderFilters)
 
    var pagecount = parseInt(count.count / 9);
    if (count.count % 9 !== 0){
@@ -524,7 +534,7 @@ const handleUserFilter = (userFilters) => {
        </Drawer>
      </div>
      {usersListPop ? <div style={{marginTop: theme.spacing(10)}}><UsersFilters filterUser={filterUser} /> </div>: <div></div>}
-     {ordersPop ? <div style={{marginTop: theme.spacing(10)}}><OrdersFilters filterUser={filterUser} /> </div>: <div></div>}
+     {ordersPop ? <div style={{marginTop: theme.spacing(10)}}><OrdersFilters filterOrders={filterOrders} /> </div>: <div></div>}
      {productsPop && !usersListPop ? <div style={{marginTop: theme.spacing(10)}}><ProductsFilters filterTag={filterTag} filterName={filterName} filterPrice={filterPrice}  pageNumber={currentPage} saved ={productSaved} deleted={productDeleted} /> </div>: <div></div>}
         <div className="content content-margined">
 

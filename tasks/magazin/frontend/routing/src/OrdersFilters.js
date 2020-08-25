@@ -29,8 +29,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function OrdersFilters(props) {
-  const [username,setUsername] = useState('');
-  const [email,setEmail] = useState('');
+
   const [status,setStatus] = useState('');
   const [fromDate, setFromDate] =  React.useState(new Date('2014-08-18T21:11:54'));
   const [toDate, setToDate] =  React.useState(new Date('2021-08-18T21:11:54'));
@@ -51,12 +50,6 @@ export default function OrdersFilters(props) {
   useEffect(() => {
 },[]);
 
-  const updateUsername = e => {
-    setUsername(e.target.value);
-  }
-  const updateEmail = e => {
-    setEmail(e.target.value);
-  }
   const updateStatus = e => {
     setStatus(e.target.value);
   }
@@ -64,7 +57,7 @@ export default function OrdersFilters(props) {
   const submitFilter = (e) => {
     e.preventDefault();
     var filter=1;
-    props.filterUser({username,email,status,fromDate,toDate,filter});
+    props.filterOrders({status,fromDate,toDate,filter});
   }
 
   const handleFromDateChange = (date) => {

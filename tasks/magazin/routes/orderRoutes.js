@@ -50,14 +50,54 @@ router.post("/update",async(req,res) => {
     }
 })
 
-router.get("/listall/:currentPage",async(req,res) => {
+router.post("/listall",async(req,res) => {
     try {
-        const {currentPage} = req.params;
+        const {currentPage} = req.body;
+        const filters = req.body;
+        console.log(filters)
         const indexOfLastPost = currentPage * 9;
         const indexOfFirstPost = indexOfLastPost - 9;
+        if(!filters.orderFilters.filter){
         const allOrders = await pool.query("select * from (SELECT t.*, count(*) OVER (ORDER BY t.id) as rownum FROM orders as t)d where rownum >= $1 and rownum<=$2",[indexOfFirstPost,indexOfLastPost]);
-        res.json(allOrders.rows);
+        res.json(allOrders.rows);}
+        else{
+          var filteredOrders = await pool.query('select * from (SELECT t.*, count(*) OVER (ORDER BY t.id) as rownum FROM orders as t)d')
+          filteredOrders= (filteredOrders.rows).filter(function(item) {
+            for (var key in filters.orderFilters) {
+              switch(key){
+                case 'fromDate':
+                if(filters.orderFilters.fromDate){
+                    if (item['created'] === undefined || (item['created'].getFullYear()<new Date(filters.orderFilters[key]).getFullYear()||item['created'].getMonth()<new Date(filters.orderFilters[key]).getMonth()||item['created'].getDate()<new Date(filters.orderFilters[key]).getDate()))
+                      return false
+                    }
+                  break;
+                case 'toDate':
+                if(filters.orderFilters.toDate){
+                    if (item['created'] === undefined || (item['created'].getFullYear()>new Date(filters.orderFilters[key]).getFullYear()||item['created'].getMonth()>new Date(filters.orderFilters[key]).getMonth()||item['created'].getDate()>new Date(filters.orderFilters[key]).getDate()))
+                      return false
+                    }
+                  break;
+                case 'filter':
+                  break;
+                case 'status':
+                  if(filters.orderFilters.status){
+                      if (item['order_status'] === undefined || (item['order_status'] != filters.orderFilters[key]))
+                        return false
+                      }
+                      break;
+                default:
+                  if (item[key] === undefined || item[key] != filters.orderFilters[key])
+                    return false;
+                  break;
+              }
+            }
+            return true;
+          });
+          console.log(filteredOrders)
+          res.json(filteredOrders);
+        }
     } catch (err) {
+        console.log(err)
         res.status(500).send({msg: 'Възникна проблем при взимането на информацията за адресите.'});
     }
 })
