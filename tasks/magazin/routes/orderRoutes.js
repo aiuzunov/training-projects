@@ -93,8 +93,8 @@ router.post("/listall",async(req,res) => {
             }
             return true;
           });
-          console.log(filteredOrders)
-          res.json(filteredOrders);
+          console.log(filteredOrders.slice(indexOfFirstPost,indexOfLastPost))
+          res.json(filteredOrders.slice(indexOfFirstPost,indexOfLastPost));
         }
     } catch (err) {
         console.log(err)
@@ -128,7 +128,7 @@ router.get("/order/:order_id",async(req,res) => {
 
 router.get("/count", async (req, res) => {
     try {
-        console.log("Request")
+      console.log("Request")
 
       const ordersCount = await pool.query(
         "SELECT COUNT(*) FROM orders");
@@ -140,6 +140,8 @@ router.get("/count", async (req, res) => {
 
   router.get("/count", async (req, res) => {
     try {
+      console.log("Request")
+
       const ordersCount = await pool.query(
         "SELECT COUNT(*) FROM orders");
       res.json(ordersCount.rows[0]);

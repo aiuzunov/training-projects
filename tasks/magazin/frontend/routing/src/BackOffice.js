@@ -236,29 +236,29 @@ function CRUDProducts({  match , history }) {
     const getCount = async () => {
 
         try {
-            const orders_response = await fetch(`/api/orders/count`);
+            const orders_response = await fetch(`/orders/count`);
             const ordersc = await orders_response.json();
             setOrdersCount(ordersc);
-            const users_response = await fetch(`/api/users/count`);
+            const users_response = await fetch(`/users/count`);
             const usersc = await users_response.json();
             setUsersCount(usersc);
             if(searchfilter&&tagfilter&&pricefilter){
-            const response = await fetch(`/api/products/${searchfilter}/${tagfilter}/${pricefilter}`);
+            const response = await fetch(`/products/${searchfilter}/${tagfilter}/${pricefilter}`);
             const count = await response.json();
             setCount(count);
           }
           else if(searchfilter&&pricefilter){
-            const response = await fetch(`/api/products/${searchfilter}/${pricefilter}`);
+            const response = await fetch(`/products/${searchfilter}/${pricefilter}`);
             const count = await response.json();
             setCount(count);
           }
           else if(tagfilter&&pricefilter){
-            const response = await fetch(`/api/products/${tagfilter}/${pricefilter}`);
+            const response = await fetch(`/products/${tagfilter}/${pricefilter}`);
             const count = await response.json();
             setCount(count);
           }
           else if(pricefilter){
-            const response = await fetch(`/api/products/${pricefilter}`);
+            const response = await fetch(`/products/${pricefilter}`);
             const count = await response.json();
             setCount(count);
           }

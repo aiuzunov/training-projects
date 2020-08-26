@@ -14,24 +14,43 @@ function SignInScreen({  match , history }) {
     const [username,setUsername] = useState('');
     const [email,setEmail] = useState('');
     const [password,setPassword] = useState('');
+    const [count,setCount] = useState(0);
     const userSignIn = useSelector(state=>state.userSignIn);
     const {userInfo, loading, error} = userSignIn;
     const dispatch = useDispatch();
-   
+
     useEffect(() => {
+      getCount();
+
         if(Cookie.getJSON('userInfo')){
             history.push("/")
         }
 
     },[userInfo]);
- 
+
+    const getCount = async () => {
+        try {
+            const response = await fetch(
+              `/orders/count`
+            );
+            const count = await response.json();
+            console.log(count);
+            setCount(count);
+        } catch (err) {
+          console.log(err.message);
+        }
+      };
+
    const submitInfo = (e) => {
        e.preventDefault();
        dispatch(signin(email,password))
    };
- 
+
     return(
         <div>
+          <div>
+            Брой поръчки : {count.count}
+          </div>
             <NavBar/>
             <div className="signinform">
             <form onSubmit={submitInfo}>
@@ -57,7 +76,7 @@ function SignInScreen({  match , history }) {
                     </li>
                     <li>
                     <Button
-                    type="submit" 
+                    type="submit"
                     variant="contained"
                     color="primary"
                     >
@@ -69,7 +88,7 @@ function SignInScreen({  match , history }) {
                         Нямаш акаунт?
                     </li>
                     <li>
-                       
+
                         <Button
                     href="/signup"
                     variant="contained"
@@ -77,14 +96,14 @@ function SignInScreen({  match , history }) {
                     >
                         Създай нов акаунт
                      </Button>
-                     
+
                     </li>
                 </ul>
             </form>
         </div>
-        
+
         </div>
-        
+
     );
 }
 

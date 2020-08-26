@@ -5,7 +5,7 @@ import Axios from 'axios';
 const signin = (email,password) => async (dispatch) => {
     dispatch({type: USER_SIGNIN_REQUEST,payload:{email,password}});
     try {
-        const {data} = await Axios.post(`/api/users/sign`,{email,password});
+        const {data} = await Axios.post(`/users/sign`,{email,password});
         dispatch({type: USER_SIGNIN_SUCCESS,payload:data});
         Cookie.set('userInfo', JSON.stringify(data));
     } catch (error) {
@@ -18,11 +18,11 @@ const signup = (name,username,email,password,update,id) => async (dispatch) => {
     try {
     if(!update)
     {
-        const {data} = await Axios.post(`/api/users/create`,{name,username,email,password});
+        const {data} = await Axios.post(`/users/create`,{name,username,email,password});
         dispatch({type: USER_SIGNUP_SUCCESS,payload:data});
     }
     else{
-        const {data} = await Axios.put(`/api/users/update`,{name,username,email,password,id});
+        const {data} = await Axios.put(`/users/update`,{name,username,email,password,id});
         dispatch({type: USER_SIGNUP_SUCCESS,payload:data});
         Cookie.set('userInfo', JSON.stringify(data));
     }
@@ -46,7 +46,7 @@ const logout = () => async (dispatch) => {
 const listUsers = (filterObject) => async (dispatch) => {
     try {
         dispatch({ type: USER_LIST_REQUEST });
-        const { data } = await Axios.post(`/api/users/get`,filterObject);
+        const { data } = await Axios.post(`/users/get`,filterObject);
         dispatch({ type: USER_LIST_SUCCESS, payload: data });
       } catch (error) {
         dispatch({ type: USER_LIST_FAIL, payload: error.message });
@@ -57,7 +57,7 @@ const getUser = (id) => async (dispatch) => {
     try {
         console.log("User id:",id)
         dispatch({ type: USER_GET_REQUEST });
-        const { data } = await Axios.get(`/api/users/info/${id}`);
+        const { data } = await Axios.get(`/users/info/${id}`);
         dispatch({ type: USER_GET_SUCCESS, payload: data });
       } catch (error) {
         dispatch({ type: USER_GET_FAIL, payload: error.message });

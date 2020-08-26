@@ -6,16 +6,16 @@ const listTags = (id) => async (dispatch) => {
     try {
       if(id){
         dispatch({ type: TAG_LIST_REQUEST });
-        const { data } = await axios.get(`/api/tags/${id}`);
-        dispatch({ type: TAG_LIST_SUCCESS, payload: data });  
+        const { data } = await axios.get(`/tags/${id}`);
+        dispatch({ type: TAG_LIST_SUCCESS, payload: data });
       }
       else{
         console.log(id)
         console.log("test")
         dispatch({ type: TAG_LIST_REQUEST });
-        const { data } = await axios.get(`/api/tags/all`);
-        dispatch({ type: TAG_LIST_SUCCESS, payload: data });  
-      }    
+        const { data } = await axios.get(`/tags/all`);
+        dispatch({ type: TAG_LIST_SUCCESS, payload: data });
+      }
       } catch (error) {
         dispatch({ type: TAG_LIST_FAIL, payload: error.message });
       }

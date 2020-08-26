@@ -5,8 +5,8 @@ import { ADDRESS_LIST_REQUEST, ADDRESS_LIST_SUCCESS, ADDRESS_LIST_FAIL, ADDRESS_
 const listAddresses = (userid) => async (dispatch) => {
     try {
         dispatch({ type: ADDRESS_LIST_REQUEST });
-        const { data } = await axios.get(`/api/addresses/all/${userid}`);
-        dispatch({ type: ADDRESS_LIST_SUCCESS, payload: data });    
+        const { data } = await axios.get(`/addresses/all/${userid}`);
+        dispatch({ type: ADDRESS_LIST_SUCCESS, payload: data });
       } catch (error) {
         dispatch({ type: ADDRESS_LIST_FAIL, payload: error.response.data.msg });
       }
@@ -16,8 +16,8 @@ const listAddress = (order_id) => async (dispatch) => {
   try {
       console.log(order_id)
       dispatch({ type: GET_ADDRESS_REQUEST });
-      const { data } = await axios.get(`/api/addresses/one/${order_id}`);
-      dispatch({ type: GET_ADDRESS_SUCCESS, payload: data });    
+      const { data } = await axios.get(`/addresses/one/${order_id}`);
+      dispatch({ type: GET_ADDRESS_SUCCESS, payload: data });
     } catch (error) {
       dispatch({ type: GET_ADDRESS_FAIL, payload: error.response.data.msg });
     }
@@ -26,7 +26,7 @@ const listAddress = (order_id) => async (dispatch) => {
 const saveAddress = (address) => async (dispatch, getState) => {
   try {
     dispatch({ type: ADDRESS_SAVE_REQUEST, payload: address });
-    const { data } = await axios.post(`/api/addresses/create`, address);
+    const { data } = await axios.post(`/addresses/create`, address);
     dispatch({ type: ADDRESS_SAVE_SUCCESS, payload: data });
   } catch (error) {
     dispatch({ type: ADDRESS_SAVE_FAIL, payload: error.response.data.msg });

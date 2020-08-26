@@ -9,11 +9,11 @@ function ProductsPage(){
     const [count, setCount] = useState([]);
     useEffect(() => {
         getCount();
-      },[]); 
+      },[]);
     const getCount = async () => {
         try {
             const response = await fetch(
-              `/api/orders/count`
+              `/orders/count`
             );
             const count = await response.json();
             console.log(count);
@@ -28,12 +28,12 @@ function ProductsPage(){
         <div>
             Брой Поръчки: {count.count}
         </div>
-         
+
          <PListNavBar />
-         
-        
+
+
         </div>
-        
+
     );
 }
 

@@ -5,7 +5,7 @@ import { REGUSERS_LIST_REQUEST,REGUSERS_LIST_SUCCESS,REGUSERS_LIST_FAIL,INCOMES_
 const listIncomes = (months) => async (dispatch) => {
     try {
         dispatch({ type: INCOMES_LIST_REQUEST });
-        const { data } = await axios.post(`/api/stats/monthlyIncome`,months);
+        const { data } = await axios.post(`/stats/monthlyIncome`,months);
         dispatch({ type: INCOMES_LIST_SUCCESS, payload: data });
       } catch (error) {
         dispatch({ type: INCOMES_LIST_FAIL, payload: error.message });
@@ -15,7 +15,7 @@ const listIncomes = (months) => async (dispatch) => {
 const listSoldProducts = (months) => async (dispatch) => {
     try {
         dispatch({ type: SOLDPRODUCTS_LIST_REQUEST });
-        const { data } = await axios.post(`/api/stats/soldProducts`,months);
+        const { data } = await axios.post(`/stats/soldProducts`,months);
         dispatch({ type: SOLDPRODUCTS_LIST_SUCCESS, payload: data });
       } catch (error) {
         dispatch({ type: SOLDPRODUCTS_LIST_FAIL, payload: error.message });
@@ -25,7 +25,7 @@ const listSoldProducts = (months) => async (dispatch) => {
 const listRegisteredUsers = (months) => async (dispatch) => {
     try {
         dispatch({ type: REGUSERS_LIST_REQUEST });
-        const { data } = await axios.post(`/api/stats/registeredUsers`,months);
+        const { data } = await axios.post(`/stats/registeredUsers`,months);
         dispatch({ type: REGUSERS_LIST_SUCCESS, payload: data });
       } catch (error) {
         dispatch({ type: REGUSERS_LIST_FAIL, payload: error.message });

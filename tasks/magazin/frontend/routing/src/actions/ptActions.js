@@ -6,8 +6,8 @@ const listPT = (filters) => async (dispatch) => {
     try {
         console.log(filters)
         dispatch({ type: PT_LIST_REQUEST });
-        const { data } = await axios.post(`/api/pts/list/`,filters);
-        dispatch({ type: PT_LIST_SUCCESS, payload: data });  
+        const { data } = await axios.post(`/pts/list/`,filters);
+        dispatch({ type: PT_LIST_SUCCESS, payload: data });
       } catch (error) {
         dispatch({ type: PT_LIST_FAIL, payload: error.message });
       }

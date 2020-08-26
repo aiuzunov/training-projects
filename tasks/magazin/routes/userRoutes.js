@@ -28,9 +28,10 @@ router.post("/sign",async (req,res) => {
     try {
 
         const {email,password} = req.body;
+        console.log(email,password)
         const signUser = await pool.query("SELECT * FROM users WHERE email=$1 AND password=crypt($2, password);",[email,password]);
         if(signUser.rowCount>0){
-            if(signUser.rows[0].verified==true){
+            if(signUser.rows[0].verified=='true'){
                 res.json({
                     id: signUser.rows[0].id,
                     name:signUser.rows[0].name,
@@ -88,10 +89,10 @@ router.post("/create",async (req,res) => {
                 + currentdate.getHours() + ":"
                 + currentdate.getMinutes() + ":"
                 + currentdate.getSeconds();
-        const checkUsers = await pool.query(" SELECT * FROM users WHERE email = $2 or username =$1",[username,email]);
+        const checkUsers = await pool.query(" SELECT * FROM users WHERE email = $2 or username =$1 ",[username,email]);
         checkUsers.rows.map(user => {
             user.username == username ? usernames++ : usernames = usernames;
-            user.email == email ? emails++ : emails=emails;
+            user.verified == 'true' ? (user.email == email ? emails++ : emails=emails) : emails=emails;
         });
         if(usernames>0&&emails>0)
         {
@@ -110,10 +111,11 @@ router.post("/create",async (req,res) => {
         rand=Math.floor((Math.random() * 100) + 54);
         rand = rand.toString(2);
         var ciphertext = CryptoJS.AES.encrypt(rand, process.env.CRYPTO_SECRET).toString();
-        await pool.query("INSERT INTO email_codes (email,ver_code) VALUES($1,$2)",[email,ciphertext]);
+        await pool.query("INSERT INTO email_codes (username,email,ver_code) VALUES($1,$2,$3)",[username,email,ciphertext]);
         host=req.get('host');
-        link="http://"+req.get('host')+"/api/users/verify?id="+ciphertext;
+        link="http://"+req.get('host')+"/users/verify?id="+ciphertext;
         mailOptions={
+            username: username,
             to : email,
             subject : "Моля потвърдете вашият имейл адрес",
             html : "Здравейте,<br> Моля Кликнете на линка за да потвърдите вашият имейл.<br><a href="+link+">Кликнете тук за да потвърдите имейла</a>"
@@ -137,6 +139,7 @@ router.post("/create",async (req,res) => {
 
 
 }
+  console.log(mailOptions)
     } catch (err) {
         console.log(err)
 
@@ -145,40 +148,31 @@ router.post("/create",async (req,res) => {
 });
 
 router.get('/verify',async function(req,res){
-    console.log("http://"+host);
-if((req.protocol+"://"+req.get('host'))==("http://"+host))
-{
-
-    const code = await pool.query("SELECT ver_code from email_codes where email=$1",[mailOptions.to]);
-    console.log(code.rows[0].ver_code,req.query.id)
-    if(req.query.id==code.rows[0].ver_code)
+    console.log(mailOptions)
+    const code = await pool.query("SELECT ver_code from email_codes where username=$1",[mailOptions.username]);
+    if(req.query.id.slice(0,9)==code.rows[0].ver_code.slice(0,9))
     {
         await pool.query("DELETE FROM email_codes where email=$1",[mailOptions.to])
-        await pool.query("UPDATE users SET verified =TRUE where email=$1",[mailOptions.to])
+        await pool.query("UPDATE users SET verified =TRUE where username=$1",[mailOptions.username])
+        await pool.query("DELETE FROM users where email=$1 and verified='false'",[mailOptions.to])
         res.end("<h1>Вашият email "+mailOptions.to+" беше успешно потвърден");
     }
     else
     {
         res.end("<h1>Bad Request</h1>");
     }
-}
-else
-{
-    res.end("<h1>Заявката е от неизвестен източник");
-}
+
 
 });
 
 router.post("/get",async(req,res) => {
     try {
-        console.log(req.body)
         const {currentPage} = req.body;
         const filters = req.body;
-        const indexOfLastPost = currentPage * 9;
-        const indexOfFirstPost = indexOfLastPost - 9;
-        console.log('ww',filters)
+        const indexOfLastUser = currentPage * 9;
+        const indexOfFirstUser = indexOfLastUser - 9;
         if(!filters.userFilters.filter){
-          const users = await pool.query(`select * from (SELECT t.*,name, count(*) OVER (ORDER BY t.id) as rownum FROM users as t)d where rownum >= $1 and rownum<=$2 `,[indexOfFirstPost,indexOfLastPost]);
+          const users = await pool.query(`select * from (SELECT t.*,name, count(*) OVER (ORDER BY t.id) as rownum FROM users as t)d where rownum >= $1 and rownum<=$2 `,[indexOfFirstUser,indexOfLastUser]);
           res.json(users.rows);
         }
         else{
@@ -215,7 +209,6 @@ router.post("/get",async(req,res) => {
                   break;
                 case 'verified':
                   if(filters.userFilters.verified){
-                      console.log("Item",(item[key] != filters.userFilters[key]))
                       if (item[key] === undefined || (item[key] != filters.userFilters[key]))
                         return false
                       }
@@ -228,8 +221,8 @@ router.post("/get",async(req,res) => {
             }
             return true;
           });
-          console.log(filteredUsers)
-          res.json(filteredUsers);
+          console.log(filteredUsers.slice(indexOfFirstUser,indexOfLastUser))
+          res.json(filteredUsers.slice(indexOfFirstUser,indexOfLastUser));
         }
 
     } catch (err) {

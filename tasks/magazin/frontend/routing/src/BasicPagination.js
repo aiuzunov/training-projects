@@ -17,26 +17,26 @@ export default function BasicPagination(props) {
     try {
       if (props.search && props.tagid && props.price) {
         const response = await fetch(
-          `/api/products/${props.search}/${props.tagid}/${props.price}`
+          `/products/${props.search}/${props.tagid}/${props.price}`
         );
         const count = await response.json();
         console.log(count);
         setCount(count);
       } else if (props.search && props.price) {
         const response = await fetch(
-          `/api/products/${props.search}/${props.price}`
+          `/products/${props.search}/${props.price}`
         );
         const count = await response.json();
         setCount(count);
       } else if (props.tagid && props.price) {
         const response = await fetch(
-          `/api/products/${props.tagid}/${props.price}`
+          `/products/${props.tagid}/${props.price}`
         );
         const count = await response.json();
         setCount(count);
       } else if (props.price) {
         const response = await fetch(
-          `/api/products/${props.price}`
+          `/products/${props.price}`
         );
         const count = await response.json();
         setCount(count);
