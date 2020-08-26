@@ -23,7 +23,12 @@ function processNums(n1, n2) {
    }else if(small==0){
      small=360;
    }
+   if(small==0&&big==360 || small==360 && big==0)
+    answer=0;
    var answer=small-big
+   if(answer>180){
+     answer=360-answer;
+   }
    console.log(answer.toFixed(3))
 }
 
