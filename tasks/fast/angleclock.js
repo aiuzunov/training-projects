@@ -29,6 +29,9 @@ function processNums(n1, n2) {
    if(answer>180){
      answer=360-answer;
    }
+   if(answer<0){
+     answer = answer*-1;
+   }
    console.log(answer.toFixed(3))
 }
 
