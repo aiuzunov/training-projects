@@ -31,7 +31,6 @@ app.use('/users',userRoute)
 app.use('/orders',orderRoute)
 app.use('/payments',paymentRoute)
 app.use('/stats',statsRoute)
-console.log(process.env.NODE_ENV)
 if(process.env.NODE_ENV === "production"){
 	console.log(path.join(__dirname,"frontend/routing/build"))
 	app.use(express.static(path.join(__dirname, "frontend/routing/build")));

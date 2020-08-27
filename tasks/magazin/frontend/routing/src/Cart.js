@@ -19,7 +19,7 @@ function Cart(props){
     const [defAddress, setDefAddress] = useState('');
     const quantity = props.location.search ? Number(props.location.search.split("=")[1]) : 1;
     const addressesList = useSelector((state) => state.addressesList);
-    const { addresses , loading: loadingAddresses, error: addressesError } = addressesList;  
+    const { addresses , loading: loadingAddresses, error: addressesError } = addressesList;
     const dispatch = useDispatch();
     const userSignIn = useSelector(state=>state.userSignIn);
     const {userInfo} = userSignIn;
@@ -30,6 +30,7 @@ function Cart(props){
         dispatch(deleteCartItem({product_id,user_id}));
 
     }
+    console.log(cartItems)
     useEffect(()=>{
         dispatch(listAddresses(userInfo.id))
         console.log(defAddress)
@@ -83,18 +84,18 @@ function Cart(props){
         </MenuItem>
         {addresses.map(address => (
            <MenuItem key={address.id} value={address.id}>{address.address}</MenuItem>
-          
+
         ))}
     </Select>
 <h1>Количка с продукти</h1>
 </div>
 {
-cartItems.length === 0 ? 
+cartItems.length === 0 ?
             <div className="title">
                <h3>Количката е празна</h3>
             </div>
             :
-            cartItems.map(item => 
+            cartItems.map(item =>
             <div className="item">
             <div className="buttons">
                 <span className="delete-btn"></span>
@@ -104,10 +105,10 @@ cartItems.length === 0 ?
              <div className="image">
                   <img src={`/${item.name}.png`} alt="" />
             </div>
-                
+
             <div className="description">
                   <span>{item.name}</span>
-                 
+
               </div>
 
 
@@ -141,27 +142,27 @@ cartItems.length === 0 ?
                      </Button>
 
                  </div>
-                     
+
             </div>
 
-          
+
             )
         }
-         
+
 
 </div>
 <div className="cart-action">
             <h3>
                 Общо ( {cartItems.reduce((a,c) => parseInt(a) + parseInt(c.quantity),0)} продукт/а )
                 :
-                  
+
                 {(cartItems.reduce((a,c)=>a +c.price*c.quantity,0)).toFixed(2)} EUR
             </h3>
 
             {defAddress ? <PayPal  address_id={defAddress} cart_items={cartItems} user_id={userInfo.id} totalprice={(cartItems.reduce((a,c)=>a +c.price*c.quantity,0)).toFixed(2)}/>:<h3>Моля изберете адрес за доставка</h3>}
         </div>
         </div>
-       
+
 
     );
 }

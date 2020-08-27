@@ -86,7 +86,7 @@ CREATE TABLE payments(
 	recipient_name TEXT NOT NULL,
 	recipient_email TEXT NOT NULL,
 	payerID TEXT NOT NULL,
-	paymentID TEXT NOT NULL,
+	paymentID TEXT NOT NULL UNIQUE,
 	paymentToken TEXT NOT NULL,
 	payment_sum NUMERIC NOT NULL,
 	currency TEXT NOT NULL
@@ -96,14 +96,14 @@ CREATE TABLE orders(
 	id BIGSERIAL primary key,
 	user_id BIGINT DEFAULT NULL,
 	address_id BIGINT NOT NULL,
-	payment_id BIGINT NOT NULL,
+	payment_id TEXT NOT NULL,
 	created TEXT NOT NULL,
 	order_status TEXT NOT NULL,
 	price numeric NOT NULL,
 	currency TEXT DEFAULT 'EUR',
 	FOREIGN KEY (address_id) REFERENCES addresses(id),
 	FOREIGN KEY (user_id) REFERENCES users(id),
-	FOREIGN KEY (payment_id) REFERENCES payments(id)
+	FOREIGN KEY (payment_id) REFERENCES payments(paymentID)
 );
 
 
@@ -112,7 +112,7 @@ CREATE TABLE order_items(
 	order_id BIGINT NOT NULL,
 	product_id BIGINT NOT NULL,
 	quantity BIGINT NOT NULL,
-	product_price numeric NOT NULL,
+	product_price numeric,
 	FOREIGN KEY (order_id) REFERENCES orders(id),
 	FOREIGN KEY (product_id) REFERENCES products(id)
 );
@@ -120,9 +120,9 @@ CREATE TABLE order_items(
 
 CREATE TABLE cart_items(
 	id BIGSERIAL primary key,
-	order_id BIGINT NOT NULL,
+	user_id BIGINT NOT NULL,
 	product_id BIGINT NOT NULL,
 	quantity BIGINT NOT NULL,
-	FOREIGN KEY (order_id) REFERENCES orders(id),
+	FOREIGN KEY (user_id) REFERENCES users(id),
 	FOREIGN KEY (product_id) REFERENCES products(id)
 );

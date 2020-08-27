@@ -178,6 +178,7 @@ router.post("/get",async(req,res) => {
         else{
           var filteredUsers = await pool.query('select * from (SELECT t.*,name, count(*) OVER (ORDER BY t.id) as rownum FROM users as t)d')
           filteredUsers= (filteredUsers.rows).filter(function(item) {
+            console.log(item['create_date'])
             for (var key in filters.userFilters) {
               switch(key){
                 case 'username':

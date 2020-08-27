@@ -31,14 +31,13 @@ function ProductDetailsPage({ match , history }) {
    const {userInfo} = userSignIn;
    const dispatch = useDispatch();
 
-   console.log(product)
 
   const AddToCart = () => {
     let product_id = product.id;
     let user_id = userInfo.id;
     dispatch(addToCart(product_id, quantity));
     dispatch(saveCartItem({product_id,quantity,user_id}));
-    };  
+    };
 
    /* const getProduct = async () => {
         try {
@@ -52,14 +51,14 @@ function ProductDetailsPage({ match , history }) {
       }
 */
     return(
-       
 
-        loading ? <div> <CircularProgress color="secondary" /></div> : error ? <div>{error.message}</div> : 
+
+        loading ? <div> <CircularProgress color="secondary" /></div> : error ? <div>{error.message}</div> :
         <div >
             <NavBar/>
-           
+
            <Button
-        
+
         onClick={history.goBack}
         variant="contained"
         color="secondary"
@@ -68,10 +67,10 @@ function ProductDetailsPage({ match , history }) {
       >
         Назад
       </Button>
-          
-           
+
+
             <div className="container">
-              
+
         <div className="left-column">
 <img src={`http://localhost:5000/${product.name}.png`} alt=""/>
 <img data-image="black" src="" alt=""></img>
@@ -87,7 +86,7 @@ function ProductDetailsPage({ match , history }) {
 <div className="product-description">
   <span> Жанрове : {tags.map(tag => (
      <div> {tag.name} </div>
-   
+
   ))}
   </span>
   <h1>{product.name}</h1>
@@ -97,11 +96,11 @@ function ProductDetailsPage({ match , history }) {
 
 <div className="product-configuration">
 
-  
-  <div className="product-color">
-    
 
-    
+  <div className="product-color">
+
+
+
     <div className="product-quantity">
           Количество: <Select
           native
@@ -112,23 +111,24 @@ function ProductDetailsPage({ match , history }) {
             id: 'description-native-simple',
           }}
         >
-         {[...Array(product.count_in_stock).keys()].map(instock=>
-                        <option key={instock+1} value={instock + 1}>{instock+1}</option>  )}
-        </Select> 
+        {[...Array(product.count_in_stock).keys()].map(instock=>
+                       <option key={instock+1} value={instock + 1}>{instock+1}</option>  )}
+        </Select>
+
       </div>
   </div>
-        
- 
+
+
     </div>
 
 
     <div className="product-price">
      <span >Цена (1бр.) : {Number(product.price).toFixed(2)} {product.currency_id}.</span>
-    
+
     </div>
     <div className="product-price">
      <span >Общo ({quantity}бр.) : {Number(product.price*quantity).toFixed(2)} {product.currency_id}.</span>
-    
+
     </div>
     {product.count_in_stock > 0 &&  <Button
               style={{marginTop: 30}}
@@ -141,15 +141,15 @@ function ProductDetailsPage({ match , history }) {
             </Button>
       }
     </div>
-    
+
     </div>
     );
-           
-           
-          
-           
+
+
+
+
         </div>
-        
+
     );
 }
 

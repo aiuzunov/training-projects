@@ -34,6 +34,7 @@ export default function UsersFilters(props) {
   const [verified,setVerified] = useState('');
   const [fromDate, setFromDate] =  React.useState(new Date('2014-08-18T21:11:54'));
   const [toDate, setToDate] =  React.useState(new Date('2021-08-18T21:11:54'));
+  const [groupBy, setGroupBy] = useState('date');
   const userStatuses = [{
     id: 1,
     name: "Потвърдени",
@@ -45,6 +46,19 @@ export default function UsersFilters(props) {
     real: 'false'
 
   }
+];
+const groupByOptions = [{
+  id: 1,
+  name: "MONTH",
+},
+{
+  id: 2,
+  name: "YEAR",
+},
+{
+  id:3,
+  name: "DATE"
+}
 ];
   const classes = useStyles();
   useEffect(() => {
@@ -58,6 +72,9 @@ export default function UsersFilters(props) {
   }
   const updateVerified = e => {
     setVerified(e.target.value);
+  }
+  const updateGroupBy = e => {
+    setGroupBy(e.target.value);
   }
 
   const submitFilter = (e) => {
@@ -110,6 +127,7 @@ export default function UsersFilters(props) {
 
           ))}
       </Select>
+    
       <MuiPickersUtilsProvider utils={DateFnsUtils}>
     <Grid container justify="start">
       <KeyboardDatePicker

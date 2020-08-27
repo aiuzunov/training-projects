@@ -18,14 +18,15 @@ router.post("/create",async (req,res) => {
         const checkCartitem = await pool.query("SELECT * from cart_items where user_id=$1 and product_id=$2",[user_id,product_id]);
         if(checkCartitem.rowCount>0){
             const newCartItem = await pool.query("UPDATE cart_items SET quantity=$1 where user_id=$2 and product_id=$3",[quantity,user_id,product_id]);
-            res.json(newCartItem);   
+            res.json(newCartItem);
         }
         else{
             const newCartItem = await pool.query(" INSERT INTO cart_items (user_id,product_id,quantity) VALUES ($1,$2,$3)",[user_id,product_id,quantity]);
             res.json(newCartItem);
         }
-        
+
     } catch (err) {
+        console.log(err)
         res.status(500).send({msg: 'Възникна грешка при добавянето на продукта към кошницата .'});
     }
 })

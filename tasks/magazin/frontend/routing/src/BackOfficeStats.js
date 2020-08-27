@@ -40,6 +40,8 @@ function BackOfficeStats(props){
     const regUsersList = useSelector((state) => state.regUsersList);
     const { regUsers , loading: regUsersLoading, error:regUsersError } = regUsersList;
     const dispatch = useDispatch();
+    const [groupBy, setGroupBy] = useState('DATE');
+
     const [fromDate, setFromDate] =  React.useState(new Date('2014-08-18T21:11:54'));
     const [toDate, setToDate] =  React.useState(new Date('2021-08-18T21:11:54'));
     const handleFromDateChange = (date) => {
@@ -97,9 +99,29 @@ function BackOfficeStats(props){
       name: "Декември"
     }
   ];
+  const groupByOptions = [{
+    id: 1,
+    show: "Месец",
+    name: "MONTH",
+  },
+  {
+    id: 2,
+    show: "Година",
+    name: "YEAR",
+  },
+  {
+    id:3,
+    show: "Ден",
+    name: "DATE"
+  }
+  ];
   const handleMonthChange = (event) => {
     setMonthId(event.target.value);
   };
+  const updateGroupBy = e => {
+    setGroupBy(e.target.value);
+  }
+
 
     useEffect(() => {
       var from = fromDate.toLocaleString('en-GB', { timeZone: 'UTC' });
@@ -108,10 +130,10 @@ function BackOfficeStats(props){
       setRegisteredUsersPop(props.registeredUsers);
       setSoldProductsPop(props.soldProducts);
       dispatch(listIncomes({monthId,from,to}));
-      dispatch(listSoldProducts({monthId,from,to}));
-      dispatch(listRegisteredUsers({monthId,from,to}));
+      dispatch(listSoldProducts({monthId,from,to,groupBy}));
+      dispatch(listRegisteredUsers({monthId,from,to,groupBy}));
 
-    },[monthId,props.soldProducts,props.registeredUsers,props.income,toDate,fromDate]);
+    },[monthId,props.soldProducts,props.registeredUsers,props.income,toDate,fromDate,groupBy]);
     console.log(regUsers)
     return(
       <div>
@@ -153,6 +175,17 @@ function BackOfficeStats(props){
               'aria-label': 'change date',
             }}
           />
+          <Select
+        value={groupBy}
+        onChange={updateGroupBy}
+        displayEmpty
+        inputProps={{ 'aria-label': 'Without label' }}
+      >
+          {groupByOptions.map(tag => (
+             <MenuItem key={tag.id} value={tag.name}>{tag.show}</MenuItem>
+
+          ))}
+      </Select>
         </Grid>
       </MuiPickersUtilsProvider></div>:<div></div>}
 
@@ -207,7 +240,7 @@ function BackOfficeStats(props){
                   {soldProducts.map(sp => (
                       <tr>
                       <td>
-                          {(sp.date).split("T")[0]}
+                         {sp.date}
                       </td>
                       <td>
                            {sp.sales}
@@ -225,7 +258,7 @@ function BackOfficeStats(props){
               <thead>
                   <tr>
                       <th>
-                          Дата
+                          {groupBy=='DATE' ? <div>Дата</div> : groupBy=='MONTH' ? <div>Месец</div> : <div>Година</div>}
                       </th>
                       <th>
                           Регистрирали се потребители
@@ -238,7 +271,14 @@ function BackOfficeStats(props){
                   {regUsers.map(user => (
                       <tr>
                       <td>
-                          {(user.date).split("T")[0]}
+                      {groupBy=='MONTH' ? months.map(month => (
+
+                         month.id == user.date ? <div>
+                             {month.id} ({month.name})
+                         </div> : <div></div>
+
+                       )):user.date}
+
                       </td>
                       <td>
                           {user.count}
