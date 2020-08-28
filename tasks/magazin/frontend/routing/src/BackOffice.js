@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { useSelector, useDispatch } from 'react-redux';
 import { detailsProduct, saveProduct, listProducts, deleteProduct } from './actions/productActions';
 import { Link } from 'react-router-dom';
@@ -236,33 +237,17 @@ function CRUDProducts({  match , history }) {
     const getCount = async () => {
 
         try {
+            const noFilters={
+              nofilters: 1
+            }
             const orders_response = await fetch(`/orders/count`);
             const ordersc = await orders_response.json();
             setOrdersCount(ordersc);
             const users_response = await fetch(`/users/count`);
             const usersc = await users_response.json();
             setUsersCount(usersc);
-            if(searchfilter&&tagfilter&&pricefilter){
-            const response = await fetch(`/products/${searchfilter}/${tagfilter}/${pricefilter}`);
-            const count = await response.json();
-            setCount(count);
-          }
-          else if(searchfilter&&pricefilter){
-            const response = await fetch(`/products/${searchfilter}/${pricefilter}`);
-            const count = await response.json();
-            setCount(count);
-          }
-          else if(tagfilter&&pricefilter){
-            const response = await fetch(`/products/${tagfilter}/${pricefilter}`);
-            const count = await response.json();
-            setCount(count);
-          }
-          else if(pricefilter){
-            const response = await fetch(`/products/${pricefilter}`);
-            const count = await response.json();
-            setCount(count);
-          }
-
+            const response = await axios.post(`/products/productCount`,noFilters);
+            setCount(response.data.count);
         } catch (err) {
           console.log(err.message);
         }
@@ -432,6 +417,11 @@ const handleUserOrdersButton = (user_id) => {
 const handleUserFilter = (userFilters) => {
    dispatch(listUsers({currentPage,userFilters}));
 }
+const handleProductFilter = async (productFilters) => {
+   const getCount = await axios.post(`/products/productCount`,productFilters);
+   setCount(getCount.data.max);
+   dispatch(listProducts({currentPage,productFilters}));
+}
 
 const handleOrdersFilter = (orderFilters) => {
     console.log(orderFilters)
@@ -444,12 +434,14 @@ const handleOrdersFilter = (orderFilters) => {
    const filterPrice = (price) => setPriceFilter(price);
    const [userFilters,setUserFilters] = useState({});
    const [orderFilters,setOrderFilters] = useState({});
+   const [productFilters,setProductFilters] = useState({});
 
    const filterUser = (userFilters) => handleUserFilter(userFilters);
    const filterOrders = (orderFilters) => handleOrdersFilter(orderFilters)
+   const filterProducts = (productFilters) => handleProductFilter(productFilters);
 
-   var pagecount = parseInt(count.count / 9);
-   if (count.count % 9 !== 0){
+   var pagecount = parseInt(count / 9);
+   if (count % 9 !== 0){
      pagecount = pagecount + 1;
    }
    var userpagecount = parseInt(usersCount.count / 9);
@@ -535,7 +527,7 @@ const handleOrdersFilter = (orderFilters) => {
      </div>
      {usersListPop ? <div style={{marginTop: theme.spacing(10)}}><UsersFilters filterUser={filterUser} /> </div>: <div></div>}
      {ordersPop ? <div style={{marginTop: theme.spacing(10)}}><OrdersFilters filterOrders={filterOrders} /> </div>: <div></div>}
-     {productsPop && !usersListPop ? <div style={{marginTop: theme.spacing(10)}}><ProductsFilters filterTag={filterTag} filterName={filterName} filterPrice={filterPrice}  pageNumber={currentPage} saved ={productSaved} deleted={productDeleted} /> </div>: <div></div>}
+     {productsPop && !usersListPop ? <div style={{marginTop: theme.spacing(10)}}><ProductsFilters filterProducts={filterProducts}/> </div>: <div></div>}
         <div className="content content-margined">
 
 

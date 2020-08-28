@@ -1,9 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Checkbox, FormControlLabel, FormGroup, Select, Divider, makeStyles, FormControl, MenuItem, FormHelperText, FormLabel, RadioGroup, Radio, TextField, InputBase, Input, Typography, Slider } from '@material-ui/core';
+import {Button, Checkbox, FormControlLabel, FormGroup, Select, Divider, makeStyles, FormControl, MenuItem, FormHelperText, FormLabel, RadioGroup, Radio, TextField, InputBase, Input, Typography, Slider } from '@material-ui/core';
 import { useSelector, useDispatch } from 'react-redux';
 import { listProducts } from './actions/productActions';
 import { listTags } from './actions/tagsActions';
-
+import 'date-fns';
+import Grid from '@material-ui/core/Grid';
+import DateFnsUtils from '@date-io/date-fns';
+import {
+  MuiPickersUtilsProvider,
+  KeyboardTimePicker,
+  KeyboardDatePicker,
+} from '@material-ui/pickers';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
+import CheckBoxIcon from '@material-ui/icons/CheckBox';
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -21,100 +31,197 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function ProductsFilters(props) {
-  const classes = useStyles();
-  const [search, setSearch] = useState("");
-  const [finishedSearch, setFinishedSearch] = useState("");
-  const [tagid, setTagid] = useState('');
+  const [name,setName] = useState('');
+  const [count_in_stock,setQuantity] = useState('');
+  const [tagid,setTagId] = useState([]);
+  const [age,setAge] = useState('');
   const [price, setPrice] = React.useState([0, 100]);
-  const productList = useSelector((state) => state.productList);
-  const { products , loading, error } = productList;
+  const [fromDate, setFromDate] =  React.useState(new Date('2014-08-18T21:11:54'));
+  const [toDate, setToDate] =  React.useState(new Date('2021-08-18T21:11:54'));
+  const [groupBy, setGroupBy] = useState('date');
   const tagsList = useSelector((state) => state.tagsList);
   const { tags , loading: tagsLoading, error:tagsError } = tagsList;
   const dispatch = useDispatch();
+  const userStatuses = [{
+    id: 1,
+    name: "В наличност",
+    real: 3
+  },
+  {
+    id: 2,
+    name: "Почти изчерпани",
+    real: 2
 
-  const updateSearch = e => {
-    setSearch(e.target.value);
+  },
+  {
+    id: 3,
+    name: "Изчерпани",
+    real: 1
   }
+];
+const sortByCreation = [{
+  id: 1,
+  name: "Old",
+  real: "ASC"
+},
+{
+  id: 2,
+  name: "New",
+  real: "DESC"
+}
+];
 
-  const getSearch = e => {
-    console.log(1)
-    e.preventDefault();
-    setFinishedSearch(search);
-    props.filterName(search);
 
+  const classes = useStyles();
+  useEffect(() => {
+    dispatch(listTags());
+    console.log(tagid)
+},[tagid]);
+
+  const updateSearchFilter = e => {
+    setName(e.target.value);
   }
-
-
-  const handleCategoryChange = (event) => {
-    setTagid(event.target.value);
-    props.filterTag(event.target.value);
-  };
+  const updateQuantity = e => {
+    setQuantity(e.target.value);
+  }
+  const updateAge = e => {
+    setAge(e.target.value);
+  }
+  const updateGroupBy = e => {
+    setGroupBy(e.target.value);
+  }
+  const updateTagId = e => {
+    setTagId(e.target.value);
+  }
 
   const handlePriceChange = (event, newPrice) => {
     setPrice(newPrice);
-    props.filterPrice(newPrice);
   };
 
-  useEffect(() => {
-   dispatch(listTags());
-},[tagid,price,finishedSearch,props.deleted,props.saved]);
+  const submitFilter = (e) => {
+    e.preventDefault();
+    var filter=1;
+    props.filterProducts({name,price,count_in_stock,age,fromDate,tagid,toDate,filter});
+  }
 
+
+  const handleFromDateChange = (date) => {
+    setFromDate(date);
+  };
+  const handleToDateChange = (date) => {
+    setToDate(date);
+  };
+
+
+  const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
+  const checkedIcon = <CheckBoxIcon fontSize="small" />;
   return (
+<div style={{marginLeft:'150px',marginTop:'50px'}}>
+<form id="filterForm" onSubmit={submitFilter}>
+<Grid container spacing={4} justify="start" direction = "rows">
+<Grid container item xs={12} spacing={1}>
+          <TextField
+            value={name}
+            onChange={updateSearchFilter}
+            placeholder="Име на продукта…"
+            classes={{
+              root: classes.inputRoot,
+              input: classes.inputInput,
+            }}
+            inputProps={{ 'aria-label': 'search' }}
+          />
+          </Grid>
 
-    <div>
+          <Select
+        style={{minWidth:"250px",marginTop:"10px",marginLeft:"7px",marginRight:"70px"}}
+        value={count_in_stock}
+        onChange={updateQuantity}
+        displayEmpty
+        inputProps={{ 'aria-label': 'Without label' }}
+      >
 
+        <MenuItem value="">
+          <em>Филтрирай по количество</em>
+          </MenuItem>
+          {userStatuses.map(tag => (
+             <MenuItem key={tag.id} value={tag.real}>{tag.name}</MenuItem>
 
+          ))}
+      </Select>
 
-  <div className="filterWrapper">
-  <div>
-  <form onSubmit={getSearch}>
-            <InputBase
-              value={search}
-              onChange={updateSearch}
-              placeholder="Търсене на продукт…"
-              classes={{
-                root: classes.inputRoot,
-                input: classes.inputInput,
-              }}
-              inputProps={{ 'aria-label': 'search' }}
-            />
-    </form>
-  </div>
+          <Select
+        style={{minWidth:"250px"}}
+        value={age}
+        onChange={updateAge}
+        displayEmpty
+        inputProps={{ 'aria-label': 'Without label' }}
+      >
+        <MenuItem value="">
+          <em>Най-нови / Най-стари</em>
+          </MenuItem>
+          {sortByCreation.map(tag => (
+             <MenuItem key={tag.id} value={tag.real}>{tag.name}</MenuItem>
 
-       <div className="categoryFilter">
-       <Select
-     value={tagid}
-     onChange={handleCategoryChange}
-     displayEmpty
-     inputProps={{ 'aria-label': 'Without label' }}
-   >
-     <MenuItem value="">
-       <em>Всички</em>
-       </MenuItem>
-       {tags.map(tag => (
-          <MenuItem key={tag.id} value={tag.id}>{tag.name}</MenuItem>
+          ))}
+      </Select>
+      <Grid container item xs={12} spacing={3}>
 
-       ))}
-   </Select>
-   <FormHelperText>Изберете категория</FormHelperText>
-       </div>
-        <div className="priceFilter">
-       <Typography id="range-slider" gutterBottom>
-       Филтрирай по цена
-     </Typography>
-     <Slider
-       className={classes.root}
-       value={price}
-       onChange={handlePriceChange}
-       valueLabelDisplay="auto"
-       aria-labelledby="range-slider"
-     />
-       </div>
+      <MuiPickersUtilsProvider utils={DateFnsUtils}>
+    <Grid container justify="start">
+      <KeyboardDatePicker
+        style={{marginRight:"50px"}}
+        margin="normal"
+        id="date-picker-dialog"
+        label="ДАТА НА СЪЗДАВАНЕ - ОТ"
+        format="dd/MM/yyyy"
+        value={fromDate}
+        onChange={handleFromDateChange}
+        KeyboardButtonProps={{
+          'aria-label': 'change date',
+        }}
+      />
+    <KeyboardDatePicker
+        margin="normal"
+        id="date-picker-dialog"
+        label="ДАТА НА СЪЗДАВАНЕ - ДО"
+        format="dd/MM/yyyy"
+        value={toDate}
+        onChange={handleToDateChange}
+        KeyboardButtonProps={{
+          'aria-label': 'change date',
+        }}
+      />
+    </Grid>
+  </MuiPickersUtilsProvider>
+  </Grid>
+  <Grid container item xs={12} spacing={3}>
+  <Select
+style={{minWidth:"250px"}}
+value={tagid}
+multiple
+onChange={updateTagId}
+displayEmpty
+inputProps={{ 'aria-label': 'Without label' }}
+>
+  {tags.map(tag => (
+     <MenuItem key={tag.id} value={tag.id}>{tag.name}</MenuItem>
 
-     </div>
+  ))}
+</Select>
+<Slider
+      className={classes.root}
+      value={price}
+      onChange={handlePriceChange}
+      valueLabelDisplay="auto"
+      aria-labelledby="range-slider"
+    />
+</Grid>
 
-    </div>
+  <Button form="filterForm" style={{marginTop:'15px',marginLeft:'10px'}} variant="contained" color="primary" type="submit">Филтрирай</Button>
+</Grid>
 
+  </form>
+</div>
 
   );
 }

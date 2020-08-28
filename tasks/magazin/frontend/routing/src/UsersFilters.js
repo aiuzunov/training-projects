@@ -127,7 +127,7 @@ const groupByOptions = [{
 
           ))}
       </Select>
-    
+
       <MuiPickersUtilsProvider utils={DateFnsUtils}>
     <Grid container justify="start">
       <KeyboardDatePicker

@@ -1,45 +1,10 @@
 import { PRODUCT_LIST_SUCCESS, PRODUCT_LIST_FAIL, PRODUCT_LIST_REQUEST, PRODUCT_DETAILS_REQUEST, PRODUCT_DETAILS_SUCCESS, PRODUCT_DETAILS_FAIL, PRODUCT_SAVE_REQUEST, PRODUCT_SAVE_SUCCESS, PRODUCT_SAVE_FAIL, PRODUCT_DELETE_REQUEST, PRODUCT_DELETE_SUCCESS, PRODUCT_DELETE_FAIL } from "../constants/productConstants";
 import axios from 'axios';
-const listProducts = (price,tagid,name,pageNumber) => async (dispatch) => {
+const listProducts = (productFilters) => async (dispatch) => {
     try {
-      console.log(pageNumber)
-      if(tagid&&name&&price){
         dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`/products/all/${name}/${tagid}/${price}/${pageNumber}`);
+        const { data } = await axios.post(`/products/testingfilters`,productFilters);
         dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });
-      }
-      else if(tagid&&name){
-        dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`/products/all/${name}/${tagid}/${pageNumber}`);
-        dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });
-      }
-      else if(price&&name){
-        dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`/products/np/${name}/${price}/${pageNumber}`);
-        dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });
-      }
-      else if(tagid&&price){
-        dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`/products/tp/${tagid}/${price}/${pageNumber}`);
-        dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });
-      }
-      else if(price){
-        console.log(123)
-        dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`/products/p/${price}/${pageNumber}`);
-        dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });
-      }
-      else if(name){
-        dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`/products/all/${name}/${pageNumber}`);
-        dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });
-      }
-      else if(tagid){
-        dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.get(`/products/tagsfilter/${tagid}/${pageNumber}`);
-        dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });
-      }
-
 
       } catch (error) {
         dispatch({ type: PRODUCT_LIST_FAIL, payload: error.message });
