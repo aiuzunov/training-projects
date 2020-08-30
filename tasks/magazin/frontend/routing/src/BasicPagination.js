@@ -8,39 +8,23 @@ import NestedGrid from "./NestedGrid";
 import { useSelector, useDispatch } from "react-redux";
 import { listProducts } from "./actions/productActions";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import axios from 'axios';
+
 
 export default function BasicPagination(props) {
   const productList = useSelector((state) => state.productList);
   const { products, loading, error } = productList;
   const [count, setCount] = useState([]);
+  console.log(count)
   const getCount = async () => {
     try {
-      if (props.search && props.tagid && props.price) {
-        const response = await fetch(
-          `/products/${props.search}/${props.tagid}/${props.price}`
-        );
-        const count = await response.json();
-        console.log(count);
-        setCount(count);
-      } else if (props.search && props.price) {
-        const response = await fetch(
-          `/products/${props.search}/${props.price}`
-        );
-        const count = await response.json();
-        setCount(count);
-      } else if (props.tagid && props.price) {
-        const response = await fetch(
-          `/products/${props.tagid}/${props.price}`
-        );
-        const count = await response.json();
-        setCount(count);
-      } else if (props.price) {
-        const response = await fetch(
-          `/products/${props.price}`
-        );
-        const count = await response.json();
-        setCount(count);
-      }
+        var searchfilter = props.search;
+        var pricefilter = props.price;
+        var tagfilter = props.tagid;
+        const {data} = await axios.post('/products/getProductCount',{searchfilter,tagfilter,pricefilter});
+        console.log(data);
+        setCount(data.max);
+
     } catch (err) {
       console.log(err.message);
     }
@@ -49,7 +33,7 @@ export default function BasicPagination(props) {
     getCount();
   }, [products.length, props.price, props.tagid, props.search]);
 
-  var pagecount = parseInt(count.count / 9);
+  var pagecount = parseInt(count / 9);
   if (count % 9 !== 0) {
     pagecount = pagecount + 1;
   }

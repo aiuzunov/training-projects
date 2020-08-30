@@ -19,35 +19,16 @@ const download = (url, path, callback) => {
   });
 };
 
-router.get("/:search/:tagid/:price", async (req, res) => {
-  try {
-    const { search, tagid, price } = req.params;
-    var pricearr = price.split(",");
-    price1 = pricearr[0];
-    price2 = pricearr[1];
-    const productCount = await pool.query(
-      "SELECT COUNT(*) FROM products join tags_products on tags_products.product_id = products.id WHERE LOWER(name) LIKE concat('%',LOWER($1),'%') AND tags_products.tag_id=$2 AND price>=$3 AND price<=$4 ",
-      [search, tagid, price1, price2]
-    );
-    res.json(productCount.rows[0]);
-  } catch (err) {
-    console.error(err.message);
-  }
-});
-
-router.post("/testingfilters", async (req, res) => {
+router.post("/getProducts", async (req, res) => {
   try {
     const Filters = req.body;
-    console.log(Filters)
-    var testfilters = Filters.productFilters;
+    var testfilters = Filters;
     const indexOfLastPost = Filters.currentPage * 9;
     const indexOfFirstPost = indexOfLastPost - 9;
-    console.log(Filters)
-    console.log(indexOfFirstPost,indexOfLastPost)
     var testArray= [];
-    if(testfilters.name!=''){
+    if(testfilters.searchfilter!=''){
       var i=2;
-      testArray.push(testfilters.name);
+      testArray.push(testfilters.searchfilter);
       var query = "SELECT DISTINCT t.id,name,image,brand,price,count_in_stock,description,create_date,edit_time,currency_id from (SELECT *, count(*) OVER (ORDER BY id ) ROWNUM FROM products where LOWER(name) LIKE concat('%',LOWER($1),'%')";
     }else{
       var i=1;
@@ -55,17 +36,16 @@ router.post("/testingfilters", async (req, res) => {
     }
 
 const entries = Object.entries(testfilters);
-
 for (const [key, value] of entries) {
-  if(key!='filter'&&value!=''&&key!='price'&&key!='name'&&key!='tagid'&&key!='age'&&key!='count_in_stock'){
-    if(key=='fromDate'){
+  if(key!='filter'&&value!=''&&key!='pricefilter'&&key!='searchfilter'&&key!='tagfilter'&&key!='ageFilter'&&key!='cisFilter'&&key!='currentPage'){
+    if(key=='fromDateFilter'){
       query = query + ` AND create_date>=$${i}`
       i++;
-      testArray.push(testfilters.fromDate);
+      testArray.push(testfilters.fromDateFilter);
 
     }
-    else if(key=='toDate'){
-      testArray.push(testfilters.toDate);
+    else if(key=='toDateFilter'){
+      testArray.push(testfilters.toDateFilter);
       query = query + ` AND create_date<=$${i}`
       i++;
     }
@@ -78,8 +58,10 @@ for (const [key, value] of entries) {
 
 }
   query += ` AND price>=$${i} AND price<=$${i+1}`
-  if(testfilters.count_in_stock){
-    switch(testfilters.count_in_stock){
+  testArray.push(testfilters.pricefilter[0])
+  testArray.push(testfilters.pricefilter[1])
+  if(testfilters.cisFilter){
+    switch(testfilters.cisFilter){
       case 1:
         query+=' and count_in_stock=0'
         break;
@@ -91,8 +73,8 @@ for (const [key, value] of entries) {
         break;
     }
   }
-  if(testfilters.age){
-    switch(testfilters.age){
+  if(testfilters.ageFilter){
+    switch(testfilters.ageFilter){
       case 'ASC':
         query+=' ORDER BY create_date ASC'
         break;
@@ -101,23 +83,22 @@ for (const [key, value] of entries) {
         break;
     }
   }
-  testArray.push(testfilters.price[0])
-  testArray.push(testfilters.price[1])
 
 
-  if(testfilters.tagid.length==0){
+
+  if(testfilters.tagfilter.length==0){
     testArray.push(indexOfFirstPost)
     testArray.push(indexOfLastPost)
     query+=`) as t join tags_products on t.id = tags_products.product_id where rownum>$${i+2} and rownum <= $${i+3}`
   }else{
-    testArray.push(testfilters.tagid)
+    testArray.push(testfilters.tagfilter)
     testArray.push(indexOfFirstPost)
     testArray.push(indexOfLastPost)
-    query+=`) as t join tags_products on t.id = tags_products.product_id where tags_products.tag_id = ANY($${i+2}) AND rownum>$${i+3} and rownum <= $${i+4}`
+    query+=`) as t join tags_products on t.id = tags_products.product_id where tags_products.tag_id = ANY ($${i+2}) AND rownum>=$${i+3} and rownum <= $${i+4}`
 
   }
-  if(testfilters.age){
-    switch(testfilters.age){
+  if(testfilters.ageFilter){
+    switch(testfilters.ageFilter){
       case 'ASC':
         query+=' ORDER BY create_date ASC'
         break;
@@ -141,20 +122,14 @@ for (const [key, value] of entries) {
 });
 
 
-router.post("/productCount", async (req, res) => {
+router.post("/getProductCount", async (req, res) => {
   try {
     const testfilters = req.body;
-
-    if(testfilters.nofilters){
-      console.log(1)
-      const productCount = await pool.query("SELECT COUNT(*) FROM products WHERE price>=0 and price<=100");
-      res.json(productCount.rows[0]);
-    }else{
     console.log(2)
     var testArray= [];
-    if(testfilters.name!=''){
+    if(testfilters.searchfilter!=''){
       var i=2;
-      testArray.push(testfilters.name);
+      testArray.push(testfilters.searchfilter);
       var query = "SELECT MAX(rownum) from (SELECT *, count(*) OVER (ORDER BY id ) ROWNUM FROM products where LOWER(name) LIKE concat('%',LOWER($1),'%')";
     }else{
       var i=1;
@@ -164,15 +139,15 @@ router.post("/productCount", async (req, res) => {
 const entries = Object.entries(testfilters);
 
 for (const [key, value] of entries) {
-  if(key!='filter'&&value!=''&&key!='price'&&key!='name'&&key!='tagid'&&key!='age'&&key!='count_in_stock'){
-    if(key=='fromDate'){
+  if(key!='filter'&&value!=''&&key!='pricefilter'&&key!='searchfilter'&&key!='tagfilter'&&key!='ageFilter'&&key!='cisFilter'){
+    if(key=='fromDateFilter'){
       query = query + ` AND create_date>=$${i}`
       i++;
-      testArray.push(testfilters.fromDate);
+      testArray.push(testfilters.fromDateFilter);
 
     }
-    else if(key=='toDate'){
-      testArray.push(testfilters.toDate);
+    else if(key=='toDateFilter'){
+      testArray.push(testfilters.toDateFilter);
       query = query + ` AND create_date<=$${i}`
       i++;
     }
@@ -185,8 +160,8 @@ for (const [key, value] of entries) {
 
 }
   query += ` AND price>=$${i} AND price<=$${i+1}`
-  if(testfilters.count_in_stock){
-    switch(testfilters.count_in_stock){
+  if(testfilters.cisFilter){
+    switch(testfilters.cisFilter){
       case 1:
         query+=' and count_in_stock=0'
         break;
@@ -198,8 +173,8 @@ for (const [key, value] of entries) {
         break;
     }
   }
-  if(testfilters.age){
-    switch(testfilters.age){
+  if(testfilters.ageFilter){
+    switch(testfilters.ageFilter){
       case 'ASC':
         query+=' ORDER BY create_date ASC'
         break;
@@ -208,15 +183,16 @@ for (const [key, value] of entries) {
         break;
     }
   }
-  testArray.push(testfilters.price[0])
-  testArray.push(testfilters.price[1])
+  console.log(testfilters)
+  testArray.push(testfilters.pricefilter[0])
+  testArray.push(testfilters.pricefilter[1])
 
 
-  if(testfilters.tagid.length==0){
+  if(testfilters.tagfilter.length==0){
     query+=`) as t join tags_products on t.id = tags_products.product_id`
   }else{
-    testArray.push(testfilters.tagid)
-    query+=`) as t join tags_products on t.id = tags_products.product_id where tags_products.tag_id = ANY($${i+2})`
+    testArray.push(testfilters.tagfilter)
+    query+=`) as t join tags_products on t.id = tags_products.product_id where tags_products.tag_id = ANY ($${i+2})`
 
   }
 
@@ -224,9 +200,8 @@ for (const [key, value] of entries) {
   var test = await pool.query(query,testArray)
     console.log("This is the product count",test.rows)
     res.json(test.rows[0]);
-  }
   } catch (err) {
-    console.log(err)
+    console.log("max error",err)
     res
       .status(500)
       .send({ msg: "Възникна грешка при визуализирането на продуктите ." });
@@ -236,7 +211,7 @@ for (const [key, value] of entries) {
 
 
 
-router.put("/update/:id", Authenticated, async (req, res) => {
+router.put("/update", Authenticated, async (req, res) => {
   try {
     const {
       create_date,
@@ -317,9 +292,9 @@ router.post("/create", Authenticated, async (req, res) => {
   }
 });
 
-router.get("/get/:id", async (req, res) => {
+router.get("/get", async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.query.id;
     const product = await pool.query("SELECT * FROM products WHERE id = $1", [
       id,
     ]);
@@ -331,9 +306,9 @@ router.get("/get/:id", async (req, res) => {
   }
 });
 
-router.delete("/delete/:id", Authenticated, async (req, res) => {
+router.delete("/delete",Authenticated, async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.query.id;
     const deleteProduct = await pool.query(
       "UPDATE products SET count_in_stock=0 WHERE id = $1",
       [id]
@@ -342,7 +317,7 @@ router.delete("/delete/:id", Authenticated, async (req, res) => {
   } catch (err) {
     res
       .status(500)
-      .send({ msg: "Възникна грешка при визуализирането на продуктите ." });
+      .send({ msg: "Възникна грешка при изтриването на продукта ." });
   }
 });
 

@@ -81,35 +81,42 @@ const sortByCreation = [{
   const updateSearchFilter = e => {
     setName(e.target.value);
   }
+
+ const getSearch = e => {
+   e.preventDefault();
+   props.filterName(name);
+
+ }
+
   const updateQuantity = e => {
     setQuantity(e.target.value);
+    props.filterCIS(e.target.value);
   }
   const updateAge = e => {
     setAge(e.target.value);
+    props.filterAge(e.target.value);
   }
   const updateGroupBy = e => {
     setGroupBy(e.target.value);
   }
   const updateTagId = e => {
     setTagId(e.target.value);
+    props.filterTag(e.target.value);
   }
 
   const handlePriceChange = (event, newPrice) => {
     setPrice(newPrice);
+    props.filterPrice(newPrice);
   };
-
-  const submitFilter = (e) => {
-    e.preventDefault();
-    var filter=1;
-    props.filterProducts({name,price,count_in_stock,age,fromDate,tagid,toDate,filter});
-  }
 
 
   const handleFromDateChange = (date) => {
     setFromDate(date);
+    props.filterFromDate(date);
   };
   const handleToDateChange = (date) => {
     setToDate(date);
+    props.filterToDate(date);
   };
 
 
@@ -117,9 +124,10 @@ const sortByCreation = [{
   const checkedIcon = <CheckBoxIcon fontSize="small" />;
   return (
 <div style={{marginLeft:'150px',marginTop:'50px'}}>
-<form id="filterForm" onSubmit={submitFilter}>
+<form id="filterForm">
 <Grid container spacing={4} justify="start" direction = "rows">
 <Grid container item xs={12} spacing={1}>
+          <form onSubmit={getSearch}>
           <TextField
             value={name}
             onChange={updateSearchFilter}
@@ -130,6 +138,7 @@ const sortByCreation = [{
             }}
             inputProps={{ 'aria-label': 'search' }}
           />
+      </form>
           </Grid>
 
           <Select
@@ -216,9 +225,7 @@ inputProps={{ 'aria-label': 'Without label' }}
       aria-labelledby="range-slider"
     />
 </Grid>
-
-  <Button form="filterForm" style={{marginTop:'15px',marginLeft:'10px'}} variant="contained" color="primary" type="submit">Филтрирай</Button>
-</Grid>
+  </Grid>
 
   </form>
 </div>

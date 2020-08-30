@@ -24,7 +24,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Filters(props) {
   const classes = useStyles();
-  const [tagid, setTagid] = useState('');
+  const [tagid, setTagid] = useState([]);
   const [price, setPrice] = React.useState([0, 150]);
   const [finalPrice, setFinalPrice] = React.useState([0,150]);
   const handleCategoryChange = (event) => {
@@ -39,14 +39,15 @@ export default function Filters(props) {
     Cookie.remove("userInfo");
   }
   useEffect(() => {
-   
+
 },[tagid]);
   return (
     <div>
       <div className="filterWrapper">
-       
+
         <div className="categoryFilter">
         <Select
+      multiple
       value={tagid}
       onChange={handleCategoryChange}
       displayEmpty
@@ -57,7 +58,7 @@ export default function Filters(props) {
         </MenuItem>
         {props.tags.map(tag => (
            <MenuItem key={tag.id} value={tag.id}>{tag.name}</MenuItem>
-          
+
         ))}
     </Select>
     <FormHelperText>Изберете категория</FormHelperText>
@@ -74,19 +75,19 @@ export default function Filters(props) {
         aria-labelledby="range-slider"
       />
         </div>
-   
-      </div>
-    
 
-  
- 
+      </div>
+
+
+
+
 
    <BasicPagination price={price} tagid={tagid} search={props.search}/>
-   
-      
-   
+
+
+
     </div>
 
-   
+
   );
 }

@@ -29,33 +29,37 @@ const getProductCard = (pricefilter,tagfilter,searchfilter,pageNumber,products_2
 };
 
 function NestedGrid(props){
-    const classes = useStyles(); 
+    const classes = useStyles();
     const productList = useSelector((state) => state.productList);
     const { products , loading, error } = productList;
     const dispatch = useDispatch();
     useEffect(() => {
-      dispatch(listProducts(props.price,props.tagid,props.search,props.pageNumber));
+      var searchfilter = props.search;
+      var pricefilter = props.price;
+      var currentPage = props.pageNumber;
+      var tagfilter = props.tagid;
+      dispatch(listProducts({searchfilter,pricefilter,currentPage,tagfilter}));
       console.log(products)
-    },[props.pageNumber,props.search,props.tagid,props.price]);    
-    return ( 
+    },[props.pageNumber,props.search,props.tagid,props.price]);
+    return (
       loading ?<div>  <CircularProgress color="secondary" /></div>  :
-       
-       (<Grid container className={classes.productContainer} 
+
+       (<Grid container className={classes.productContainer}
             spacing={0}
             direction="row"
-            
+
             style={{ minHeight: '100vh'}}
         >
-         
+
         {products.map(product => (
           getProductCard(props.price,props.tagid,props.search,props.pageNumber,products,product.id,product.name,product.image,product.price,product.count_in_stock,product.description,product.currency_id)
-          
+
         ))}
 
       </Grid>)
-      
-     
-      
+
+
+
     );
   }
 

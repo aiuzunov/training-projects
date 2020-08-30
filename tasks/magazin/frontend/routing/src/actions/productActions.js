@@ -3,7 +3,7 @@ import axios from 'axios';
 const listProducts = (productFilters) => async (dispatch) => {
     try {
         dispatch({ type: PRODUCT_LIST_REQUEST });
-        const { data } = await axios.post(`/products/testingfilters`,productFilters);
+        const { data } = await axios.post(`/products/getProducts`,productFilters);
         dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });
 
       } catch (error) {
@@ -19,7 +19,7 @@ const saveProduct = (product) => async (dispatch, getState) => {
         employeeSignIn: { employeeInfo },
       } = getState();
       if(product.id){
-        const { data } = await axios.put(`/products/update/${product.id}`, product, {
+        const { data } = await axios.put(`/products/update`, product, {
         headers: {
           Authorization: 'Bearer ' + employeeInfo.token,
         },
@@ -44,7 +44,7 @@ const saveProduct = (product) => async (dispatch, getState) => {
 const detailsProduct = (productId) => async (dispatch) => {
     try {
         dispatch({type: PRODUCT_DETAILS_REQUEST, payload: productId});
-        const {data} = await axios.get(`/products/get/${productId}`);
+        const {data} = await axios.get(`/products/get?id=${productId}`);
         console.log(data)
         dispatch({type: PRODUCT_DETAILS_SUCCESS, payload: data});
     } catch (error) {
@@ -59,7 +59,7 @@ const deleteProduct = (product) => async (dispatch, getState) => {
         employeeSignIn: { employeeInfo },
       } = getState();
 
-      const {data} = await axios.delete(`/products/delete/${product.id}`,
+      const {data} = await axios.delete(`/products/delete?id=${product.id}`,
       {
         headers:{
           Authorization: 'Bearer ' + employeeInfo.token

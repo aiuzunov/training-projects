@@ -134,8 +134,12 @@ function CRUDProducts({  match , history }) {
     const [registeredUsersPop,setRegisteredUsersPop] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const [usersListPop, setOrderPop] = useState(0);
-    const [tagfilter, setTagFilt] = useState('');
+    const [tagfilter, setTagFilt] = useState([]);
     const [pricefilter, setPriceFilter] = React.useState([0, 150]);
+    const [cisFilter, setCISFilter] = React.useState(3)
+    const [ageFilter, setAgeFilter] = React.useState('ASC')
+    const [fromDateFilter,setFromDateFilter] =  React.useState(new Date('2014-08-18T21:11:54'));
+    const [toDateFilter,setToDateFilter] =  React.useState(new Date('2021-08-18T21:11:54'));
     const [searchfilter, setSearchFilter] = useState("");
     const [usersCount,setUsersCount] = useState([]);
     const [ordersCount,setOrdersCount] = useState([]);
@@ -212,7 +216,7 @@ function CRUDProducts({  match , history }) {
       setOrderId(order.order.id);
       setChangeStatusPop(true);
     }
-
+    console.log(pts)
     useEffect(() => {
         getCount();
         var userFilters = {
@@ -221,8 +225,8 @@ function CRUDProducts({  match , history }) {
         var orderFilters = {
           filter: 0
         };
-        dispatch(listPT({currentPage,pricefilter,tagfilter,searchfilter}));
-        dispatch(listProducts(pricefilter,tagfilter,searchfilter,currentPage,loadingPts));
+        dispatch(listPT({currentPage,pricefilter,tagfilter,searchfilter,ageFilter,cisFilter,fromDateFilter,toDateFilter}));
+        dispatch(listProducts({currentPage,pricefilter,searchfilter,tagfilter,ageFilter,cisFilter,fromDateFilter,toDateFilter}));
         dispatch(listUsers({userFilters,currentPage}));
         dispatch(listOrders(null,{currentPage,orderFilters}));
 
@@ -232,22 +236,19 @@ function CRUDProducts({  match , history }) {
         if(productSaved){
             setCreateProductPop(false);
         }
-    },[refreshState,productSaved,pricefilter,tagfilter,searchfilter,currentPage,userSignedUp]);
+    },[refreshState,productSaved,pricefilter,searchfilter,tagfilter,ageFilter,cisFilter,fromDateFilter,toDateFilter,currentPage,userSignedUp]);
 
     const getCount = async () => {
 
         try {
-            const noFilters={
-              nofilters: 1
-            }
             const orders_response = await fetch(`/orders/count`);
             const ordersc = await orders_response.json();
             setOrdersCount(ordersc);
             const users_response = await fetch(`/users/count`);
             const usersc = await users_response.json();
             setUsersCount(usersc);
-            const response = await axios.post(`/products/productCount`,noFilters);
-            setCount(response.data.count);
+            const response = await axios.post(`/products/getProductCount`,{tagfilter,cisFilter,ageFilter,pricefilter,searchfilter,toDateFilter,fromDateFilter});
+            setCount(response.data.max);
         } catch (err) {
           console.log(err.message);
         }
@@ -417,11 +418,6 @@ const handleUserOrdersButton = (user_id) => {
 const handleUserFilter = (userFilters) => {
    dispatch(listUsers({currentPage,userFilters}));
 }
-const handleProductFilter = async (productFilters) => {
-   const getCount = await axios.post(`/products/productCount`,productFilters);
-   setCount(getCount.data.max);
-   dispatch(listProducts({currentPage,productFilters}));
-}
 
 const handleOrdersFilter = (orderFilters) => {
     console.log(orderFilters)
@@ -432,13 +428,16 @@ const handleOrdersFilter = (orderFilters) => {
    const filterTag = (tagid) => setTagFilt(tagid);
    const filterName = (search) => setSearchFilter(search);
    const filterPrice = (price) => setPriceFilter(price);
+   const filterAge = (age) => setAgeFilter(age);
+   const filterCIS = (count_in_stock) => setCISFilter(count_in_stock);
+   const filterFromDate = (fromDate) => setFromDateFilter(fromDate);
+   const filterToDate = (toDate) => setToDateFilter(toDate);
    const [userFilters,setUserFilters] = useState({});
    const [orderFilters,setOrderFilters] = useState({});
    const [productFilters,setProductFilters] = useState({});
 
    const filterUser = (userFilters) => handleUserFilter(userFilters);
    const filterOrders = (orderFilters) => handleOrdersFilter(orderFilters)
-   const filterProducts = (productFilters) => handleProductFilter(productFilters);
 
    var pagecount = parseInt(count / 9);
    if (count % 9 !== 0){
@@ -527,7 +526,7 @@ const handleOrdersFilter = (orderFilters) => {
      </div>
      {usersListPop ? <div style={{marginTop: theme.spacing(10)}}><UsersFilters filterUser={filterUser} /> </div>: <div></div>}
      {ordersPop ? <div style={{marginTop: theme.spacing(10)}}><OrdersFilters filterOrders={filterOrders} /> </div>: <div></div>}
-     {productsPop && !usersListPop ? <div style={{marginTop: theme.spacing(10)}}><ProductsFilters filterProducts={filterProducts}/> </div>: <div></div>}
+     {productsPop && !usersListPop ? <div style={{marginTop: theme.spacing(10)}}><ProductsFilters filterAge={filterAge} filterCIS={filterCIS} filterFromDate={filterFromDate} filterToDate={filterToDate} filterTag={filterTag} filterName={filterName} filterPrice={filterPrice}/> </div>: <div></div>}
         <div className="content content-margined">
 
 
