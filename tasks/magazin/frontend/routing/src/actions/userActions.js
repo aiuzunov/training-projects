@@ -57,7 +57,7 @@ const getUser = (id) => async (dispatch) => {
     try {
         console.log("User id:",id)
         dispatch({ type: USER_GET_REQUEST });
-        const { data } = await Axios.get(`/users/info/${id}`);
+        const { data } = await Axios.get(`/users/info?id=${id}`);
         dispatch({ type: USER_GET_SUCCESS, payload: data });
       } catch (error) {
         dispatch({ type: USER_GET_FAIL, payload: error.message });

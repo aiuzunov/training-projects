@@ -167,74 +167,90 @@ router.get('/verify',async function(req,res){
 
 router.post("/get",async(req,res) => {
     try {
-        const {currentPage} = req.body;
-        const filters = req.body;
-        const indexOfLastUser = currentPage * 9;
-        const indexOfFirstUser = indexOfLastUser - 9;
-        if(!filters.userFilters.filter){
-          const users = await pool.query(`select * from (SELECT t.*,name, count(*) OVER (ORDER BY t.id) as rownum FROM users as t)d where rownum >= $1 and rownum<=$2 `,[indexOfFirstUser,indexOfLastUser]);
-          res.json(users.rows);
-        }
-        else{
-          var filteredUsers = await pool.query('select * from (SELECT t.*,name, count(*) OVER (ORDER BY t.id) as rownum FROM users as t)d')
-          filteredUsers= (filteredUsers.rows).filter(function(item) {
-            console.log(item['create_date'])
-            for (var key in filters.userFilters) {
-              switch(key){
-                case 'username':
-                  if(filters.userFilters.username){
-                    if (item[key] === undefined || !item[key].includes(filters.userFilters[key]))
-                      return false;
-                    }
-                  break;
-                case 'fromDate':
-                if(filters.userFilters.fromDate){
-                    if (item['create_date'] === undefined || (item['create_date'].getFullYear()<new Date(filters.userFilters[key]).getFullYear()||item['create_date'].getMonth()<new Date(filters.userFilters[key]).getMonth()||item['create_date'].getDate()<new Date(filters.userFilters[key]).getDate()))
-                      return false
-                    }
-                  break;
-                case 'toDate':
-                if(filters.userFilters.toDate){
-                    if (item['create_date'] === undefined || (item['create_date'].getFullYear()>new Date(filters.userFilters[key]).getFullYear()||item['create_date'].getMonth()>new Date(filters.userFilters[key]).getMonth()||item['create_date'].getDate()>new Date(filters.userFilters[key]).getDate()))
-                      return false
-                    }
-                  break;
-                case 'email':
-                  if(filters.userFilters.email){
-                    if (item[key] === undefined || !item[key].includes(filters.userFilters[key]))
-                      return false;
-                    }
-                    break;
-
-                case 'filter':
-                  break;
-                case 'verified':
-                  if(filters.userFilters.verified){
-                      if (item[key] === undefined || (item[key] != filters.userFilters[key]))
-                        return false
-                      }
-                      break;
-                default:
-                  if (item[key] === undefined || item[key] != filters.UsersFilters[key])
-                    return false;
-                  break;
-              }
+        console.log(req.body)
+        const Filters = req.body;
+        var testfilters = Filters;
+        const indexOfLastPost = Filters.currentPage * 9;
+        const indexOfFirstPost = indexOfLastPost - 9;
+        var testArray= [];
+        var query = 'select * from (SELECT t.*,name, count(*) OVER (ORDER BY t.id) as rownum FROM users as t WHERE 1=1';
+        const entries = Object.entries(testfilters);
+        var i =0;
+        for (const [key, value] of entries) {
+          if(key!='filter'&&value!=''&&key!=''&&key!='currentPage'){
+            if(key=='verifiedFilter'){
+              ++i;
+              testArray.push(testfilters.verifiedFilter);
+              query += ` AND verified=$${i}`
             }
-            return true;
-          });
-          console.log(filteredUsers.slice(indexOfFirstUser,indexOfLastUser))
-          res.json(filteredUsers.slice(indexOfFirstUser,indexOfLastUser));
-        }
+            else if(key=='usernameFilter'){
+              ++i;
+              testArray.push(testfilters.usernameFilter);
+              query += ` AND LOWER(username) LIKE concat('%',LOWER($${i}),'%')`;
+            }
+            else if(key=='emailFilter'){
+              ++i;
+              testArray.push(testfilters.emailFilter);
+              query += ` AND LOWER(email) LIKE concat('%',LOWER($${i}),'%')`;
+            }
+            else if(key=='fromDateFilter'){
+              ++i;
+              query = query + ` AND create_date>=$${i}`
+              testArray.push(testfilters.fromDateFilter);
 
-    } catch (err) {
+            }
+            else if(key=='toDateFilter'){
+              ++i;
+              testArray.push(testfilters.toDateFilter);
+              query = query + ` AND create_date<=$${i}`
+            }
+            else{
+            ++i;
+            query = query + ` AND ${key}=$${i}`;
+            testArray.push(value)
+          }
+          }
+        }
+          testArray.push(indexOfFirstPost);
+          testArray.push(indexOfLastPost);
+          query+=`)d where rownum >=$${i+1} and rownum<=$${i+2}`
+          var successCount =0
+          const client = await pool.connect();
+          const renditionsCursor = client.query(new Cursor(query,testArray));
+          var response = [];
+          function processData(err, rows) {
+            if (err) {
+              throw err;
+            }
+
+            for (let row of rows) {
+              response.push(row);
+              successCount++;
+            }
+            if (rows.length === 10) {
+              renditionsCursor.read(10, processData);
+            }
+            else{
+              renditionsCursor.close(() => {
+       client.release()
+     })
+              res.json(response)
+            }
+            console.log(`Success count is: ${successCount}`);
+          }
+          renditionsCursor.read(10, processData);
+
+
+        }
+       catch (err) {
         console.log(err)
         res.status(500).send({msg: 'There was a problem with the server.'});
     }
 })
 
-router.get("/info/:id",async(req,res) => {
+router.get("/info",async(req,res) => {
     try {
-        const {id} = req.params;
+        const id = req.query.id;
         const user = await pool.query(`select users.name,users.username,users.email from users join orders on orders.user_id = users.id where orders.id=$1`,[id]);
         console.log(user.rows[0])
         res.json(user.rows[0]);

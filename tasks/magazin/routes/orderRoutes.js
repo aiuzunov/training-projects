@@ -1,6 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const pool = require("../db");
+const Cursor = require('pg-cursor')
+var assert = require('assert');
+const QueryStream = require('pg-query-stream')
+const JSONStream = require('JSONStream')
+
 
 
 
@@ -30,9 +35,9 @@ router.post("/create",async (req,res) => {
     }
 })
 
-router.get("/list/:userid",async(req,res) => {
+router.get("/list",async(req,res) => {
     try {
-        const {userid} = req.params;
+        const userid = req.query.userid;
         const allOrders = await pool.query("SELECT * FROM orders where user_id = $1",[userid]);
         res.json(allOrders.rows);
     } catch (err) {
@@ -52,61 +57,77 @@ router.post("/update",async(req,res) => {
 
 router.post("/listall",async(req,res) => {
     try {
-        const {currentPage} = req.body;
-        const filters = req.body;
-        console.log(filters)
-        const indexOfLastPost = currentPage * 9;
+        const Filters = req.body;
+        var testfilters = Filters;
+        const indexOfLastPost = Filters.currentPage * 9;
         const indexOfFirstPost = indexOfLastPost - 9;
-        if(!filters.orderFilters.filter){
-        const allOrders = await pool.query("select * from (SELECT t.*, count(*) OVER (ORDER BY t.id) as rownum FROM orders as t)d where rownum >= $1 and rownum<=$2",[indexOfFirstPost,indexOfLastPost]);
-        res.json(allOrders.rows);}
-        else{
-          var filteredOrders = await pool.query('select * from (SELECT t.*, count(*) OVER (ORDER BY t.id) as rownum FROM orders as t)d')
-          filteredOrders= (filteredOrders.rows).filter(function(item) {
-            for (var key in filters.orderFilters) {
-              switch(key){
-                case 'fromDate':
-                if(filters.orderFilters.fromDate){
-                    if (item['created'] === undefined || (item['created'].getFullYear()<new Date(filters.orderFilters[key]).getFullYear()||item['created'].getMonth()<new Date(filters.orderFilters[key]).getMonth()||item['created'].getDate()<new Date(filters.orderFilters[key]).getDate()))
-                      return false
-                    }
-                  break;
-                case 'toDate':
-                if(filters.orderFilters.toDate){
-                    if (item['created'] === undefined || (item['created'].getFullYear()>new Date(filters.orderFilters[key]).getFullYear()||item['created'].getMonth()>new Date(filters.orderFilters[key]).getMonth()||item['created'].getDate()>new Date(filters.orderFilters[key]).getDate()))
-                      return false
-                    }
-                  break;
-                case 'filter':
-                  break;
-                case 'status':
-                  if(filters.orderFilters.status){
-                      if (item['order_status'] === undefined || (item['order_status'] != filters.orderFilters[key]))
-                        return false
-                      }
-                      break;
-                default:
-                  if (item[key] === undefined || item[key] != filters.orderFilters[key])
-                    return false;
-                  break;
-              }
+        var testArray= [];
+        var query = 'select * from (SELECT t.*, count(*) OVER (ORDER BY t.id) as rownum FROM orders as t WHERE 1=1';
+        const entries = Object.entries(testfilters);
+        var i =0;
+        for (const [key, value] of entries) {
+          if(key!='filter'&&value!=''&&key!=''&&key!='currentPage'){
+            if(key=='fromDateFilter'){
+              ++i;
+              query = query + ` AND created>=$${i}`
+              testArray.push(testfilters.fromDateFilter);
+
             }
-            return true;
-          });
-          console.log(filteredOrders.slice(indexOfFirstPost,indexOfLastPost))
-          res.json(filteredOrders.slice(indexOfFirstPost,indexOfLastPost));
+            else if(key=='toDateFilter'){
+              ++i;
+              testArray.push(testfilters.toDateFilter);
+              query = query + ` AND created<=$${i}`
+            }
+            else if(key=='statusFilter'){
+              ++i;
+              testArray.push(testfilters.statusFilter);
+              query += ` AND order_status=$${i}`
+            }
+            else{
+            ++i;
+            query = query + ` AND ${key}=$${i}`;
+            testArray.push(value)
+          }
+          }
         }
+        testArray.push(indexOfFirstPost);
+        testArray.push(indexOfLastPost);
+        query+=`)d where rownum >=$${i+1} and rownum<=$${i+2}`
+        var successCount =0
+        const client = await pool.connect();
+        const renditionsCursor = client.query(new Cursor(query,testArray));
+        var response = [];
+        function processData(err, rows) {
+          if (err) {
+            throw err;
+          }
+
+          for (let row of rows) {
+            response.push(row);
+            successCount++;
+          }
+          if (rows.length === 10) {
+            renditionsCursor.read(10, processData);
+          }
+          else{
+            renditionsCursor.close(() => {
+     client.release()
+   })
+            res.json(response)
+          }
+          console.log(`Success count is: ${successCount}`);
+        }
+        renditionsCursor.read(10, processData);
+
     } catch (err) {
-        console.log(err)
+        console.log("order",err)
         res.status(500).send({msg: 'Възникна проблем при взимането на информацията за адресите.'});
     }
 })
 
-router.get("/listItems/:order_id",async(req,res) => {
+router.get("/listItems",async(req,res) => {
     try {
-        console.log(1)
-        const {order_id} = req.params;
-        console.log(order_id)
+        const order_id = req.query.order_id;
         const allOrderItems = await pool.query("select * from order_items join products on order_items.product_id = products.id where products.id=order_items.product_id and order_id = $1",[order_id]);
 
         res.json(allOrderItems.rows);
@@ -116,35 +137,45 @@ router.get("/listItems/:order_id",async(req,res) => {
     }
 })
 
-router.get("/order/:order_id",async(req,res) => {
+router.get("/getOne",async(req,res) => {
     try {
-        const {order_id} = req.params;
+        const order_id = req.query.order_id;
         const Order = await pool.query("select * from orders where id = $1",[order_id]);
+        console.log("Order",Order.rows)
         res.json(Order.rows);
     } catch (err) {
         res.status(500).send({msg: 'Възникна проблем при взимането на информацията за адресите.'});
     }
 })
 
-router.get("/count", async (req, res) => {
-    try {
-      console.log("Request")
-
-      const ordersCount = await pool.query(
-        "SELECT COUNT(*) FROM orders");
-      res.json(ordersCount.rows[0]);
-    } catch (err) {
-      console.error(err.message);
-    }
-  });
 
   router.get("/count", async (req, res) => {
     try {
-      console.log("Request")
+   var successCount =0
+   const client = await pool.connect();
+   const renditionsCursor = client.query(new Cursor("select count(*) from orders"));
+   var response = [];
+   function processData(err, rows) {
+     if (err) {
+       throw err;
+     }
 
-      const ordersCount = await pool.query(
-        "SELECT COUNT(*) FROM orders");
-      res.json(ordersCount.rows[0]);
+     for (let row of rows) {
+       response.push(row);
+       successCount++;
+     }
+     if (rows.length === 10) {
+       renditionsCursor.read(10, processData);
+     }
+     else{
+       renditionsCursor.close(() => {
+   client.release()
+ })
+       res.json(response)
+     }
+     console.log(`Success count is: ${successCount}`);
+   }
+   renditionsCursor.read(10, processData);
     } catch (err) {
       console.error(err.message);
     }

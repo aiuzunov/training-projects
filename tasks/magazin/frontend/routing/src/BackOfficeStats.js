@@ -151,7 +151,6 @@ function BackOfficeStats(props){
         <Grid container justify="start">
           <KeyboardDatePicker
             style={{marginLeft:"100px",marginRight:"50px"}}
-            type="datetime-local"
             margin="normal"
             id="date-picker-dialog"
             label="ОТ-ДАТА"

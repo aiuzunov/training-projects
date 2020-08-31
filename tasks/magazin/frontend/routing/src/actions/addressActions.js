@@ -5,7 +5,7 @@ import { ADDRESS_LIST_REQUEST, ADDRESS_LIST_SUCCESS, ADDRESS_LIST_FAIL, ADDRESS_
 const listAddresses = (userid) => async (dispatch) => {
     try {
         dispatch({ type: ADDRESS_LIST_REQUEST });
-        const { data } = await axios.get(`/addresses/all/${userid}`);
+        const { data } = await axios.get(`/addresses/getAll?userid=${userid}`);
         dispatch({ type: ADDRESS_LIST_SUCCESS, payload: data });
       } catch (error) {
         dispatch({ type: ADDRESS_LIST_FAIL, payload: error.response.data.msg });
@@ -16,7 +16,7 @@ const listAddress = (order_id) => async (dispatch) => {
   try {
       console.log(order_id)
       dispatch({ type: GET_ADDRESS_REQUEST });
-      const { data } = await axios.get(`/addresses/one/${order_id}`);
+      const { data } = await axios.get(`/addresses/getOne?order_id=${order_id}`);
       dispatch({ type: GET_ADDRESS_SUCCESS, payload: data });
     } catch (error) {
       dispatch({ type: GET_ADDRESS_FAIL, payload: error.response.data.msg });

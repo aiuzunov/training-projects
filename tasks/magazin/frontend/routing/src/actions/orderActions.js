@@ -20,7 +20,7 @@ const saveOrder = (order) => async (dispatch, getState) => {
     try {
       if(!filterObject){
         dispatch({ type: ORDER_LIST_REQUEST });
-        const { data } = await Axios.get(`/orders/list/${user_id}`);
+        const { data } = await Axios.get(`/orders/list?user_id=${user_id}`);
         dispatch({ type: ORDER_LIST_SUCCESS, payload: data });
       }else{
         dispatch({ type: ORDER_LIST_REQUEST });
@@ -36,7 +36,7 @@ const saveOrder = (order) => async (dispatch, getState) => {
 const getSingleOrder = (order_id) => async (dispatch) => {
   try {
       dispatch({ type: GET_ORDER_REQUEST });
-      const { data } = await Axios.get(`/orders/order/${order_id}`);
+      const { data } = await Axios.get(`/orders/getOne?order_id=${order_id}`);
       dispatch({ type: GET_ORDER_SUCCESS, payload: data });
     } catch (error) {
       dispatch({ type: GET_ORDER_FAIL, payload: error.response.data.msg });
@@ -59,7 +59,7 @@ const updateStatus = (order_status,order_id) => async (dispatch) => {
 const listOrderItems = (order_id) => async (dispatch) => {
   try {
       dispatch({ type: ORDERITEMS_LIST_REQUEST });
-      const { data } = await Axios.get(`/orders/listItems/${order_id}`);
+      const { data } = await Axios.get(`/orders/listItems?order_id=${order_id}`);
       dispatch({ type: ORDERITEMS_LIST_SUCCESS, payload: data });
     } catch (error) {
       dispatch({ type: ORDERITEMS_LIST_FAIL, payload: error.response.data.msg });

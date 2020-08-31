@@ -4,6 +4,8 @@ import {BrowserRouter as Router, Switch, Route} from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { listProducts } from './actions/productActions';
 import { listTags } from './actions/tagsActions';
+import Axios from 'axios';
+
 
 function ProductsPage(){
     const [count, setCount] = useState([]);
@@ -12,12 +14,11 @@ function ProductsPage(){
       },[]);
     const getCount = async () => {
         try {
-            const response = await fetch(
-              `/orders/count`
-            );
-            const count = await response.json();
-            console.log(count);
-            setCount(count);
+          const response = await Axios.get(
+           `/orders/count`
+         );
+         console.log(response.data[0].count)
+         setCount(response.data[0].count);
         } catch (err) {
           console.log(err.message);
         }
@@ -26,7 +27,7 @@ function ProductsPage(){
     return(
         <div>
         <div>
-            Брой Поръчки: {count.count}
+            Брой Поръчки: {count}
         </div>
 
          <PListNavBar />

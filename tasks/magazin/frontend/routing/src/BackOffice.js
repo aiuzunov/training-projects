@@ -134,6 +134,10 @@ function CRUDProducts({  match , history }) {
     const [registeredUsersPop,setRegisteredUsersPop] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const [usersListPop, setOrderPop] = useState(0);
+    const [statusFilter, setStatusFilter] = useState('');
+    const [usernameFilter, setUsernameFilter] = useState('');
+    const [emailFilter, setEmailFilter] = useState('');
+    const [verifiedFilter, setVerifiedFilter] = useState('');
     const [tagfilter, setTagFilt] = useState([]);
     const [pricefilter, setPriceFilter] = React.useState([0, 150]);
     const [cisFilter, setCISFilter] = React.useState(3)
@@ -227,8 +231,8 @@ function CRUDProducts({  match , history }) {
         };
         dispatch(listPT({currentPage,pricefilter,tagfilter,searchfilter,ageFilter,cisFilter,fromDateFilter,toDateFilter}));
         dispatch(listProducts({currentPage,pricefilter,searchfilter,tagfilter,ageFilter,cisFilter,fromDateFilter,toDateFilter}));
-        dispatch(listUsers({userFilters,currentPage}));
-        dispatch(listOrders(null,{currentPage,orderFilters}));
+        dispatch(listUsers({verifiedFilter,emailFilter,usernameFilter,fromDateFilter,toDateFilter,currentPage}));
+        dispatch(listOrders(null,{currentPage,statusFilter,fromDateFilter,toDateFilter}));
 
         if(userSignedUp){
             setCreateUserPop(false);
@@ -236,7 +240,7 @@ function CRUDProducts({  match , history }) {
         if(productSaved){
             setCreateProductPop(false);
         }
-    },[refreshState,productSaved,pricefilter,searchfilter,tagfilter,ageFilter,cisFilter,fromDateFilter,toDateFilter,currentPage,userSignedUp]);
+    },[refreshState,productSaved,statusFilter,verifiedFilter,emailFilter,usernameFilter,pricefilter,searchfilter,tagfilter,ageFilter,cisFilter,fromDateFilter,toDateFilter,currentPage,userSignedUp]);
 
     const getCount = async () => {
 
@@ -415,29 +419,26 @@ const handleUserOrdersButton = (user_id) => {
 
     setUserOrdersPop(!userOrdersPop);
 };
-const handleUserFilter = (userFilters) => {
-   dispatch(listUsers({currentPage,userFilters}));
-}
 
-const handleOrdersFilter = (orderFilters) => {
-    console.log(orderFilters)
-    dispatch(listOrders(null,{currentPage,orderFilters}));
-}
+
 
    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+   const filterVerified = (verified) => setVerifiedFilter(verified);
+   const filterUsername = (userUsername) => setUsernameFilter(userUsername);
+   const filterEmail = (userEmail) => setEmailFilter(userEmail);
    const filterTag = (tagid) => setTagFilt(tagid);
    const filterName = (search) => setSearchFilter(search);
    const filterPrice = (price) => setPriceFilter(price);
    const filterAge = (age) => setAgeFilter(age);
    const filterCIS = (count_in_stock) => setCISFilter(count_in_stock);
+   const filterStatus = (orderStatus) => setStatusFilter(orderStatus);
    const filterFromDate = (fromDate) => setFromDateFilter(fromDate);
    const filterToDate = (toDate) => setToDateFilter(toDate);
    const [userFilters,setUserFilters] = useState({});
    const [orderFilters,setOrderFilters] = useState({});
    const [productFilters,setProductFilters] = useState({});
 
-   const filterUser = (userFilters) => handleUserFilter(userFilters);
-   const filterOrders = (orderFilters) => handleOrdersFilter(orderFilters)
+
 
    var pagecount = parseInt(count / 9);
    if (count % 9 !== 0){
@@ -524,8 +525,8 @@ const handleOrdersFilter = (orderFilters) => {
          </List>
        </Drawer>
      </div>
-     {usersListPop ? <div style={{marginTop: theme.spacing(10)}}><UsersFilters filterUser={filterUser} /> </div>: <div></div>}
-     {ordersPop ? <div style={{marginTop: theme.spacing(10)}}><OrdersFilters filterOrders={filterOrders} /> </div>: <div></div>}
+     {usersListPop ? <div style={{marginTop: theme.spacing(10)}}><UsersFilters filterEmail={filterEmail} filterVerified={filterVerified} filterUsername={filterUsername} filterFromDate={filterFromDate} filterToDate={filterToDate}/> </div>: <div></div>}
+     {ordersPop ? <div style={{marginTop: theme.spacing(10)}}><OrdersFilters filterStatus={filterStatus} filterFromDate={filterFromDate} filterToDate={filterToDate} /> </div>: <div></div>}
      {productsPop && !usersListPop ? <div style={{marginTop: theme.spacing(10)}}><ProductsFilters filterAge={filterAge} filterCIS={filterCIS} filterFromDate={filterFromDate} filterToDate={filterToDate} filterTag={filterTag} filterName={filterName} filterPrice={filterPrice}/> </div>: <div></div>}
         <div className="content content-margined">
 

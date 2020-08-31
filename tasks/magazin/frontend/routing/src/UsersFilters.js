@@ -64,6 +64,15 @@ const groupByOptions = [{
   useEffect(() => {
 },[]);
 
+
+const getUsername = e => {
+  e.preventDefault();
+  props.filterUsername(username);
+}
+const getEmail = e => {
+  e.preventDefault();
+  props.filterEmail(email);
+}
   const updateUsername = e => {
     setUsername(e.target.value);
   }
@@ -72,26 +81,24 @@ const groupByOptions = [{
   }
   const updateVerified = e => {
     setVerified(e.target.value);
+    props.filterVerified(e.target.value);
   }
   const updateGroupBy = e => {
     setGroupBy(e.target.value);
   }
 
-  const submitFilter = (e) => {
-    e.preventDefault();
-    var filter=1;
-    props.filterUser({username,email,verified,fromDate,toDate,filter});
-  }
-
   const handleFromDateChange = (date) => {
     setFromDate(date);
+    props.filterFromDate(date)
   };
   const handleToDateChange = (date) => {
     setToDate(date);
+    props.filterToDate(date);
   };
   return (
 <div style={{marginLeft:'150px',marginTop:'50px'}}>
-<form id="filterForm" onSubmit={submitFilter}>
+<form id="filterForm">
+  <form onSubmit={getUsername}>
           <TextField
             value={username}
             onChange={updateUsername}
@@ -102,6 +109,8 @@ const groupByOptions = [{
             }}
             inputProps={{ 'aria-label': 'search' }}
           />
+  </form>
+  <form onSubmit={getEmail}>
           <TextField
             style={{marginRight:'10px',marginLeft:'10px'}}
             value={email}
@@ -113,6 +122,7 @@ const groupByOptions = [{
             }}
             inputProps={{ 'aria-label': 'search' }}
           />
+  </form>
           <Select
         value={verified}
         onChange={updateVerified}
@@ -132,7 +142,6 @@ const groupByOptions = [{
     <Grid container justify="start">
       <KeyboardDatePicker
         style={{marginRight:"50px"}}
-        type="datetime-local"
         margin="normal"
         id="date-picker-dialog"
         label="ДАТА НА РЕГИСТРАЦИЯ - ОТ"
@@ -156,7 +165,6 @@ const groupByOptions = [{
       />
     </Grid>
   </MuiPickersUtilsProvider>
-  <Button form="filterForm" style={{marginLeft:'10px'}} variant="contained" color="primary" type="submit">Филтрирай</Button>
 
   </form>
 </div>

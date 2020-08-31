@@ -61,12 +61,12 @@ export default function ProductsFilters(props) {
 ];
 const sortByCreation = [{
   id: 1,
-  name: "Old",
+  name: "Стари",
   real: "ASC"
 },
 {
   id: 2,
-  name: "New",
+  name: "Нови",
   real: "DESC"
 }
 ];

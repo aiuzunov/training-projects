@@ -52,23 +52,20 @@ export default function OrdersFilters(props) {
 
   const updateStatus = e => {
     setStatus(e.target.value);
-  }
-
-  const submitFilter = (e) => {
-    e.preventDefault();
-    var filter=1;
-    props.filterOrders({status,fromDate,toDate,filter});
+    props.filterStatus(e.target.value);
   }
 
   const handleFromDateChange = (date) => {
     setFromDate(date);
+    props.fromDateFilter(date);
   };
   const handleToDateChange = (date) => {
     setToDate(date);
+    props.toDateFilter(date);
   };
   return (
 <div style={{marginLeft:'150px',marginTop:'50px'}}>
-<form id="filterForm" onSubmit={submitFilter}>
+<form id="filterForm">
           <Select
         value={status}
         onChange={updateStatus}
@@ -87,7 +84,6 @@ export default function OrdersFilters(props) {
     <Grid container justify="start">
       <KeyboardDatePicker
         style={{marginRight:"50px"}}
-        type="datetime-local"
         margin="normal"
         id="date-picker-dialog"
         label="НАПРАВЕНА НА - ОТ"

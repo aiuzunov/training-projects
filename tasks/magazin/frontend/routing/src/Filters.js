@@ -53,9 +53,6 @@ export default function Filters(props) {
       displayEmpty
       inputProps={{ 'aria-label': 'Without label' }}
     >
-      <MenuItem value="">
-        <em>Всички</em>
-        </MenuItem>
         {props.tags.map(tag => (
            <MenuItem key={tag.id} value={tag.id}>{tag.name}</MenuItem>
 

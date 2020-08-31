@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 const pool = require("../db");
 
-router.get("/all/:userid",async(req,res) => {
+router.get("/getAll",async(req,res) => {
     try {
-        const {userid} = req.params;
+        const userid = req.query.userid;
         const allAdresses = await pool.query("SELECT * FROM addresses where user_id = $1",[userid]);
         res.json(allAdresses.rows);
     } catch (err) {
@@ -12,9 +12,9 @@ router.get("/all/:userid",async(req,res) => {
     }
 })
 
-router.get("/one/:order_id",async(req,res) => {
+router.get("/getOne",async(req,res) => {
     try {
-        const {order_id} = req.params;
+        const order_id = req.query.order_id;
         const Address = await pool.query("select * from addresses join orders on orders.address_id = addresses.id where orders.id = $1",[order_id]);
         res.json(Address.rows);
 

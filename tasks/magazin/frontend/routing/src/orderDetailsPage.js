@@ -151,7 +151,7 @@ function OrderDetailsPage(props) {
                                    {order[0] && order[0].created}
                               </td>
                               <td>
-                                   {order[0] && order[0].status}
+                                   {order[0] && order[0].order_status}
                               </td>
                               <td align="right">
                                     {order[0] && order[0].price} EUR
@@ -195,7 +195,7 @@ function OrderDetailsPage(props) {
                         {orderItems.map(item => (
                             <tr key={item.id}>
                             <td className="image">
-                                   <img  src={item.image}></img>
+                                   <img  src={`/${item.name}.png`}></img>
                             </td>
                             <td>
                                  {item.name}

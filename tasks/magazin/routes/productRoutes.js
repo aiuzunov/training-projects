@@ -4,6 +4,8 @@ const pool = require("../db");
 const fs = require("fs");
 const request = require("request");
 const Authenticated = require("../util2");
+const Cursor = require('pg-cursor')
+
 
 function clean(obj) {
 for (var propName in obj) {
@@ -26,13 +28,26 @@ router.post("/getProducts", async (req, res) => {
     const indexOfLastPost = Filters.currentPage * 9;
     const indexOfFirstPost = indexOfLastPost - 9;
     var testArray= [];
+    var query = 'SELECT DISTINCT t.id,name,image,brand,price,count_in_stock,description,create_date,edit_time,currency_id from (SELECT *, count(*) OVER ';
+    if(testfilters.ageFilter){
+      switch(testfilters.ageFilter){
+        case 'ASC':
+          query+='(ORDER BY create_date ASC, id)'
+          break;
+        case 'DESC':
+          query+='(ORDER BY create_date DESC, id DESC)'
+          break;
+      }
+    }else{
+      query+=`(ORDER BY id)`
+    }
     if(testfilters.searchfilter!=''){
       var i=2;
       testArray.push(testfilters.searchfilter);
-      var query = "SELECT DISTINCT t.id,name,image,brand,price,count_in_stock,description,create_date,edit_time,currency_id from (SELECT *, count(*) OVER (ORDER BY id ) ROWNUM FROM products where LOWER(name) LIKE concat('%',LOWER($1),'%')";
+       query += " ROWNUM FROM products where LOWER(name) LIKE concat('%',LOWER($1),'%')";
     }else{
       var i=1;
-      var query = "SELECT DISTINCT t.id,name,image,brand,price,count_in_stock,description,create_date,edit_time,currency_id from (SELECT *, count(*) OVER (ORDER BY id ) ROWNUM FROM products WHERE 1=1";
+       query += " ROWNUM FROM products WHERE 1=1";
     }
 
 const entries = Object.entries(testfilters);
@@ -73,19 +88,6 @@ for (const [key, value] of entries) {
         break;
     }
   }
-  if(testfilters.ageFilter){
-    switch(testfilters.ageFilter){
-      case 'ASC':
-        query+=' ORDER BY create_date ASC'
-        break;
-      case 'DESC':
-        query+=' ORDER BY create_date DESC'
-        break;
-    }
-  }
-
-
-
   if(testfilters.tagfilter.length==0){
     testArray.push(indexOfFirstPost)
     testArray.push(indexOfLastPost)
@@ -98,23 +100,41 @@ for (const [key, value] of entries) {
 
   }
   if(testfilters.ageFilter){
-    switch(testfilters.ageFilter){
-      case 'ASC':
-        query+=' ORDER BY create_date ASC'
-        break;
-      case 'DESC':
-        query+=' ORDER BY create_date DESC'
-        break;
-    }
-  }
-  console.log("This is the query:",query)
+        switch(testfilters.ageFilter){
+          case 'ASC':
+            query+=' ORDER BY create_date ASC'
+            break;
+          case 'DESC':
+            query+=' ORDER BY create_date DESC, id DESC'
+            break;
+        }
+      }
+      var successCount = 0;
+      const client = await pool.connect();
+      const renditionsCursor = client.query(new Cursor(query,testArray));
+      var response = [];
+      function processData(err, rows) {
+        if (err) {
+          throw err;
+        }
 
-
-  var test = await pool.query(query,testArray)
-    console.log(test.rows)
-    res.json(test.rows);
+        for (let row of rows) {
+          response.push(row);
+          successCount++;
+        }
+        if (rows.length === 10) {
+          renditionsCursor.read(10, processData);
+        }
+        else{
+          renditionsCursor.close(() => {
+   client.release()
+ })
+          res.json(response)
+        }
+        console.log(`Success count is: ${successCount}`);
+      }
+      renditionsCursor.read(10, processData);
   } catch (err) {
-    console.log(err)
     res
       .status(500)
       .send({ msg: "Възникна грешка при визуализирането на продуктите ." });
@@ -127,15 +147,29 @@ router.post("/getProductCount", async (req, res) => {
     const testfilters = req.body;
     console.log(2)
     var testArray= [];
+
+    var query = 'SELECT MAX(ROWNUM) from (SELECT *, count(*) OVER ';
+    if(testfilters.ageFilter){
+      switch(testfilters.ageFilter){
+        case 'ASC':
+          query+='(ORDER BY create_date ASC, id)'
+          break;
+        case 'DESC':
+          query+='(ORDER BY create_date DESC, id DESC)'
+          break;
+      }
+    }
+    else{
+      query+='(ORDER BY id)'
+    }
     if(testfilters.searchfilter!=''){
       var i=2;
       testArray.push(testfilters.searchfilter);
-      var query = "SELECT MAX(rownum) from (SELECT *, count(*) OVER (ORDER BY id ) ROWNUM FROM products where LOWER(name) LIKE concat('%',LOWER($1),'%')";
+       query += " ROWNUM FROM products where LOWER(name) LIKE concat('%',LOWER($1),'%')";
     }else{
       var i=1;
-      var query = "SELECT MAX(rownum) from (SELECT *, count(*) OVER (ORDER BY id ) ROWNUM FROM products WHERE 1=1";
+       query += " ROWNUM FROM products WHERE 1=1";
     }
-
 const entries = Object.entries(testfilters);
 
 for (const [key, value] of entries) {
