@@ -5,6 +5,9 @@ const fs = require("fs");
 const request = require("request");
 const Authenticated = require("../util2");
 const Cursor = require('pg-cursor')
+const QueryStream = require('pg-query-stream')
+const JSONStream = require('JSONStream')
+
 
 
 function clean(obj) {
@@ -109,31 +112,13 @@ for (const [key, value] of entries) {
             break;
         }
       }
-      var successCount = 0;
-      const client = await pool.connect();
-      const renditionsCursor = client.query(new Cursor(query,testArray));
-      var response = [];
-      function processData(err, rows) {
-        if (err) {
-          throw err;
-        }
-
-        for (let row of rows) {
-          response.push(row);
-          successCount++;
-        }
-        if (rows.length === 10) {
-          renditionsCursor.read(10, processData);
-        }
-        else{
-          renditionsCursor.close(() => {
-   client.release()
- })
-          res.json(response)
-        }
-        console.log(`Success count is: ${successCount}`);
-      }
-      renditionsCursor.read(10, processData);
+      pool.connect((err, client, done) => {
+     if (err) throw err;
+     const data = new QueryStream(query,testArray)
+     const stream = client.query(data)
+     stream.on('end', done)
+     stream.pipe(JSONStream.stringify()).pipe(res)
+   })
   } catch (err) {
     res
       .status(500)

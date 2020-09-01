@@ -93,32 +93,13 @@ router.post("/listall",async(req,res) => {
         testArray.push(indexOfFirstPost);
         testArray.push(indexOfLastPost);
         query+=`)d where rownum >=$${i+1} and rownum<=$${i+2}`
-        var successCount =0
-        const client = await pool.connect();
-        const renditionsCursor = client.query(new Cursor(query,testArray));
-        var response = [];
-        function processData(err, rows) {
-          if (err) {
-            throw err;
-          }
-
-          for (let row of rows) {
-            response.push(row);
-            successCount++;
-          }
-          if (rows.length === 10) {
-            renditionsCursor.read(10, processData);
-          }
-          else{
-            renditionsCursor.close(() => {
-     client.release()
-   })
-            res.json(response)
-          }
-          console.log(`Success count is: ${successCount}`);
-        }
-        renditionsCursor.read(10, processData);
-
+        pool.connect((err, client, done) => {
+       if (err) throw err;
+       const data = new QueryStream(query,testArray)
+       const stream = client.query(data)
+       stream.on('end', done)
+       stream.pipe(JSONStream.stringify()).pipe(res)
+     })
     } catch (err) {
         console.log("order",err)
         res.status(500).send({msg: 'Възникна проблем при взимането на информацията за адресите.'});
@@ -152,30 +133,14 @@ router.get("/getOne",async(req,res) => {
   router.get("/count", async (req, res) => {
     try {
    var successCount =0
-   const client = await pool.connect();
-   const renditionsCursor = client.query(new Cursor("select count(*) from orders"));
    var response = [];
-   function processData(err, rows) {
-     if (err) {
-       throw err;
-     }
-
-     for (let row of rows) {
-       response.push(row);
-       successCount++;
-     }
-     if (rows.length === 10) {
-       renditionsCursor.read(10, processData);
-     }
-     else{
-       renditionsCursor.close(() => {
-   client.release()
- })
-       res.json(response)
-     }
-     console.log(`Success count is: ${successCount}`);
-   }
-   renditionsCursor.read(10, processData);
+   pool.connect((err, client, done) => {
+  if (err) throw err;
+  const query = new QueryStream('select count(*) from orders')
+  const stream = client.query(query)
+  stream.on('end', done)
+  stream.pipe(JSONStream.stringify()).pipe(res)
+})
     } catch (err) {
       console.error(err.message);
     }

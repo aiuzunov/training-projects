@@ -3,6 +3,9 @@ const router = express.Router();
 const pool = require("../db");
 const { json } = require('express');
 const Cursor = require('pg-cursor')
+const QueryStream = require('pg-query-stream')
+const JSONStream = require('JSONStream')
+
 
 
 
@@ -103,33 +106,13 @@ router.post("/list",async(req,res) => {
     }else{
       query+=`)d on tags_products.product_id = d.product_id join tags on tags.id = tags_products.tag_id where rownum>=$${i+3} and rownum <= $${i+4}`
     }
-
-      var successCount =0
-      const client = await pool.connect();
-      const renditionsCursor = client.query(new Cursor(query,testArray));
-      var response = [];
-      function processData(err, rows) {
-        if (err) {
-          throw err;
-        }
-
-        for (let row of rows) {
-          response.push(row);
-          successCount++;
-        }
-        if (rows.length === 10) {
-          renditionsCursor.read(10, processData);
-        }
-        else{
-          renditionsCursor.close(() => {
-   client.release()
- })
-          res.json(response)
-        }
-        console.log(`Success count is: ${successCount}`);
-      }
-      renditionsCursor.read(10, processData);
-
+    pool.connect((err, client, done) => {
+     if (err) throw err;
+     const data = new QueryStream(query,testArray)
+     const stream = client.query(data)
+     stream.on('end', done)
+     stream.pipe(JSONStream.stringify()).pipe(res)
+   })
     } catch (err) {
       console.log("Get Products Error",err)
         res.status(500).send({msg: 'Възкникна грешка, моля опитайте отново.'});

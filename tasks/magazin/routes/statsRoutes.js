@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const pool = require("../db");
+const QueryStream = require('pg-query-stream')
+const JSONStream = require('JSONStream')
 
 
 router.post("/monthlyIncome", async (req, res) => {
@@ -8,8 +10,13 @@ router.post("/monthlyIncome", async (req, res) => {
         const {monthId,from,to} = req.body;
         var fromdate = from.split(",");
         var todate = to.split(",");
-        const incomes = await pool.query("SELECT created AS DATE, SUM(price) FROM orders where DATE(created)>=$1 and DATE(created)<=$2 GROUP BY DATE",[fromdate[0],todate[0]]);
-        res.json(incomes.rows);
+        pool.connect((err, client, done) => {
+     if (err) throw err;
+     const data = new QueryStream("SELECT created AS DATE, SUM(price) FROM orders where DATE(created)>=$1 and DATE(created)<=$2 GROUP BY DATE",[fromdate[0],todate[0]])
+     const stream = client.query(data)
+     stream.on('end', done)
+     stream.pipe(JSONStream.stringify()).pipe(res)
+   })
     } catch (err) {
         console.log(err.message)
         res.status(500).send({msg: 'Възникна проблем при взимането на информацията за печалбите.'});
@@ -21,24 +28,28 @@ router.post("/soldProducts", async (req, res) => {
         const {monthId,from,to,groupBy} = req.body;
         var fromdate = from.split(",");
         var todate = to.split(",");
+        var query = '';
+        var testArray = [fromdate,todate];
         switch(groupBy){
           case 'DATE':
-            console.log(groupBy)
-            var soldProducts = await pool.query("SELECT substring(CAST(created AS TEXT) from 0 for 11) AS DATE, SUM(quantity) AS Sales from order_items join orders on order_items.order_id = orders.id where DATE(created)>=$1 and DATE(created)<=$2 GROUP BY DATE ORDER BY DATE ASC",[fromdate[0],todate[0]]);
-            res.json(soldProducts.rows);
+            query += "SELECT substring(CAST(created AS TEXT) from 0 for 11) AS DATE, SUM(quantity) AS Sales from order_items join orders on order_items.order_id = orders.id where DATE(created)>=$1 and DATE(created)<=$2 GROUP BY DATE ORDER BY DATE ASC";
             break;
           case 'MONTH':
-            var soldProducts = await pool.query("SELECT EXTRACT(MONTH from created) AS DATE, SUM(quantity) AS Sales from order_items join orders on order_items.order_id = orders.id where DATE(created)>=$1 and DATE(created)<=$2 GROUP BY DATE ORDER BY DATE ASC",[fromdate[0],todate[0]]);
-            console.log(soldProducts)
-            res.json(soldProducts.rows);
+            query += "SELECT EXTRACT(MONTH from created) AS DATE, SUM(quantity) AS Sales from order_items join orders on order_items.order_id = orders.id where DATE(created)>=$1 and DATE(created)<=$2 GROUP BY DATE ORDER BY DATE ASC";
             break;
           case 'YEAR':
-            var soldProducts = await pool.query("SELECT EXTRACT(YEAR from created) AS DATE, SUM(quantity) AS Sales from order_items join orders on order_items.order_id = orders.id where DATE(created)>=$1 and DATE(created)<=$2 GROUP BY DATE ORDER BY DATE ASC",[fromdate[0],todate[0]]);
-            res.json(soldProducts.rows);
+            query+= "SELECT EXTRACT(YEAR from created) AS DATE, SUM(quantity) AS Sales from order_items join orders on order_items.order_id = orders.id where DATE(created)>=$1 and DATE(created)<=$2 GROUP BY DATE ORDER BY DATE ASC";
             break;
           default:
             break;
         }
+        pool.connect((err, client, done) => {
+     if (err) throw err;
+     const data = new QueryStream(query,testArray)
+     const stream = client.query(data)
+     stream.on('end', done)
+     stream.pipe(JSONStream.stringify()).pipe(res)
+   })
     } catch (err) {
         console.log(err)
         res.status(500).send({msg: 'Възникна проблем при взимането на информацията за количеството продадени продукти.'});
@@ -51,24 +62,28 @@ router.post("/registeredUsers", async (req, res) => {
         console.log(groupBy)
         var fromdate = from.split(",");
         var todate = to.split(",");
+        var query = '';
+        var testArray = [fromdate,todate];
         switch(groupBy){
           case 'DATE':
-            var registeredUsers = await pool.query("SELECT substring(CAST(create_date AS TEXT) from 0 for 11) AS DATE, COUNT(*) FROM users where DATE(create_date)>=$1 and DATE(create_date)<=$2 GROUP BY DATE ORDER BY DATE ASC",[fromdate[0],todate[0]]);
-            res.json(registeredUsers.rows);
+            query += "SELECT substring(CAST(create_date AS TEXT) from 0 for 11) AS DATE, COUNT(*) FROM users where DATE(create_date)>=$1 and DATE(create_date)<=$2 GROUP BY DATE ORDER BY DATE ASC";
             break;
           case 'MONTH':
-            var registeredUsers = await pool.query("SELECT EXTRACT(MONTH from create_date) AS DATE, COUNT(*) FROM users where DATE(create_date)>=$1 and DATE(create_date)<=$2 GROUP BY DATE ORDER BY DATE ASC",[fromdate[0],todate[0]]);
-            console.log(registeredUsers)
-            res.json(registeredUsers.rows);
+            query += "SELECT EXTRACT(MONTH from create_date) AS DATE, COUNT(*) FROM users where DATE(create_date)>=$1 and DATE(create_date)<=$2 GROUP BY DATE ORDER BY DATE ASC";
             break;
           case 'YEAR':
-            var registeredUsers = await pool.query("SELECT EXTRACT(YEAR from create_date) AS DATE, COUNT(*) FROM users where DATE(create_date)>=$1 and DATE(create_date)<=$2 GROUP BY DATE ORDER BY DATE ASC",[fromdate[0],todate[0]]);
-            res.json(registeredUsers.rows);
+            query += "SELECT EXTRACT(YEAR from create_date) AS DATE, COUNT(*) FROM users where DATE(create_date)>=$1 and DATE(create_date)<=$2 GROUP BY DATE ORDER BY DATE ASC";
             break;
           default:
             break;
         }
-
+        pool.connect((err, client, done) => {
+     if (err) throw err;
+     const data = new QueryStream(query,testArray)
+     const stream = client.query(data)
+     stream.on('end', done)
+     stream.pipe(JSONStream.stringify()).pipe(res)
+   })
     } catch (err) {
         console.log(err.message)
         res.status(500).send({msg: 'Възникна проблем при взимането на информацията за брой регистрирани потребтиели.'});
