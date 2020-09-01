@@ -4,8 +4,8 @@ z = int(inputArray[0])
 m = int(inputArray[1])
 n = int(inputArray[2])
 
-chislitel = m
-znamenatel = n+1
+chislitel = m+1
+znamenatel = 1
 
 def findDivisor(a,b):
     GCD=0
@@ -30,3 +30,6 @@ while chislitel<z:
             znamenatel+=1
     chislitel+=1
     znamenatel=1
+
+
+print("There is no such element")
