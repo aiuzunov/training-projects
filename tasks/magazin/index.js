@@ -13,11 +13,12 @@ const userRoute = require('./routes/userRoutes')
 const orderRoute = require('./routes/orderRoutes')
 const paymentRoute = require('./routes/paymentRoutes')
 const statsRoute = require('./routes/statsRoutes')
+var responseTime = require('response-time')
 
 
 
 
-
+app.use(responseTime())
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'))

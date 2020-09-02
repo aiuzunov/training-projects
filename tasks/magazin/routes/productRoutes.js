@@ -99,7 +99,7 @@ for (const [key, value] of entries) {
     testArray.push(testfilters.tagfilter)
     testArray.push(indexOfFirstPost)
     testArray.push(indexOfLastPost)
-    query+=`) as t join tags_products on t.id = tags_products.product_id where tags_products.tag_id = ANY ($${i+2}) AND rownum>=$${i+3} and rownum <= $${i+4}`
+    query+=`) as t join tags_products on t.id = tags_products.product_id where tags_products.tag_id = ANY ($${i+2}) AND rownum>$${i+3} and rownum <= $${i+4}`
 
   }
   if(testfilters.ageFilter){
@@ -130,7 +130,6 @@ for (const [key, value] of entries) {
 router.post("/getProductCount", async (req, res) => {
   try {
     const testfilters = req.body;
-    console.log(2)
     var testArray= [];
 
     var query = 'SELECT MAX(ROWNUM) from (SELECT *, count(*) OVER ';
@@ -202,7 +201,6 @@ for (const [key, value] of entries) {
         break;
     }
   }
-  console.log(testfilters)
   testArray.push(testfilters.pricefilter[0])
   testArray.push(testfilters.pricefilter[1])
 
@@ -215,9 +213,7 @@ for (const [key, value] of entries) {
 
   }
 
-  console.log(query)
   var test = await pool.query(query,testArray)
-    console.log("This is the product count",test.rows)
     res.json(test.rows[0]);
   } catch (err) {
     console.log("max error",err)

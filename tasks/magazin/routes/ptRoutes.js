@@ -80,16 +80,6 @@ router.post("/list",async(req,res) => {
 
 
 
-    if(testfilters.tagfilter.length==0){
-      testArray.push(indexOfFirstPost)
-      testArray.push(indexOfLastPost)
-    }else{
-      testArray.push(testfilters.tagfilter)
-      testArray.push(indexOfFirstPost)
-      testArray.push(indexOfLastPost)
-      query+=` and t.tag_id = ANY($${i+2})`
-
-    }
     if(testfilters.ageFilter){
       switch(testfilters.ageFilter){
         case 'ASC':
@@ -106,6 +96,17 @@ router.post("/list",async(req,res) => {
     }else{
       query+=`)d on tags_products.product_id = d.product_id join tags on tags.id = tags_products.tag_id where rownum>=$${i+3} and rownum <= $${i+4}`
     }
+
+        if(testfilters.tagfilter.length==0){
+          testArray.push(indexOfFirstPost)
+          testArray.push(indexOfLastPost)
+        }else{
+          testArray.push(testfilters.tagfilter)
+          testArray.push(indexOfFirstPost)
+          testArray.push(indexOfLastPost)
+          query+=` and d.tag_id = ANY($${i+2})`
+
+        }
     pool.connect((err, client, done) => {
      if (err) throw err;
      const data = new QueryStream(query,testArray)
