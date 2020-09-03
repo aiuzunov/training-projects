@@ -41,15 +41,15 @@ router.post("/list",async(req,res) => {
   const entries = Object.entries(testfilters);
   for (const [key, value] of entries) {
     if(key!='filter'&&value!=''&&key!='pricefilter'&&key!='searchfilter'&&key!='tagfilter'&&key!='ageFilter'&&key!='cisFilter'&&key!='currentPage'){
-      if(key=='fromDateFilter'){
-        query = query + ` AND create_date>=$${i}`
+      if(key=='from'){
+        query = query + ` AND DATE(create_date)>=$${i}`
         i++;
-        testArray.push(testfilters.fromDateFilter);
+        testArray.push(testfilters.from);
 
       }
-      else if(key=='toDateFilter'){
-        testArray.push(testfilters.toDateFilter);
-        query = query + ` AND create_date<=$${i}`
+      else if(key=='to'){
+        testArray.push(testfilters.to);
+        query = query + ` AND DATE(create_date)<=$${i}`
         i++;
       }
       else{

@@ -3,7 +3,7 @@ import NavBar from './NavBar';
 import {BrowserRouter as Router, Switch, Route} from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { listProducts } from './actions/productActions';
-import { listIncomes,listSoldProducts,listRegisteredUsers } from './actions/statsActions';
+import { listBestSellers,listIncomes,listSoldProducts,listRegisteredUsers } from './actions/statsActions';
 import { Checkbox, FormControlLabel, FormGroup, Select, Divider, makeStyles, FormControl, MenuItem, FormHelperText, FormLabel, RadioGroup, Radio, TextField, InputBase, Input, Typography, Slider } from '@material-ui/core';
 import { Button, Icon, createMuiTheme } from '@material-ui/core';
 import 'date-fns';
@@ -31,12 +31,15 @@ function BackOfficeStats(props){
     const [count, setCount] = useState([]);
     const [monthId,setMonthId] = useState([]);
     const [incomeListPop,setIncomeListPop] = useState(0);
+    const [bestSellersPop,setBestSellersPop] = useState(0);
     const [soldProductsPop,setSoldProductsPop] = useState(0);
     const [registeredUsersPop,setRegisteredUsersPop] = useState(0);
     const incomesList = useSelector((state) => state.incomesList);
     const { incomes , loading: incomesLoading, error:incomesError } = incomesList;
     const soldProductsList = useSelector((state) => state.soldProductsList);
     const { soldProducts , loading: soldProductsLoading, error:soldProductsError } = soldProductsList;
+    const bestSellersList = useSelector((state) => state.bestSellersList);
+    const { bestSellers , loading: bestSellersLoading, error:bestSellersError } = bestSellersList;
     const regUsersList = useSelector((state) => state.regUsersList);
     const { regUsers , loading: regUsersLoading, error:regUsersError } = regUsersList;
     const dispatch = useDispatch();
@@ -50,6 +53,7 @@ function BackOfficeStats(props){
     const handleToDateChange = (date) => {
       setToDate(date);
     };
+    console.log(bestSellers)
     const months = [{
       id: 1,
       name: "Януари"
@@ -129,11 +133,14 @@ function BackOfficeStats(props){
       setIncomeListPop(props.income);
       setRegisteredUsersPop(props.registeredUsers);
       setSoldProductsPop(props.soldProducts);
-      dispatch(listIncomes({monthId,from,to}));
+      setBestSellersPop(props.bestSellers);
+      dispatch(listIncomes({monthId,from,to,groupBy}));
       dispatch(listSoldProducts({monthId,from,to,groupBy}));
       dispatch(listRegisteredUsers({monthId,from,to,groupBy}));
+      dispatch(listBestSellers({monthId,from,to,groupBy}));
+      console.log(bestSellersPop,soldProductsPop)
 
-    },[monthId,props.soldProducts,props.registeredUsers,props.income,toDate,fromDate,groupBy]);
+    },[monthId,props.bestSellers,props.soldProducts,props.registeredUsers,props.income,toDate,fromDate,groupBy]);
     console.log(regUsers)
     return(
       <div>
@@ -142,11 +149,11 @@ function BackOfficeStats(props){
           {incomeListPop ?
           <h2> Приходи от поръчки</h2> : soldProductsPop ?
           <h2> Общ брой продадени продукти</h2> : registeredUsersPop ?
-          <h2> Общ брой регистрации</h2> : <div></div>}
+          <h2> Общ брой регистрации</h2> : <h2>Продадени Продукти</h2>}
 
 
         </div>
-        {(soldProductsPop || registeredUsersPop || incomeListPop) ? <div>
+        {(soldProductsPop || registeredUsersPop || incomeListPop || bestSellersPop) ? <div>
           <MuiPickersUtilsProvider utils={DateFnsUtils}>
         <Grid container justify="start">
           <KeyboardDatePicker
@@ -195,7 +202,8 @@ function BackOfficeStats(props){
               <thead>
                   <tr>
                       <th>
-                          Ден
+                      {groupBy=='DATE' ? <div>Дата</div> : groupBy=='MONTH' ? <div>Месец</div> : <div>Година</div>}
+
                       </th>
                       <th>
                           Приходи
@@ -208,7 +216,13 @@ function BackOfficeStats(props){
                   {incomes.map(income => (
                       <tr>
                       <td>
-                          {(income.date).split("T")[0]}
+                      {groupBy=='MONTH' ? months.map(month => (
+
+                         month.id == income.date ? <div>
+                             {month.id} ({month.name})
+                         </div> : <div></div>
+
+                       )):income.date}
                       </td>
                       <td>
                            {income.sum} EUR
@@ -226,7 +240,7 @@ function BackOfficeStats(props){
               <thead>
                   <tr>
                       <th>
-                          Дата
+                      {groupBy=='DATE' ? <div>Дата</div> : groupBy=='MONTH' ? <div>Месец</div> : <div>Година</div>}
                       </th>
                       <th>
                           Брой продадени продукти
@@ -239,7 +253,13 @@ function BackOfficeStats(props){
                   {soldProducts.map(sp => (
                       <tr>
                       <td>
-                         {sp.date}
+                      {groupBy=='MONTH' ? months.map(month => (
+
+                         month.id == sp.date ? <div>
+                             {month.id} ({month.name})
+                         </div> : <div></div>
+
+                       )):sp.date}
                       </td>
                       <td>
                            {sp.sales}
@@ -284,12 +304,46 @@ function BackOfficeStats(props){
                       </td>
                   </tr>
                   ))}
+              </tbody>
+          </table>
+      </div>: <div></div>}
+      {bestSellersPop ? <div className="product-list">
+          <table className="table">
+              <thead>
+                  <tr>
+                      <th>
+                      {groupBy=='DATE' ? <div>Дата</div> : groupBy=='MONTH' ? <div>Месец</div> : <div>Година</div>}
+                      </th>
+                      <th>
+                          Брой продадени продукти
+                      </th>
+
+
+                  </tr>
+              </thead>
+              <tbody>
+                  {bestSellers.map(sp => (
+                      <tr>
+                      <td>
+                      {groupBy=='MONTH' ? months.map(month => (
+
+                         month.id == sp.date ? <div>
+                             {month.id} ({month.name})
+                         </div> : <div></div>
+
+                       )): groupBy == "YEAR" ? sp.date : sp.substring}
+                      </td>
+                      <td>
+                           {sp.sum}
+                      </td>
+                  </tr>
+                  ))}
 
 
 
               </tbody>
           </table>
-      </div>: <div></div>}
+      </div> : <div></div>}
       </div>
     );
 }

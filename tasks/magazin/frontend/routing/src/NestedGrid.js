@@ -41,6 +41,7 @@ function NestedGrid(props){
       dispatch(listProducts({searchfilter,pricefilter,currentPage,tagfilter}));
       console.log(products)
     },[props.pageNumber,props.search,props.tagid,props.price]);
+    console.log(products)
     return (
       loading ?<div>  <CircularProgress color="secondary" /></div>  :
 

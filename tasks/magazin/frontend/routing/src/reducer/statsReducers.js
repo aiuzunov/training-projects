@@ -1,4 +1,4 @@
-import { REGUSERS_LIST_REQUEST,REGUSERS_LIST_SUCCESS,REGUSERS_LIST_FAIL,INCOMES_LIST_REQUEST, INCOMES_LIST_SUCCESS, INCOMES_LIST_FAIL,SOLDPRODUCTS_LIST_FAIL,SOLDPRODUCTS_LIST_REQUEST,SOLDPRODUCTS_LIST_SUCCESS } from "../constants/statsConstants";
+import {BESTSELLERS_LIST_FAIL,BESTSELLERS_LIST_REQUEST,BESTSELLERS_LIST_SUCCESS, REGUSERS_LIST_REQUEST,REGUSERS_LIST_SUCCESS,REGUSERS_LIST_FAIL,INCOMES_LIST_REQUEST, INCOMES_LIST_SUCCESS, INCOMES_LIST_FAIL,SOLDPRODUCTS_LIST_FAIL,SOLDPRODUCTS_LIST_REQUEST,SOLDPRODUCTS_LIST_SUCCESS } from "../constants/statsConstants";
 
 function incomesListReducer(state = { incomes: [] }, action) {
     switch (action.type) {
@@ -39,4 +39,17 @@ function registeredUsersListReducer(state = { regUsers: [] }, action) {
         }
       }
 
-  export { incomesListReducer,soldProductsListReducer,registeredUsersListReducer }
+function bestSellersListReducer(state = { bestSellers: [] }, action) {
+          switch (action.type) {
+            case BESTSELLERS_LIST_REQUEST:
+              return { loading: true, bestSellers: [] };
+            case BESTSELLERS_LIST_SUCCESS:
+              return { loading: false, bestSellers: action.payload };
+            case BESTSELLERS_LIST_FAIL:
+              return { loading: false, error: action.payload };
+            default:
+              return state;
+          }
+        }
+
+  export { incomesListReducer,soldProductsListReducer,registeredUsersListReducer,bestSellersListReducer }

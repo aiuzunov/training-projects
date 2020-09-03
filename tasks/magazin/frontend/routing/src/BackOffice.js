@@ -130,6 +130,7 @@ function CRUDProducts({  match , history }) {
     const classes = useStyles();
     const [productsPop,setProductsPop] = useState(1);
     const [incomeListPop,setIncomeListPop] = useState(0);
+    const [bestSellersPop,setBestSellersPop] = useState(0);
     const [soldProductsPop,setSoldProductsPop] = useState(0);
     const [registeredUsersPop,setRegisteredUsersPop] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
@@ -229,10 +230,12 @@ function CRUDProducts({  match , history }) {
         var orderFilters = {
           filter: 0
         };
-        dispatch(listPT({currentPage,pricefilter,tagfilter,searchfilter,ageFilter,cisFilter,fromDateFilter,toDateFilter}));
-        dispatch(listProducts({currentPage,pricefilter,searchfilter,tagfilter,ageFilter,cisFilter,fromDateFilter,toDateFilter}));
-        dispatch(listUsers({verifiedFilter,emailFilter,usernameFilter,fromDateFilter,toDateFilter,currentPage}));
-        dispatch(listOrders(null,{currentPage,statusFilter,fromDateFilter,toDateFilter}));
+        var from = fromDateFilter.toLocaleString('en-GB', { timeZone: 'UTC' }).split(",")[0]
+        var to = toDateFilter.toLocaleString('en-GB', { timeZone: 'UTC' }).split(",")[0]
+        dispatch(listPT({currentPage,pricefilter,tagfilter,searchfilter,ageFilter,cisFilter,from,to}));
+        dispatch(listProducts({currentPage,pricefilter,searchfilter,tagfilter,ageFilter,cisFilter,from,to}));
+        dispatch(listUsers({verifiedFilter,emailFilter,usernameFilter,from,to,currentPage}));
+        dispatch(listOrders(null,{currentPage,statusFilter,from,to}));
 
         if(userSignedUp){
             setCreateUserPop(false);
@@ -245,13 +248,15 @@ function CRUDProducts({  match , history }) {
     const getCount = async () => {
 
         try {
+          var from = fromDateFilter.toLocaleString('en-GB', { timeZone: 'UTC' }).split(",")[0]
+          var to = toDateFilter.toLocaleString('en-GB', { timeZone: 'UTC' }).split(",")[0]
             const orders_response = await fetch(`/orders/count`);
             const ordersc = await orders_response.json();
             setOrdersCount(ordersc);
             const users_response = await fetch(`/users/count`);
             const usersc = await users_response.json();
             setUsersCount(usersc);
-            const response = await axios.post(`/products/getProductCount`,{tagfilter,cisFilter,ageFilter,pricefilter,searchfilter,toDateFilter,fromDateFilter});
+            const response = await axios.post(`/products/getProductCount`,{tagfilter,cisFilter,ageFilter,pricefilter,searchfilter,to,from});
             setCount(response.data.max);
         } catch (err) {
           console.log(err.message);
@@ -365,6 +370,7 @@ const submitStatusChange = (e) => {
       setIncomeListPop(0);
       setSoldProductsPop(0);
       setRegisteredUsersPop(0);
+      setBestSellersPop(0);
       switch (key.text) {
         case 'Продукти':
           setProductsPop(1);
@@ -398,16 +404,25 @@ const submitStatusChange = (e) => {
           setIncomeListPop(1);
           setSoldProductsPop(0);
           setRegisteredUsersPop(0);
+          setBestSellersPop(0);
           break;
         case 'Нови потребители':
           setIncomeListPop(0);
           setSoldProductsPop(0);
           setRegisteredUsersPop(1);
+          setBestSellersPop(0);
           break;
         case 'Брой продадени продукти':
           setIncomeListPop(0);
           setSoldProductsPop(1);
           setRegisteredUsersPop(0);
+          setBestSellersPop(0);
+          break;
+        case 'Продадени Продукти':
+          setIncomeListPop(0);
+          setSoldProductsPop(0);
+          setRegisteredUsersPop(0);
+          setBestSellersPop(1);
           break;
         default:
 
@@ -516,9 +531,9 @@ const handleUserOrdersButton = (user_id) => {
            <ListItem>
              <ListItemText inset="true">Справки</ListItemText>
            </ListItem>
-           {['Приходи', 'Нови потребители','Брой продадени продукти'].map((text, index) => (
+           {['Приходи', 'Нови потребители','Брой продадени продукти','Продадени Продукти'].map((text, index) => (
              <ListItem onClick={() => handleSelectStat({text})} button key={text}>
-               <ListItemIcon>{index == 0 ? <MonetizationOnIcon/> : index == 1 ? <PersonAddIcon /> : <AddShoppingCartIcon/>}</ListItemIcon>
+               <ListItemIcon>{index == 0 ? <MonetizationOnIcon/> : index == 1 ? <PersonAddIcon /> : index == 2 ? <AddShoppingCartIcon/> : <AddShoppingCartIcon/>}</ListItemIcon>
                <ListItemText primary={text} />
              </ListItem>
            ))}
@@ -1045,7 +1060,7 @@ const handleUserOrdersButton = (user_id) => {
                     </tbody>
                 </table>
             </div>)}
-            <BackOfficeStats income={incomeListPop} registeredUsers={registeredUsersPop} soldProducts={soldProductsPop}/>
+            <BackOfficeStats bestSellers = {bestSellersPop} income={incomeListPop} registeredUsers={registeredUsersPop} soldProducts={soldProductsPop}/>
 
         </div>
 

@@ -7,7 +7,7 @@ require("dotenv").config();
 var CryptoJS = require("crypto-js");
 const QueryStream = require('pg-query-stream')
 const JSONStream = require('JSONStream')
- 
+
 
 
 
@@ -33,6 +33,7 @@ router.post("/sign",async (req,res) => {
         const {email,password} = req.body;
         console.log(email,password)
         const signUser = await pool.query("SELECT * FROM users WHERE email=$1 AND password=crypt($2, password);",[email,password]);
+        console.log(signUser)
         if(signUser.rowCount>0){
             if(signUser.rows[0].verified=='true'){
                 res.json({
@@ -196,16 +197,16 @@ router.post("/get",async(req,res) => {
               testArray.push(testfilters.emailFilter);
               query += ` AND LOWER(email) LIKE concat('%',LOWER($${i}),'%')`;
             }
-            else if(key=='fromDateFilter'){
+            else if(key=='from'){
               ++i;
-              query = query + ` AND create_date>=$${i}`
-              testArray.push(testfilters.fromDateFilter);
+              query = query + ` AND DATE(create_date)>=$${i}`
+              testArray.push(testfilters.from);
 
             }
-            else if(key=='toDateFilter'){
+            else if(key=='to'){
               ++i;
-              testArray.push(testfilters.toDateFilter);
-              query = query + ` AND create_date<=$${i}`
+              testArray.push(testfilters.to);
+              query = query + ` AND DATE(create_date)<=$${i}`
             }
             else{
             ++i;

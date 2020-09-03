@@ -67,16 +67,16 @@ router.post("/listall",async(req,res) => {
         var i =0;
         for (const [key, value] of entries) {
           if(key!='filter'&&value!=''&&key!=''&&key!='currentPage'){
-            if(key=='fromDateFilter'){
+            if(key=='from'){
               ++i;
-              query = query + ` AND created>=$${i}`
-              testArray.push(testfilters.fromDateFilter);
+              query = query + ` AND DATE(created)>=$${i}`
+              testArray.push(testfilters.from);
 
             }
-            else if(key=='toDateFilter'){
+            else if(key=='to'){
               ++i;
-              testArray.push(testfilters.toDateFilter);
-              query = query + ` AND created<=$${i}`
+              testArray.push(testfilters.to);
+              query = query + ` AND DATE(created)<=$${i}`
             }
             else if(key=='statusFilter'){
               ++i;
