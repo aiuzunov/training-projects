@@ -132,8 +132,6 @@ router.get("/getOne",async(req,res) => {
 
   router.get("/count", async (req, res) => {
     try {
-   var successCount =0
-   var response = [];
    pool.connect((err, client, done) => {
   if (err) throw err;
   const query = new QueryStream('select count(*) from orders')

@@ -115,13 +115,13 @@ router.post("/bestSellers", async (req, res) => {
         var testArray = [fromdate,todate];
         switch(groupBy){
           case 'DATE':
-            query += "select name,sum(quantity),substring(CAST(created AS TEXT) from 0 for 11) from products join order_items on products.id = order_items.product_id join orders on order_items.order_id = orders.id where DATE(created)>=$1 and DATE(created)<=$2 GROUP BY products.name,created ORDER BY created DESC";
+            query += "SELECT created,substring(CAST(created AS TEXT) from 0 for 11), product_id, Total,products.name FROM ( SELECT created, product_id, SUM(quantity) as Total, RANK() OVER(PARTITION BY created ORDER BY SUM(quantity) DESC) rank FROM order_items join orders on order_items.order_id = orders.id GROUP BY created, product_id) a join products on products.id = a.product_id WHERE rank = 1 and DATE(created) >= $1 and DATE(created)<=$2 ORDER BY created ASC";
             break;
           case 'MONTH':
-            query += "select name,sum(quantity),EXTRACT(MONTH from created) as DATE from products join order_items on products.id = order_items.product_id join orders on order_items.order_id = orders.id where DATE(created)>=$1 and DATE(created)<=$2 GROUP BY products.name,created ORDER BY SUM DESC,DATE DESC";
+            query += "SELECT created,EXTRACT(MONTH from created) as DATE, product_id, Total,products.name FROM ( SELECT created, product_id, SUM(quantity) as Total, RANK() OVER(PARTITION BY EXTRACT(MONTH from created) ORDER BY SUM(quantity) DESC) rank FROM order_items join orders on order_items.order_id = orders.id GROUP BY created, product_id) a join products on products.id = a.product_id WHERE rank = 1 and date(created)>=$1 and date(created)<=$2 ORDER BY DATE ASC";
             break;
           case 'YEAR':
-            query += "select name,sum(quantity),EXTRACT(YEAR from created) as DATE from products join order_items on products.id = order_items.product_id join orders on order_items.order_id = orders.id where DATE(created)>=$1 and DATE(created)<=$2 GROUP BY products.name,created ORDER BY SUM DESC,DATE DESC";
+            query += "SELECT created,EXTRACT(YEAR from created) as DATE, product_id, Total,products.name FROM ( SELECT created, product_id, SUM(quantity) as Total, RANK() OVER(PARTITION BY EXTRACT(YEAR from created) ORDER BY SUM(quantity) DESC) rank FROM order_items join orders on order_items.order_id = orders.id GROUP BY created, product_id) a join products on products.id = a.product_id WHERE rank = 1 and date(created)>=$1 and date(created)<=$2 ORDER BY DATE ASC";
             break;
           default:
             break;

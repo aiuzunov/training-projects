@@ -244,7 +244,7 @@ function CRUDProducts({  match , history }) {
             setCreateProductPop(false);
         }
     },[refreshState,productSaved,statusFilter,verifiedFilter,emailFilter,usernameFilter,pricefilter,searchfilter,tagfilter,ageFilter,cisFilter,fromDateFilter,toDateFilter,currentPage,userSignedUp]);
-
+    console.log(ordersCount,usersCount)
     const getCount = async () => {
 
         try {
@@ -252,10 +252,10 @@ function CRUDProducts({  match , history }) {
           var to = toDateFilter.toLocaleString('en-GB', { timeZone: 'UTC' }).split(",")[0]
             const orders_response = await fetch(`/orders/count`);
             const ordersc = await orders_response.json();
-            setOrdersCount(ordersc);
+            setOrdersCount(ordersc[0]);
             const users_response = await fetch(`/users/count`);
             const usersc = await users_response.json();
-            setUsersCount(usersc);
+            setUsersCount(usersc[0]);
             const response = await axios.post(`/products/getProductCount`,{tagfilter,cisFilter,ageFilter,pricefilter,searchfilter,to,from});
             setCount(response.data.max);
         } catch (err) {
@@ -418,7 +418,7 @@ const submitStatusChange = (e) => {
           setRegisteredUsersPop(0);
           setBestSellersPop(0);
           break;
-        case 'Продадени Продукти':
+        case 'Бестселъри':
           setIncomeListPop(0);
           setSoldProductsPop(0);
           setRegisteredUsersPop(0);
@@ -531,7 +531,7 @@ const handleUserOrdersButton = (user_id) => {
            <ListItem>
              <ListItemText inset="true">Справки</ListItemText>
            </ListItem>
-           {['Приходи', 'Нови потребители','Брой продадени продукти','Продадени Продукти'].map((text, index) => (
+           {['Приходи', 'Нови потребители','Брой продадени продукти','Бестселъри'].map((text, index) => (
              <ListItem onClick={() => handleSelectStat({text})} button key={text}>
                <ListItemIcon>{index == 0 ? <MonetizationOnIcon/> : index == 1 ? <PersonAddIcon /> : index == 2 ? <AddShoppingCartIcon/> : <AddShoppingCartIcon/>}</ListItemIcon>
                <ListItemText primary={text} />
@@ -774,6 +774,9 @@ const handleUserOrdersButton = (user_id) => {
                 </ul>
             </form>
         </div>)}
+        {productsPop && <h2 style={{marginLeft:"60px"}}>Брой продукти отговарящи на търсенето: {count} </h2>}
+        {usersListPop && <h2 style={{marginLeft:"60px"}}>Брой потребители отговарящи на търсенето: {usersCount.count} </h2>}
+        {ordersPop && <h2 style={{marginLeft:"60px"}}>Брой поръчки отговарящи на търсенето: {ordersCount.count} </h2>}
             {productsPop&& !ordersPop && !userOrdersPop && !usersListPop&& products&&
             (<div className="product-list">
                 <table className="table">

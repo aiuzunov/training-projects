@@ -141,7 +141,7 @@ function BackOfficeStats(props){
       console.log(bestSellersPop,soldProductsPop)
 
     },[monthId,props.bestSellers,props.soldProducts,props.registeredUsers,props.income,toDate,fromDate,groupBy]);
-    console.log(regUsers)
+    console.log(bestSellers)
     return(
       <div>
 
@@ -149,7 +149,7 @@ function BackOfficeStats(props){
           {incomeListPop ?
           <h2> Приходи от поръчки</h2> : soldProductsPop ?
           <h2> Общ брой продадени продукти</h2> : registeredUsersPop ?
-          <h2> Общ брой регистрации</h2> : <h2>Продадени Продукти</h2>}
+          <h2> Общ брой регистрации</h2> : bestSellersPop ? <h2>Бестселъри</h2> : <div></div>}
 
 
         </div>
@@ -315,7 +315,10 @@ function BackOfficeStats(props){
                       {groupBy=='DATE' ? <div>Дата</div> : groupBy=='MONTH' ? <div>Месец</div> : <div>Година</div>}
                       </th>
                       <th>
-                          Брой продадени продукти
+                          Име на продукта
+                      </th>
+                      <th>
+                          Брой продажби
                       </th>
 
 
@@ -334,7 +337,10 @@ function BackOfficeStats(props){
                        )): groupBy == "YEAR" ? sp.date : sp.substring}
                       </td>
                       <td>
-                           {sp.sum}
+                           {sp.name}
+                      </td>
+                      <td>
+                           {sp.total}
                       </td>
                   </tr>
                   ))}

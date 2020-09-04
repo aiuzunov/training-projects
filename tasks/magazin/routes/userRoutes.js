@@ -246,9 +246,13 @@ router.get("/info",async(req,res) => {
 
 router.get("/count", async (req, res) => {
     try {
-      const usersCount = await pool.query(
-        "SELECT COUNT(*) FROM users");
-      res.json(usersCount.rows[0]);
+      pool.connect((err, client, done) => {
+     if (err) throw err;
+     const query = new QueryStream('SELECT COUNT(*) FROM users')
+     const stream = client.query(query)
+     stream.on('end', done)
+     stream.pipe(JSONStream.stringify()).pipe(res)
+   })
     } catch (err) {
       console.error(err.message);
     }
