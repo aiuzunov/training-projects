@@ -181,6 +181,21 @@ function BackOfficeStats(props){
 
 
       {incomeListPop ? <div className="product-list">
+        <div style={{marginLeft:"60px"}}>
+        <ExcelFile element={<button>Експортирай данните</button>}>
+               <ExcelSheet data={incomes} name="Orders">
+                   <ExcelColumn label="Направена на" value="created"/>
+                   <ExcelColumn label="Име на потребителя" value="name"/>
+                   <ExcelColumn label="Потребителско име" value="username"/>
+                   <ExcelColumn label="Имейл на потребителя" value="email"/>
+                   <ExcelColumn label="Адрес за доставка" value="address"/>
+                   <ExcelColumn label="Обща сума на поръчката" value="price"/>
+                   <ExcelColumn label="Валута" value="currency"/>
+                   <ExcelColumn label="Статус на поръчката" value="order_status"/>
+                   <ExcelColumn label="Продукти" value="string_agg"/>
+               </ExcelSheet>
+           </ExcelFile>
+         </div>
           <table className="table">
               <thead>
                   <tr>
