@@ -134,10 +134,12 @@ function BackOfficeStats(props){
       dispatch(listIncomes({from,to}));
     //dispatch(listSoldProducts({from,to}));
      dispatch(listRegisteredUsers({from,to}));
+
     //  dispatch(listBestSellers({from,to}));
 
     },[monthId,props.registeredUsers,props.income,toDate,fromDate]);
-    console.log(bestSellers)
+    console.log(incomes.reduce((a,c)=>a + Number(c.price),0))
+
     return(
       <div>
 
@@ -259,7 +261,51 @@ function BackOfficeStats(props){
 
                   </tr>
                   ))}
-              </tbody>
+                </tbody>
+                <thead>
+                    <tr>
+                        <th>
+                        </th>
+                        <th>
+                        </th>
+                        <th>
+                        </th>
+                        <th>
+                        </th>
+                        <th>
+                        </th>
+                        <th>
+                         Общo
+                        </th>
+                        <th>
+                        </th>
+                        <th>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                    </td>
+                    <td>
+                    </td>
+                    <td>
+                    </td>
+                    <td>
+                    </td>
+                    <td>
+                    </td>
+                    <td align="right">
+                        {incomes.reduce((a,c)=>a + Number(c.price),0)} EUR
+                    </td>
+
+                    <td>
+                    </td>
+                    <td>
+                    </td>
+                  </tr>
+                </tbody>
+
           </table>
       </div>: <div>  </div>}
       {registeredUsersPop ? <div className="product-list">
