@@ -14,6 +14,7 @@ import {
   KeyboardTimePicker,
   KeyboardDatePicker,
 } from '@material-ui/pickers';
+import ReactExport from "react-export-excel";
 
 const theme = createMuiTheme({
     palette: {
@@ -43,8 +44,9 @@ function BackOfficeStats(props){
     const regUsersList = useSelector((state) => state.regUsersList);
     const { regUsers , loading: regUsersLoading, error:regUsersError } = regUsersList;
     const dispatch = useDispatch();
-    const [groupBy, setGroupBy] = useState('DATE');
-
+    const ExcelFile = ReactExport.ExcelFile;
+    const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
+    const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
     const [fromDate, setFromDate] =  React.useState(new Date('2014-08-18T21:11:54'));
     const [toDate, setToDate] =  React.useState(new Date('2021-08-18T21:11:54'));
     const handleFromDateChange = (date) => {
@@ -122,9 +124,6 @@ function BackOfficeStats(props){
   const handleMonthChange = (event) => {
     setMonthId(event.target.value);
   };
-  const updateGroupBy = e => {
-    setGroupBy(e.target.value);
-  }
 
 
     useEffect(() => {
@@ -132,24 +131,20 @@ function BackOfficeStats(props){
       var to = toDate.toLocaleString('en-GB', { timeZone: 'UTC' });
       setIncomeListPop(props.income);
       setRegisteredUsersPop(props.registeredUsers);
-      setSoldProductsPop(props.soldProducts);
-      setBestSellersPop(props.bestSellers);
-      dispatch(listIncomes({monthId,from,to,groupBy}));
-      dispatch(listSoldProducts({monthId,from,to,groupBy}));
-      dispatch(listRegisteredUsers({monthId,from,to,groupBy}));
-      dispatch(listBestSellers({monthId,from,to,groupBy}));
-      console.log(bestSellersPop,soldProductsPop)
+      dispatch(listIncomes({from,to}));
+    //dispatch(listSoldProducts({from,to}));
+     dispatch(listRegisteredUsers({from,to}));
+    //  dispatch(listBestSellers({from,to}));
 
-    },[monthId,props.bestSellers,props.soldProducts,props.registeredUsers,props.income,toDate,fromDate,groupBy]);
+    },[monthId,props.registeredUsers,props.income,toDate,fromDate]);
     console.log(bestSellers)
     return(
       <div>
 
         <div style={{marginLeft:"80px"}}>
           {incomeListPop ?
-          <h2> Приходи от поръчки</h2> : soldProductsPop ?
-          <h2> Общ брой продадени продукти</h2> : registeredUsersPop ?
-          <h2> Общ брой регистрации</h2> : bestSellersPop ? <h2>Бестселъри</h2> : <div></div>}
+          <h2> Справка за поръчки</h2> : registeredUsersPop ?
+          <h2> Справка за потребители</h2> : <div></div>}
 
 
         </div>
@@ -181,175 +176,134 @@ function BackOfficeStats(props){
               'aria-label': 'change date',
             }}
           />
-          <Select
-        value={groupBy}
-        onChange={updateGroupBy}
-        displayEmpty
-        inputProps={{ 'aria-label': 'Without label' }}
-      >
-          {groupByOptions.map(tag => (
-             <MenuItem key={tag.id} value={tag.name}>{tag.show}</MenuItem>
-
-          ))}
-      </Select>
         </Grid>
       </MuiPickersUtilsProvider></div>:<div></div>}
 
 
       {incomeListPop ? <div className="product-list">
-
           <table className="table">
               <thead>
                   <tr>
                       <th>
-                      {groupBy=='DATE' ? <div>Дата</div> : groupBy=='MONTH' ? <div>Месец</div> : <div>Година</div>}
-
+                       Направена на
                       </th>
                       <th>
-                          Приходи
+                        Име на потребителя
+                      </th>
+                      <th>
+                        Потребителско име
+                      </th>
+                      <th>
+                        Имейл на потребителя
+                      </th>
+                      <th>
+                        Адрес за доставка
+                      </th>
+                      <th>
+                       Обща сума на поръчката
+
                       </th>
 
-
+                      <th>
+                          Статус на поръчката
+                      </th>
+                      <th>
+                          Продукти
+                      </th>
                   </tr>
               </thead>
               <tbody>
-                  {incomes.map(income => (
-                      <tr>
+                  {incomes.map(order => (
+                      <tr key={order.id}>
                       <td>
-                      {groupBy=='MONTH' ? months.map(month => (
-
-                         month.id == income.date ? <div>
-                             {month.id} ({month.name})
-                         </div> : <div></div>
-
-                       )):income.date}
+                      {(order.created).split("T").join(" ").slice(0,-5)}
                       </td>
                       <td>
-                           {income.sum} EUR
-                      </td>
-                  </tr>
-                  ))}
-
-
-
-              </tbody>
-          </table>
-      </div> : <div></div>}
-      {soldProductsPop ? <div className="product-list">
-          <table className="table">
-              <thead>
-                  <tr>
-                      <th>
-                      {groupBy=='DATE' ? <div>Дата</div> : groupBy=='MONTH' ? <div>Месец</div> : <div>Година</div>}
-                      </th>
-                      <th>
-                          Брой продадени продукти
-                      </th>
-
-
-                  </tr>
-              </thead>
-              <tbody>
-                  {soldProducts.map(sp => (
-                      <tr>
-                      <td>
-                      {groupBy=='MONTH' ? months.map(month => (
-
-                         month.id == sp.date ? <div>
-                             {month.id} ({month.name})
-                         </div> : <div></div>
-
-                       )):sp.date}
+                        {order.name}
                       </td>
                       <td>
-                           {sp.sales}
+                        {order.username}
                       </td>
+                      <td>
+                        {order.email}
+                      </td>
+                      <td>
+                        {order.address}
+                      </td>
+                      <td align="right">
+                          {order.price} {order.currency}
+                      </td>
+
+                      <td>
+                      {order.order_status}
+                      </td>
+                      <td>
+                        {order.string_agg}
+                      </td>
+
+
                   </tr>
                   ))}
-
-
-
               </tbody>
           </table>
-      </div> : <div></div>}
+      </div>: <div>  </div>}
       {registeredUsersPop ? <div className="product-list">
+        <div style={{marginLeft:"60px"}}>
+        <ExcelFile element={<button>Експортирай данните</button>}>
+               <ExcelSheet data={regUsers} name="Users">
+                   <ExcelColumn label="Дата на регистрация" value="create_date"/>
+                   <ExcelColumn label="Име" value="name"/>
+                   <ExcelColumn label="Потребителско име" value="username"/>
+                   <ExcelColumn label="Имейл" value="email"/>
+                   <ExcelColumn label="Потвърден" value={(col) => col.verified=='true' ? "Да" : "Не"}/>
+               </ExcelSheet>
+           </ExcelFile>
+         </div>
           <table className="table">
               <thead>
-                  <tr>
-                      <th>
-                          {groupBy=='DATE' ? <div>Дата</div> : groupBy=='MONTH' ? <div>Месец</div> : <div>Година</div>}
-                      </th>
-                      <th>
-                          Регистрирали се потребители
-                      </th>
+                <tr>
+                    <th>
+                        Дата на регистрация
+                    </th>
+                    <th>
+                        Име
+                    </th>
 
-
-                  </tr>
+                    <th>
+                        Потребителско име
+                    </th>
+                    <th>
+                        E-mail
+                    </th>
+                    <th>
+                      Потвърден
+                    </th>
+                </tr>
               </thead>
               <tbody>
-                  {regUsers.map(user => (
-                      <tr>
-                      <td>
-                      {groupBy=='MONTH' ? months.map(month => (
-
-                         month.id == user.date ? <div>
-                             {month.id} ({month.name})
-                         </div> : <div></div>
-
-                       )):user.date}
-
-                      </td>
-                      <td>
-                          {user.count}
-                      </td>
-                  </tr>
-                  ))}
+                {regUsers.map(user => (
+                    <tr key={user.id}>
+                    <td>
+                        {(user.create_date).split("T").join(" ").slice(0,-5)}
+                    </td>
+                    <td>
+                         {user.name}
+                    </td>
+                    <td>
+                         {user.username}
+                    </td>
+                    <td>
+                         {user.email}
+                    </td>
+                    <td>
+                      {(user.verified).toString()=='true' ? <div>Да</div> : <div>Не</div>}
+                    </td>
+                </tr>
+                ))}
               </tbody>
           </table>
       </div>: <div></div>}
-      {bestSellersPop ? <div className="product-list">
-          <table className="table">
-              <thead>
-                  <tr>
-                      <th>
-                      {groupBy=='DATE' ? <div>Дата</div> : groupBy=='MONTH' ? <div>Месец</div> : <div>Година</div>}
-                      </th>
-                      <th>
-                          Име на продукта
-                      </th>
-                      <th>
-                          Брой продажби
-                      </th>
 
-
-                  </tr>
-              </thead>
-              <tbody>
-                  {bestSellers.map(sp => (
-                      <tr>
-                      <td>
-                      {groupBy=='MONTH' ? months.map(month => (
-
-                         month.id == sp.date ? <div>
-                             {month.id} ({month.name})
-                         </div> : <div></div>
-
-                       )): groupBy == "YEAR" ? sp.date : sp.substring}
-                      </td>
-                      <td>
-                           {sp.name}
-                      </td>
-                      <td>
-                           {sp.total}
-                      </td>
-                  </tr>
-                  ))}
-
-
-
-              </tbody>
-          </table>
-      </div> : <div></div>}
       </div>
     );
 }

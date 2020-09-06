@@ -7,25 +7,40 @@ const JSONStream = require('JSONStream')
 
 router.post("/monthlyIncome", async (req, res) => {
     try {
-        const {monthId,from,to,groupBy} = req.body;
-        var fromdate = from.split(",");
-        var todate = to.split(",");
-        var query = '';
-        var testArray = [fromdate,todate];
-        switch(groupBy){
-          case 'DATE':
-            query += "SELECT substring(CAST(created AS TEXT) from 0 for 11) AS DATE, SUM(price) from orders where DATE(created)>=$1 and DATE(created)<=$2 GROUP BY DATE ORDER BY DATE ASC";
-            break;
-          case 'MONTH':
-            query += "SELECT EXTRACT(MONTH from created) AS DATE, SUM(price) from orders where DATE(created)>=$1 and DATE(created)<=$2 GROUP BY DATE ORDER BY DATE ASC";
-            break;
-          case 'YEAR':
-            query+= "SELECT EXTRACT(YEAR from created) AS DATE, SUM(price) from orders where DATE(created)>=$1 and DATE(created)<=$2 GROUP BY DATE ORDER BY DATE ASC";
-            break;
-          default:
-            break;
+      const Filters = req.body;
+      var testfilters = Filters;
+      var testArray= [];
+      var query = "select * from (SELECT t.*,users.name,users.email,users.username,addresses.address,string_agg(products.name, ', '), count(*) OVER (ORDER BY t.id) as rownum FROM orders as t join users on t.user_id = users.id join order_items on order_items.order_id = t.id join products on order_items.product_id = products.id join addresses on addresses.id = t.address_id WHERE 1=1";
+      const entries = Object.entries(testfilters);
+      var i =0;
+      for (const [key, value] of entries) {
+        if(key!='filter'&&value!=''&&key!=''&&key!='currentPage'){
+          if(key=='from'){
+            ++i;
+            query = query + ` AND DATE(created)>=$${i}`
+            testArray.push(testfilters.from);
+
+          }
+          else if(key=='to'){
+            ++i;
+            testArray.push(testfilters.to);
+            query = query + ` AND DATE(created)<=$${i}`
+          }
+          else if(key=='statusFilter'){
+            ++i;
+            testArray.push(testfilters.statusFilter);
+            query += ` AND order_status=$${i}`
+          }
+          else{
+          ++i;
+          query = query + ` AND ${key}=$${i}`;
+          testArray.push(value)
         }
-        pool.connect((err, client, done) => {
+        }
+      }
+      query+=` group by t.id,users.name,users.email,users.username,addresses.address)d`
+      console.log("Orders query:",query)
+      pool.connect((err, client, done) => {
      if (err) throw err;
      const data = new QueryStream(query,testArray)
      const stream = client.query(data)
@@ -73,32 +88,56 @@ router.post("/soldProducts", async (req, res) => {
 
 router.post("/registeredUsers", async (req, res) => {
     try {
-        const {monthId,from,to,groupBy} = req.body;
-        console.log(groupBy)
-        var fromdate = from.split(",");
-        var todate = to.split(",");
-        var query = '';
-        var testArray = [fromdate,todate];
-        switch(groupBy){
-          case 'DATE':
-            query += "SELECT substring(CAST(create_date AS TEXT) from 0 for 11) AS DATE, COUNT(*) FROM users where DATE(create_date)>=$1 and DATE(create_date)<=$2 GROUP BY DATE ORDER BY DATE ASC";
-            break;
-          case 'MONTH':
-            query += "SELECT EXTRACT(MONTH from create_date) AS DATE, COUNT(*) FROM users where DATE(create_date)>=$1 and DATE(create_date)<=$2 GROUP BY DATE ORDER BY DATE ASC";
-            break;
-          case 'YEAR':
-            query += "SELECT EXTRACT(YEAR from create_date) AS DATE, COUNT(*) FROM users where DATE(create_date)>=$1 and DATE(create_date)<=$2 GROUP BY DATE ORDER BY DATE ASC";
-            break;
-          default:
-            break;
+      console.log(req.body)
+      const Filters = req.body;
+      var testfilters = Filters;
+      var testArray= [];
+      var query = 'select * from (SELECT t.*,name, count(*) OVER (ORDER BY t.id) as rownum FROM users as t WHERE 1=1';
+      const entries = Object.entries(testfilters);
+      var i =0;
+      for (const [key, value] of entries) {
+        if(key!='filter'&&value!=''&&key!=''&&key!='currentPage'){
+          if(key=='verifiedFilter'){
+            ++i;
+            testArray.push(testfilters.verifiedFilter);
+            query += ` AND verified=$${i}`
+          }
+          else if(key=='usernameFilter'){
+            ++i;
+            testArray.push(testfilters.usernameFilter);
+            query += ` AND LOWER(username) LIKE concat('%',LOWER($${i}),'%')`;
+          }
+          else if(key=='emailFilter'){
+            ++i;
+            testArray.push(testfilters.emailFilter);
+            query += ` AND LOWER(email) LIKE concat('%',LOWER($${i}),'%')`;
+          }
+          else if(key=='from'){
+            ++i;
+            query = query + ` AND DATE(create_date)>=$${i}`
+            testArray.push(testfilters.from);
+
+          }
+          else if(key=='to'){
+            ++i;
+            testArray.push(testfilters.to);
+            query = query + ` AND DATE(create_date)<=$${i}`
+          }
+          else{
+          ++i;
+          query = query + ` AND ${key}=$${i}`;
+          testArray.push(value)
         }
+        }
+      }
+        query+=`)d`
         pool.connect((err, client, done) => {
-     if (err) throw err;
-     const data = new QueryStream(query,testArray)
-     const stream = client.query(data)
-     stream.on('end', done)
-     stream.pipe(JSONStream.stringify()).pipe(res)
-   })
+       if (err) throw err;
+       const data = new QueryStream(query,testArray)
+       const stream = client.query(data)
+       stream.on('end', done)
+       stream.pipe(JSONStream.stringify()).pipe(res)
+     })
     } catch (err) {
         console.log(err.message)
         res.status(500).send({msg: 'Възникна проблем при взимането на информацията за брой регистрирани потребтиели.'});

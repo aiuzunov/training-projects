@@ -368,9 +368,7 @@ const submitStatusChange = (e) => {
     }
     const handleSelectInterface = (key) => {
       setIncomeListPop(0);
-      setSoldProductsPop(0);
       setRegisteredUsersPop(0);
-      setBestSellersPop(0);
       switch (key.text) {
         case 'Продукти':
           setProductsPop(1);
@@ -400,29 +398,17 @@ const submitStatusChange = (e) => {
       setOrdersPop(0);
       setOrderPop(0);
       switch (key.text) {
-        case 'Приходи':
+        case 'Поръчки':
           setIncomeListPop(1);
           setSoldProductsPop(0);
           setRegisteredUsersPop(0);
           setBestSellersPop(0);
           break;
-        case 'Нови потребители':
+        case 'Потребители':
           setIncomeListPop(0);
           setSoldProductsPop(0);
           setRegisteredUsersPop(1);
           setBestSellersPop(0);
-          break;
-        case 'Брой продадени продукти':
-          setIncomeListPop(0);
-          setSoldProductsPop(1);
-          setRegisteredUsersPop(0);
-          setBestSellersPop(0);
-          break;
-        case 'Бестселъри':
-          setIncomeListPop(0);
-          setSoldProductsPop(0);
-          setRegisteredUsersPop(0);
-          setBestSellersPop(1);
           break;
         default:
 
@@ -531,9 +517,9 @@ const handleUserOrdersButton = (user_id) => {
            <ListItem>
              <ListItemText inset="true">Справки</ListItemText>
            </ListItem>
-           {['Приходи', 'Нови потребители','Брой продадени продукти','Бестселъри'].map((text, index) => (
+           {['Поръчки', 'Потребители'].map((text, index) => (
              <ListItem onClick={() => handleSelectStat({text})} button key={text}>
-               <ListItemIcon>{index == 0 ? <MonetizationOnIcon/> : index == 1 ? <PersonAddIcon /> : index == 2 ? <AddShoppingCartIcon/> : <AddShoppingCartIcon/>}</ListItemIcon>
+               <ListItemIcon>{index == 0 ? <MonetizationOnIcon/> : <PersonAddIcon /> }</ListItemIcon>
                <ListItemText primary={text} />
              </ListItem>
            ))}
