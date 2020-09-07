@@ -39,7 +39,6 @@ router.post("/monthlyIncome", async (req, res) => {
         }
       }
       query+=` group by t.id,users.name,users.email,users.username,addresses.address)d`
-      console.log("Orders query:",query)
       pool.connect((err, client, done) => {
      if (err) throw err;
      const data = new QueryStream(query,testArray)

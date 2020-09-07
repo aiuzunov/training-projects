@@ -218,6 +218,8 @@ router.post("/get",async(req,res) => {
           testArray.push(indexOfFirstPost);
           testArray.push(indexOfLastPost);
           query+=`)d where rownum >=$${i+1} and rownum<=$${i+2}`
+          console.log("Orders query:",query)
+
           pool.connect((err, client, done) => {
          if (err) throw err;
          const data = new QueryStream(query,testArray)

@@ -1,4 +1,4 @@
-import { EMPLOYEE_SIGNIN_FAIL, EMPLOYEE_SIGNIN_SUCCESS, EMPLOYEE_SIGNIN_REQUEST, EMPLOYEE_SIGNUP_REQUEST, EMPLOYEE_SIGNUP_SUCCESS, EMPLOYEE_SIGNUP_FAIL } from "../constants/employeeConstants";
+import {EMPLOYEE_LIST_FAIL,EMPLOYEE_LIST_REQUEST,EMPLOYEE_LIST_SUCCESS, EMPLOYEE_SIGNIN_FAIL, EMPLOYEE_SIGNIN_SUCCESS, EMPLOYEE_SIGNIN_REQUEST, EMPLOYEE_SIGNUP_REQUEST, EMPLOYEE_SIGNUP_SUCCESS, EMPLOYEE_SIGNUP_FAIL } from "../constants/employeeConstants";
 
 function employeeSignInReducer(state = {}, action) {
     switch (action.type) {
@@ -25,5 +25,18 @@ function employeeSignInReducer(state = {}, action) {
     }
   }
 
+  function employeeListReducer(state = { employees: [] }, action) {
+    switch (action.type) {
+      case EMPLOYEE_LIST_REQUEST:
+        return { loading: true, employees: [] };
+      case EMPLOYEE_LIST_SUCCESS:
+        return { loading: false, employees: action.payload };
+      case EMPLOYEE_LIST_FAIL:
+        return { loading: false, error: action.payload };
+      default:
+        return state;
+    }
+  }
 
-  export {employeeSignInReducer,employeeSignUpReducer}
+
+  export {employeeListReducer,employeeSignInReducer,employeeSignUpReducer}

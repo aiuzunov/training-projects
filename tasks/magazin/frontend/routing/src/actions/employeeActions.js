@@ -1,5 +1,5 @@
 import Cookie from 'js-cookie';
-import { EMPLOYEE_SIGNIN_FAIL, EMPLOYEE_SIGNIN_SUCCESS, EMPLOYEE_SIGNIN_REQUEST, EMPLOYEE_SIGNUP_REQUEST, EMPLOYEE_SIGNUP_SUCCESS, EMPLOYEE_SIGNUP_FAIL } from '../constants/employeeConstants';
+import {EMPLOYEE_LIST_FAIL,EMPLOYEE_LIST_REQUEST,EMPLOYEE_LIST_SUCCESS, EMPLOYEE_SIGNIN_FAIL, EMPLOYEE_SIGNIN_SUCCESS, EMPLOYEE_SIGNIN_REQUEST, EMPLOYEE_SIGNUP_REQUEST, EMPLOYEE_SIGNUP_SUCCESS, EMPLOYEE_SIGNUP_FAIL } from '../constants/employeeConstants';
 import Axios from 'axios';
 
 const employeeSign = (email,password) => async (dispatch) => {
@@ -14,6 +14,16 @@ const employeeSign = (email,password) => async (dispatch) => {
 }
 
 
+const listEmployees = (filterObject) => async (dispatch) => {
+    try {
+        dispatch({ type: EMPLOYEE_LIST_REQUEST });
+        const { data } = await Axios.post(`/employees/get`,filterObject);
+        dispatch({ type: EMPLOYEE_LIST_SUCCESS, payload: data });
+      } catch (error) {
+        dispatch({ type: EMPLOYEE_LIST_FAIL, payload: error.message });
+      }
+};
+
 const employeeSignUp = (name,username,email,password) => async (dispatch) => {
     dispatch({type: EMPLOYEE_SIGNUP_REQUEST,payload:{name,username,email,password}});
     try {
@@ -24,4 +34,4 @@ const employeeSignUp = (name,username,email,password) => async (dispatch) => {
     }
 }
 
-export {employeeSign,employeeSignUp}
+export {employeeSign,employeeSignUp,listEmployees}

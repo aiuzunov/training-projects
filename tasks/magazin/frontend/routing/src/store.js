@@ -6,7 +6,7 @@ import Cookie from 'js-cookie';
 import { userSignInReducer,userGetReducer, userSignUpReducer, userLogoutReducer, userListReducer } from './reducer/userReducers';
 import { tagListReducer } from './reducer/tagsReducers';
 import { ptListReducer } from './reducer/ptReducers';
-import { employeeSignInReducer, employeeSignUpReducer } from './reducer/employeeReducers';
+import { employeeListReducer,employeeSignInReducer, employeeSignUpReducer } from './reducer/employeeReducers';
 import { addressListReducer, addressSaveReducer, singleAddressListReducer } from './reducer/addressReducers';
 import {orderUpdateReducer, orderSaveReducer, orderListReducer, orderItemsListReducer, getOrderReducer } from './reducer/orderReducers';
 import { getPaymentReducer } from './reducer/paymentReducers';
@@ -47,6 +47,7 @@ const reducer = combineReducers({
     userGetInfo: userGetReducer,
     updateStatus: orderUpdateReducer,
     bestSellersList: bestSellersListReducer,
+    employeesList: employeeListReducer,
 })
 
 const composeEnhancer = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
