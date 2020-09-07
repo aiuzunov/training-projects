@@ -62,7 +62,7 @@ router.post("/listall",async(req,res) => {
         const indexOfLastPost = Filters.currentPage * 9;
         const indexOfFirstPost = indexOfLastPost - 9;
         var testArray= [];
-        var query = 'select * from (SELECT t.*, count(*) OVER (ORDER BY t.id) as rownum FROM orders as t WHERE 1=1';
+        var query = "select * from (SELECT t.*,users.name,users.email,users.username,addresses.address,string_agg(products.name, ', '), count(*) OVER (ORDER BY t.id) as rownum FROM orders as t join users on t.user_id = users.id join order_items on order_items.order_id = t.id join products on order_items.product_id = products.id join addresses on addresses.id = t.address_id WHERE 1=1";
         const entries = Object.entries(testfilters);
         var i =0;
         for (const [key, value] of entries) {
@@ -92,7 +92,7 @@ router.post("/listall",async(req,res) => {
         }
         testArray.push(indexOfFirstPost);
         testArray.push(indexOfLastPost);
-        query+=`)d where rownum >=$${i+1} and rownum<=$${i+2}`
+        query+=` group by t.id,users.name,users.email,users.username,addresses.address)d where rownum >=$${i+1} and rownum<=$${i+2}`
         pool.connect((err, client, done) => {
        if (err) throw err;
        const data = new QueryStream(query,testArray)

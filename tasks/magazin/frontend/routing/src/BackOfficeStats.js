@@ -184,7 +184,7 @@ function BackOfficeStats(props){
 
       {incomeListPop ? <div className="product-list">
         <div style={{marginLeft:"60px"}}>
-        <ExcelFile element={<button>Експортирай данните</button>}>
+        <ExcelFile element={<button style={{marginTop:"10px"}}>Експортирай данните</button>}>
                <ExcelSheet data={incomes} name="Orders">
                    <ExcelColumn label="Направена на" value="created"/>
                    <ExcelColumn label="Име на потребителя" value="name"/>
@@ -197,6 +197,7 @@ function BackOfficeStats(props){
                    <ExcelColumn label="Продукти" value="string_agg"/>
                </ExcelSheet>
            </ExcelFile>
+           <h3 style={{marginTop:"10px"}}>Брой поръчки отговарящи на търсенето: {incomes.length}</h3>
          </div>
           <table className="table">
               <thead>
@@ -310,7 +311,7 @@ function BackOfficeStats(props){
       </div>: <div>  </div>}
       {registeredUsersPop ? <div className="product-list">
         <div style={{marginLeft:"60px"}}>
-        <ExcelFile element={<button>Експортирай данните</button>}>
+        <ExcelFile element={<button style={{marginTop:"10px"}}>Експортирай данните</button>}>
                <ExcelSheet data={regUsers} name="Users">
                    <ExcelColumn label="Дата на регистрация" value="create_date"/>
                    <ExcelColumn label="Име" value="name"/>
@@ -319,6 +320,7 @@ function BackOfficeStats(props){
                    <ExcelColumn label="Потвърден" value={(col) => col.verified=='true' ? "Да" : "Не"}/>
                </ExcelSheet>
            </ExcelFile>
+           <h3 style={{marginTop:"10px"}}>Брой потребители отговарящи на търсенето: {regUsers.length}</h3>
          </div>
           <table className="table">
               <thead>

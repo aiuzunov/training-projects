@@ -932,17 +932,32 @@ const handleUserOrdersButton = (user_id) => {
                 <table className="table">
                     <thead>
                         <tr>
-                            <th>
-                             Направена на
-                            </th>
-                            <th>
-                             Обща сума на поръчката
+                          <th>
+                           Направена на
+                          </th>
+                          <th>
+                            Име на потребителя
+                          </th>
+                          <th>
+                            Потребителско име
+                          </th>
+                          <th>
+                            Имейл на потребителя
+                          </th>
+                          <th>
+                            Адрес за доставка
+                          </th>
+                          <th>
+                           Обща сума на поръчката
 
-                            </th>
+                          </th>
 
-                            <th>
-                                Статус на поръчката
-                            </th>
+                          <th>
+                              Статус на поръчката
+                          </th>
+                          <th>
+                              Продукти
+                          </th>
                             <th>
                                Допълнителна информация за поръчката
                             </th>
@@ -951,15 +966,31 @@ const handleUserOrdersButton = (user_id) => {
                     <tbody>
                         {orders.map(order => (
                             <tr key={order.id}>
-                            <td>
-                            {(order.created).split("T").join(" ").slice(0,-5)}
-                            </td>
-                            <td align="right">
-                              {order.price} {order.currency}
-                            </td>
-                            <td>
+                              <td>
+                              {(order.created).split("T").join(" ").slice(0,-5)}
+                              </td>
+                              <td>
+                                {order.name}
+                              </td>
+                              <td>
+                                {order.username}
+                              </td>
+                              <td>
+                                {order.email}
+                              </td>
+                              <td>
+                                {order.address}
+                              </td>
+                              <td align="right">
+                                  {order.price} {order.currency}
+                              </td>
+
+                              <td>
                               {order.order_status}
-                            </td>
+                              </td>
+                              <td>
+                                {order.string_agg}
+                              </td>
                             <th>
                             <Link to={"/order/" + order.id}>
                             <Button
@@ -987,36 +1018,65 @@ const handleUserOrdersButton = (user_id) => {
                 <table className="table">
                     <thead>
                         <tr>
-                            <th>
-                             Направена на
-                            </th>
-                            <th>
-                             Обща сума на поръчката
+                          <th>
+                           Направена на
+                          </th>
+                          <th>
+                            Име на потребителя
+                          </th>
+                          <th>
+                            Потребителско име
+                          </th>
+                          <th>
+                            Имейл на потребителя
+                          </th>
+                          <th>
+                            Адрес за доставка
+                          </th>
+                          <th>
+                           Обща сума на поръчката
 
-                            </th>
+                          </th>
 
-                            <th>
-                                Статус на поръчката
-                            </th>
-                            <th>
-                                Продукти
-                            </th>
+                          <th>
+                              Статус на поръчката
+                          </th>
+                          <th>
+                              Продукти
+                          </th>
+                          <th>
+                            Допълнителна информация
+                          </th>
                         </tr>
                     </thead>
                     <tbody>
                         {orders.map(order => (
                             <tr key={order.id}>
-                            <td>
-                            {(order.created).split("T").join(" ").slice(0,-5)}
-                            </td>
-                            <td align="right">
-                                {order.price} {order.currency}
-                            </td>
+                              <td>
+                              {(order.created).split("T").join(" ").slice(0,-5)}
+                              </td>
+                              <td>
+                                {order.name}
+                              </td>
+                              <td>
+                                {order.username}
+                              </td>
+                              <td>
+                                {order.email}
+                              </td>
+                              <td>
+                                {order.address}
+                              </td>
+                              <td align="right">
+                                  {order.price} {order.currency}
+                              </td>
 
-                            <td>
-                            {order.order_status}
-                            </td>
-
+                              <td>
+                              {order.order_status}
+                              </td>
+                              <td>
+                                {order.string_agg}
+                              </td>
                             <th>
                             <Link to={"/order/" + order.id}>
                             <Button
@@ -1027,16 +1087,6 @@ const handleUserOrdersButton = (user_id) => {
                                 Детайли за поръчката
                             </Button>
                             </Link>
-                            <Button
-                                style = {{marginLeft:"20px"}}
-                                variant="contained"
-                                size="large"
-                                color="secondary"
-                                onClick={() => openStatusChangeBox({order})}
-                                endIcon={<EditIcon/>}>
-                                Статус
-                            </Button>
-
 
                             </th>
                         </tr>
