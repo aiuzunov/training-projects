@@ -7,13 +7,13 @@ import { signin, signup } from './actions/userActions';
 import { Button, Typography } from '@material-ui/core';
 import NavBar from './NavBar';
 import Cookie from 'js-cookie';
-import { employeeSignUp } from './actions/employeeActions';
+import { employeesSignUp } from './actions/employeeActions';
 
 
 
 
 
-function EmpSignUpScreen() {    
+function EmpSignUpScreen() {
     const [name,setName] = useState('');
     const [username,setUsername] = useState('');
     const [email,setEmail] = useState('');
@@ -28,30 +28,30 @@ function EmpSignUpScreen() {
 
         if(loading==false&&error==undefined){
             setTimeout(
-                () => window.location = "/manageproducts", 
+                () => window.location = "/manageproducts",
                 10000
               );
         }
-    
-        
-        
-    },[userInfo,loading]);
- 
 
-    
+
+
+    },[userInfo,loading]);
+
+
+
 
    const submitInfo = (e) => {
        if(password==password2){
         e.preventDefault();
-        dispatch(employeeSignUp(name,username,email,password))
+        dispatch(employeesSignUp(name,username,email,password))
 
        }else{
            alert("Passwords must match")
        }
-       
-       
+
+
    };
- 
+
     return(
         <div>
             <NavBar/>
@@ -96,7 +96,7 @@ function EmpSignUpScreen() {
                         <input required type="password" name="password2" id="password2" onChange={(e) => setPassword2(e.target.value)}/>
                     </li>
                     <li>
-                    <Button 
+                    <Button
                     type="submit"
                     variant="contained"
                     color="primary"
@@ -105,10 +105,10 @@ function EmpSignUpScreen() {
                         Регистрация
                      </Button>
                     </li>
-                    Вече имаш акаунт? 
+                    Вече имаш акаунт?
 
                     <li>
-                    <Button 
+                    <Button
                     size="large"
                     href="/signin"
                     variant="contained"
@@ -116,14 +116,14 @@ function EmpSignUpScreen() {
                     >
                         Влез в твоя акаунт
                      </Button>
-                     
+
                     </li>
                 </ul>
             </form>
         </div>
-        
+
         </div>
-       
+
     );
 }
 

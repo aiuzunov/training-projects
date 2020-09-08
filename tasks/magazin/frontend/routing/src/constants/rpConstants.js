@@ -1,0 +1,7 @@
+export const RP_LIST_REQUEST = 'RP_LIST_REQUEST';
+export const RP_LIST_SUCCESS = 'RP_LIST_SUCCESS';
+export const RP_LIST_FAIL = 'RP_LIST_FAIL';
+
+export const RP_UPDATE_REQUEST = 'RP_UPDATE_REQUEST';
+export const RP_UPDATE_SUCCESS = 'RP_UPDATE_SUCCESS';
+export const RP_UPDATE_FAIL = 'RP_UPDATE_FAIL';

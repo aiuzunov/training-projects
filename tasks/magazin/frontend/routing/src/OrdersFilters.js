@@ -107,7 +107,6 @@ export default function OrdersFilters(props) {
       />
     </Grid>
   </MuiPickersUtilsProvider>
-  <Button form="filterForm" style={{marginLeft:'10px'}} variant="contained" color="primary" type="submit">Филтрирай</Button>
 
   </form>
 </div>

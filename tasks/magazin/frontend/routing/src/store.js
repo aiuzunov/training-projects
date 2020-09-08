@@ -5,8 +5,9 @@ import { cartReducer, CartItemSaveReducer, CartItemDeleteReducer } from './reduc
 import Cookie from 'js-cookie';
 import { userSignInReducer,userGetReducer, userSignUpReducer, userLogoutReducer, userListReducer } from './reducer/userReducers';
 import { tagListReducer } from './reducer/tagsReducers';
+import { rpUpdateReducer,rpListReducer } from './reducer/rpReducers';
 import { ptListReducer } from './reducer/ptReducers';
-import { employeeListReducer,employeeSignInReducer, employeeSignUpReducer } from './reducer/employeeReducers';
+import {roleUpdateReducer,employeeListReducer,employeeSignInReducer, employeeSignUpReducer } from './reducer/employeeReducers';
 import { addressListReducer, addressSaveReducer, singleAddressListReducer } from './reducer/addressReducers';
 import {orderUpdateReducer, orderSaveReducer, orderListReducer, orderItemsListReducer, getOrderReducer } from './reducer/orderReducers';
 import { getPaymentReducer } from './reducer/paymentReducers';
@@ -28,6 +29,7 @@ const reducer = combineReducers({
     productDelete: productDeleteReducer,
     tagsList: tagListReducer,
     ptList: ptListReducer,
+    rpList: rpListReducer,
     employeeSignIn: employeeSignInReducer,
     addressesList: addressListReducer,
     addressSave: addressSaveReducer,
@@ -46,6 +48,8 @@ const reducer = combineReducers({
     regUsersList: registeredUsersListReducer,
     userGetInfo: userGetReducer,
     updateStatus: orderUpdateReducer,
+    updateRole: roleUpdateReducer,
+    updatePermission: rpUpdateReducer,
     bestSellersList: bestSellersListReducer,
     employeesList: employeeListReducer,
 })

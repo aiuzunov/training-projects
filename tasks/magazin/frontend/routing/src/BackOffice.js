@@ -1,9 +1,12 @@
 import React, { useCallback } from 'react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import Cookie from 'js-cookie';
 import { useSelector, useDispatch } from 'react-redux';
 import { detailsProduct, saveProduct, listProducts, deleteProduct } from './actions/productActions';
 import { Link } from 'react-router-dom';
+import { employeesSignUp } from './actions/employeeActions';
 import { signin, listUsers, signup } from './actions/userActions';
 import { ThemeProvider } from '@material-ui/styles';
 import Pagination from '@material-ui/lab/Pagination';
@@ -24,7 +27,7 @@ import { listPT } from './actions/ptActions';
 import BackOfficeStats from './BackOfficeStats';
 import StoreIcon from '@material-ui/icons/Store';
 import { listOrders } from './actions/orderActions';
-import { listEmployees} from './actions/employeeActions';
+import { updateRole,listEmployees} from './actions/employeeActions';
 import { updateStatus} from './actions/orderActions';
 import clsx from 'clsx';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
@@ -137,7 +140,9 @@ function CRUDProducts({  match , history }) {
     const [soldProductsPop,setSoldProductsPop] = useState(0);
     const [registeredUsersPop,setRegisteredUsersPop] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
+    const [createEmployeePop,setCreateEmployeePop] = useState(0);
     const [usersListPop, setOrderPop] = useState(0);
+    const [createRoleId,setCreateRoleId] = useState(0);
     const [employeesPop,setEmployeesPop] = useState(0);
     const [statusFilter, setStatusFilter] = useState('');
     const [eUsernameFilter, setEUsernameFilter] = useState('');
@@ -177,12 +182,20 @@ function CRUDProducts({  match , history }) {
     const [newRole,setNewRole] = useState('');
     const [description,setDescription] = useState('');
     const [count_in_stock,setCountinstock] = useState('');
+    const [eFirstName,setEFirstName] = useState('');
+    const [eSecondName,setESecondName] = useState('');
+    const [eUsername,setEUsername] = useState('');
+    const [eEmail,setEEmail] = useState('');
+    const [role,setRole] = useState(0);
+    const [ePassword,setEPassword] = useState('');
     const [tag_id,setTag_id] = useState('');
     const [employeeId,setEmployeeId] = useState(0);
     const [changeRolePop,setChangeRolePop] = useState(0);
     const [orderId,setOrderId] = useState('');
     const [orderStatus,setOrderStatus] = useState('');
     const [newOrderStatus,setNewOrderStatus] = useState('');
+    const employeeSignUp = useSelector((state)=>state.employeeSignUp);
+    const {loading: loadingSaveEmployee,success: employeeSaved, error:employeeSaveError} = employeeSignUp;
     const productSave = useSelector((state)=>state.productSave);
     const {loading: loadingSave,success: productSaved, error:errorSave} = productSave;
     const productDelete = useSelector((state)=>state.productDelete);
@@ -206,6 +219,7 @@ function CRUDProducts({  match , history }) {
     const {employeeInfo, loading: employeesInfoLoading, error:employeesInfoError} = employeeSignIn;
     const [status,setStatus] = useState('');
     const dispatch = useDispatch();
+    console.log(employeeInfo)
     const statuses = [{
       id: 1,
       name: "В процес на обработка"
@@ -219,6 +233,15 @@ function CRUDProducts({  match , history }) {
       name: "Получена"
     }
   ];
+
+  const roles = [{
+    id: 1,
+    name: "viewer"
+  },
+{
+  id: 2,
+  name: "writer"
+}];
 
     const theme = useTheme();
     const [open, setOpen] = React.useState(false);
@@ -265,7 +288,11 @@ function CRUDProducts({  match , history }) {
         if(productSaved){
             setCreateProductPop(false);
         }
-    },[refreshState,productSaved,statusFilter,verifiedFilter,emailFilter,usernameFilter,pricefilter,searchfilter,tagfilter,ageFilter,cisFilter,fromDateFilter,toDateFilter,currentPage,userSignedUp]);
+        if(employeeSaved){
+            console.log(employeeSaved)
+            setCreateEmployeePop(false);
+        }
+    },[refreshState,productSaved,statusFilter,verifiedFilter,emailFilter,usernameFilter,pricefilter,searchfilter,tagfilter,ageFilter,cisFilter,fromDateFilter,eEmailFilter,eUsernameFilter,roleFilter,toDateFilter,currentPage,userSignedUp]);
     console.log(ordersCount,usersCount)
     const getCount = async () => {
 
@@ -299,6 +326,22 @@ function CRUDProducts({  match , history }) {
         setName(user.name);
         setEmail(user.email);
     }
+
+    const popCreateEmployeeMenu = (employee) => {
+        setCreateEmployeePop(true);
+        if(employee.id){
+            var names = (employee.name).split(" ");
+            console.log(names)
+            setFirstName(names[0]);
+            setSecondName(names[1]);
+        }
+
+        setUserId(employee.id);
+        setUsername(employee.username);
+        setName(employee.name);
+        setEmail(employee.email);
+    }
+
 
     const popCreateMenu = (product) => {
         if(product.id){
@@ -343,7 +386,7 @@ const submitStatusChange = (e) => {
 
 const submitRoleChange = (e) => {
   e.preventDefault();
-  dispatch(updateStatus(newRole,employeeId));
+  dispatch(updateRole(newRole,employeeId));
   setChangeRolePop(false);
   setRefreshState(!refreshState);
 };
@@ -377,6 +420,16 @@ const submitRoleChange = (e) => {
     }
     dispatch(signup(firstName+" "+secondName,username,email,password,update,userId));
 };
+
+const submitEmployeeInfo = (e) => {
+ e.preventDefault();
+ var update = 0;
+ if(employeeId){
+     update = 1;
+ }
+ dispatch(employeesSignUp(eFirstName+" "+eSecondName,eUsername,eEmail,ePassword,createRoleId,update,employeeId));
+};
+
 
 
    const deleteProductHandler = (product) => {
@@ -454,6 +507,11 @@ const submitRoleChange = (e) => {
 
       }
     }
+
+const handleLogout = () => {
+  Cookie.remove('employeeInfo');
+  window.location = "/signinemp";
+}
 
 const handleUserOrdersButton = (user_id) => {
     dispatch(listOrders(user_id));
@@ -566,17 +624,29 @@ const handleUserOrdersButton = (user_id) => {
              </ListItem>
            ))}
          </List>
+         <Divider />
+         <List>
+           <ListItem>
+             <ListItemText inset="true">Други</ListItemText>
+           </ListItem>
+           {['Излез'].map((text, index) => (
+             <ListItem onClick={() => handleLogout()} button key={text}>
+               <ListItemIcon>{index == 0 ? <ExitToAppIcon/> : <PersonAddIcon /> }</ListItemIcon>
+               <ListItemText primary={text} />
+             </ListItem>
+           ))}
+         </List>
        </Drawer>
      </div>
-     {employeesPop ? <div style={{marginTop: theme.spacing(10)}}><EmployeesFilters filterEEmail={filterEEmail} filterRole={filterRole} filterEUsername={filterEUsername}/> </div>: <div></div>}
-     {usersListPop ? <div style={{marginTop: theme.spacing(10)}}><UsersFilters filterEmail={filterEmail} filterVerified={filterVerified} filterUsername={filterUsername} filterFromDate={filterFromDate} filterToDate={filterToDate}/> </div>: <div></div>}
-     {ordersPop ? <div style={{marginTop: theme.spacing(10)}}><OrdersFilters filterStatus={filterStatus} filterFromDate={filterFromDate} filterToDate={filterToDate} /> </div>: <div></div>}
-     {productsPop && !usersListPop ? <div style={{marginTop: theme.spacing(10)}}><ProductsFilters filterAge={filterAge} filterCIS={filterCIS} filterFromDate={filterFromDate} filterToDate={filterToDate} filterTag={filterTag} filterName={filterName} filterPrice={filterPrice}/> </div>: <div></div>}
+     {(employeeInfo.perms).includes("View Employees Interface")&&employeesPop ? <div style={{marginTop: theme.spacing(10)}}><EmployeesFilters filterEEmail={filterEEmail} filterRole={filterRole} filterEUsername={filterEUsername}/> </div>: <div></div>}
+     {(employeeInfo.perms).includes("View Users Interface")&&usersListPop ? <div style={{marginTop: theme.spacing(10)}}><UsersFilters filterEmail={filterEmail} filterVerified={filterVerified} filterUsername={filterUsername} filterFromDate={filterFromDate} filterToDate={filterToDate}/> </div>: <div></div>}
+     {(employeeInfo.perms).includes("View Orders Interface")&&ordersPop ? <div style={{marginTop: theme.spacing(10)}}><OrdersFilters filterStatus={filterStatus} filterFromDate={filterFromDate} filterToDate={filterToDate} /> </div>: <div></div>}
+     {(employeeInfo.perms).includes("View Product Interface")&&productsPop && !usersListPop ? <div style={{marginTop: theme.spacing(10)}}><ProductsFilters filterAge={filterAge} filterCIS={filterCIS} filterFromDate={filterFromDate} filterToDate={filterToDate} filterTag={filterTag} filterName={filterName} filterPrice={filterPrice}/> </div>: <div></div>}
         <div className="content content-margined">
 
 
             <div className="product-header">
-           {!employeesPop&&!usersListPop && !ordersPop ?  <Button
+           {(employeeInfo.perms).includes("View Product Interface")&&!employeesPop&&!usersListPop && !ordersPop ?  <Button
              style={{ marginRight: theme.spacing(2) }}
               variant="contained"
               color="primary"
@@ -585,7 +655,7 @@ const handleUserOrdersButton = (user_id) => {
              >
                 Създай Продукт
             </Button>  :<div></div>}
-            {usersListPop && !ordersPop ? <Button
+            {(employeeInfo.perms).includes("View Users Interface")&&usersListPop && !ordersPop ? <Button
             style={{ marginTop: theme.spacing(2) ,marginRight: theme.spacing(2) }}
               variant="contained"
               color="primary"
@@ -594,7 +664,7 @@ const handleUserOrdersButton = (user_id) => {
              >
                 Създай потребител
             </Button> : <div></div>}
-            {ordersPop ? <Button
+            {(employeeInfo.perms).includes("View Orders Interface")&&ordersPop ? <Button
             style={{ marginTop: theme.spacing(10) ,marginRight: theme.spacing(2) }}
               variant="contained"
               color="primary"
@@ -602,6 +672,15 @@ const handleUserOrdersButton = (user_id) => {
               endIcon={<AddBoxIcon/>}
              >
                 Създай поръчка
+            </Button> : <div></div>}
+            {(employeeInfo.perms).includes("View Employees Interface")&&employeesPop  ? <Button
+            style={{ marginTop: theme.spacing(2) ,marginRight: theme.spacing(2) }}
+              variant="contained"
+              color="primary"
+             onClick={() => popCreateEmployeeMenu({})}
+              endIcon={<AddBoxIcon/>}
+             >
+                Нов служител
             </Button> : <div></div>}
 
             </div>
@@ -752,6 +831,85 @@ const handleUserOrdersButton = (user_id) => {
                 </ul>
             </form>
         </div>)}
+        {createEmployeePop && (<div className="signinform">
+            <form onSubmit={submitEmployeeInfo}>
+                <ul className="form-container">
+
+                    <li>
+                        <h2>{employeeId ?  "Обновяване на служител" : "Нов Служител"}</h2>
+                    </li>
+                    <li>
+                        {loadingSave && <div>Loading...</div>}
+                        {errorSave && <div>{errorSave}</div>}
+                    </li>
+                    <li>
+                        <label htmlFor="firstName">
+                            Име
+                        </label>
+                        <input type="text" name="firstName" id="firstName" value={eFirstName} onChange={(e) => setEFirstName(e.target.value)}/>
+                    </li>
+                    <li>
+                        <label htmlFor="secondName">
+                             Фамилия
+                        </label>
+                        <input type="text" name="secondName" id="secondName" value={eSecondName} onChange={(e) => setESecondName(e.target.value)}/>
+                    </li>
+                    <li>
+                        <label htmlFor="username">
+                            Потребителско Име
+                        </label>
+                        <input type="text" name="username" id="username" value={eUsername} onChange={(e) => setEUsername(e.target.value)}/>
+                    </li>
+                    <li>
+                        <label htmlFor="email">
+                            Имейл
+                        </label>
+                        <input type="email" name="email" id="email" value={eEmail} onChange={(e) => setEEmail(e.target.value)}/>
+                    </li>
+                    <li>
+                    <label htmlFor="role">
+                        Роля
+                    </label>
+                      <select required style={{fontSize:"20px"}}  name="role" id="role" onChange={(e) => setCreateRoleId(e.target.value)} name="statuses" id="statuses">
+                           <option style={{fontSize:"15px"}} disabled selected="selected"> -- select an option -- </option>
+                                {roles.map(status => (
+                                  (status.name!=orderStatus)?
+                            <option  style={{fontSize:"15px"}}  value={status.id}>{status.name}</option>
+                                  :<div></div>  ))}
+                      </select>
+                    </li>
+                    <li>
+                        <label htmlFor="password">
+                            Парола
+                        </label>
+                        <input type="password" name="password" id="password" value={ePassword} onChange={(e) => setEPassword(e.target.value)}/>
+                    </li>
+                    <li>
+                    <Button
+                        variant="contained"
+                        size="large"
+                        color="primary"
+                        type="submit"
+                        endIcon={<AddBoxIcon/>}
+                      >
+                         {userId ?  "Обнови Информацията за Служителя" : "Добави нов служител"}
+                    </Button>
+
+                    </li>
+                    <li>
+                    <Button
+                        onClick={() =>  setCreateEmployeePop(false)}
+                        variant="contained"
+                        size="large"
+                        color="primary"
+                        endIcon={<CancelIcon/>}
+                      >
+                        Затвори
+                    </Button>
+                    </li>
+                </ul>
+            </form>
+        </div>)}
         {changeStatusPop && (<div className="signinform">
             <form onSubmit={submitStatusChange}>
                 <ul className="form-container">
@@ -804,7 +962,7 @@ const handleUserOrdersButton = (user_id) => {
             </form>
         </div>)}
         {changeRolePop && (<div className="signinform">
-            <form onSubmit={submitStatusChange}>
+            <form onSubmit={submitRoleChange}>
                 <ul className="form-container">
 
                     <li>
@@ -822,9 +980,9 @@ const handleUserOrdersButton = (user_id) => {
 
                       <select onChange={(e) => setNewRole(e.target.value)} name="roles" id="roles">
                          <option disabled selected="selected"> -- select an option -- </option>
-                        {statuses.map(status => (
+                        {roles.map(status => (
                         (status.name!=orderStatus)?
-                        <option  value={status.name}>{status.name}</option>
+                        <option  value={status.id}>{status.name}</option>
                     :<div></div>  ))}
                       </select>
                     </li>
@@ -836,7 +994,7 @@ const handleUserOrdersButton = (user_id) => {
                         type="submit"
                         endIcon={<AddBoxIcon/>}
                       >
-                          Обнови Статуса на Поръчката
+                          Обнови Ролята на Служителя
                     </Button>
 
                     </li>
@@ -854,9 +1012,7 @@ const handleUserOrdersButton = (user_id) => {
                 </ul>
             </form>
         </div>)}
-        {productsPop && <h2 style={{marginLeft:"60px"}}>Брой продукти отговарящи на търсенето: {count} </h2>}
-        {usersListPop && <h2 style={{marginLeft:"60px"}}>Брой потребители отговарящи на търсенето: {usersCount.count} </h2>}
-        {ordersPop && <h2 style={{marginLeft:"60px"}}>Брой поръчки отговарящи на търсенето: {ordersCount.count} </h2>}
+        {(employeeInfo.perms).includes("View Product Interface")&&productsPop && <h2 style={{marginLeft:"60px"}}>Брой продукти отговарящи на търсенето: {count} </h2>}
             {productsPop&& !ordersPop && !userOrdersPop && !usersListPop&& products&&
             (<div className="product-list">
                 <table className="table">
@@ -953,7 +1109,7 @@ const handleUserOrdersButton = (user_id) => {
                     </tbody>
                 </table>
             </div>)}
-            {!ordersPop && !userOrdersPop && usersListPop&& products&&
+            {(employeeInfo.perms).includes("View Users Interface")&&!ordersPop && !userOrdersPop && usersListPop&& products&&
             (<div className="product-list">
                 <table className="table">
                     <thead>
@@ -1021,7 +1177,7 @@ const handleUserOrdersButton = (user_id) => {
                     </tbody>
                 </table>
             </div>)}
-            {employeesPop&&
+            {(employeeInfo.perms).includes("View Employees Interface")&&employeesPop&&
             (<div className="product-list">
                 <table className="table">
                     <thead>
@@ -1086,7 +1242,7 @@ const handleUserOrdersButton = (user_id) => {
                     </tbody>
                 </table>
             </div>)}
-            {!ordersPop && userOrdersPop&& products&&
+            {(employeeInfo.perms).includes("View Users Interface")&&!ordersPop && userOrdersPop&& products&&
             (<div className="product-list">
                 <table className="table">
                     <thead>
@@ -1181,7 +1337,7 @@ const handleUserOrdersButton = (user_id) => {
                     </tbody>
                 </table>
             </div>)}
-            {ordersPop &&
+            {(employeeInfo.perms).includes("View Orders Interface")&&ordersPop &&
             (<div className="product-list">
                 <table className="table">
                     <thead>
@@ -1276,13 +1432,13 @@ const handleUserOrdersButton = (user_id) => {
                     </tbody>
                 </table>
             </div>)}
-            <BackOfficeStats bestSellers = {bestSellersPop} income={incomeListPop} registeredUsers={registeredUsersPop} soldProducts={soldProductsPop}/>
+            {(employeeInfo.perms).includes("View Stats")? <BackOfficeStats bestSellers = {bestSellersPop} income={incomeListPop} registeredUsers={registeredUsersPop} soldProducts={soldProductsPop}/> :<div></div>}
 
         </div>
 
-        {ordersPop && <CRUDPagination postsPerPage={postsPerPage} totalPosts={orderspagecount} paginate={paginate} />}
-        {!ordersPop &&usersListPop && <CRUDPagination postsPerPage={postsPerPage} totalPosts={userpagecount} paginate={paginate} />}
-        {productsPop && !ordersPop && !usersListPop && <CRUDPagination postsPerPage={postsPerPage} totalPosts={pagecount} paginate={paginate} />}
+        {(employeeInfo.perms).includes("View Orders Interface") && ordersPop ? <CRUDPagination postsPerPage={postsPerPage} totalPosts={orderspagecount} paginate={paginate} /> : <div></div>}
+        {(employeeInfo.perms).includes("View Users Interface") &&!ordersPop &&usersListPop ? <CRUDPagination postsPerPage={postsPerPage} totalPosts={userpagecount} paginate={paginate} /> : <div></div>}
+        {(employeeInfo.perms).includes("View Product Interface") && productsPop && !ordersPop && !usersListPop ? <CRUDPagination postsPerPage={postsPerPage} totalPosts={pagecount} paginate={paginate} /> : <div></div>}
         </div>
 
     );

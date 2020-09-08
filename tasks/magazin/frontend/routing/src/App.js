@@ -11,6 +11,7 @@ import SignInEmployees from './signInEmployees';
 import CheckLoggedIn from './CheckLoggedIn';
 import PrivateRoute from './PrivateRoute';
 import UserProfile from './userProfile';
+import TestPermissions from './TestPermissions';
 import EmpSignUpScreen from './EmpSignUpScreen';
 import ProfileOrderList from './ProfileOrderList';
 import OrderDetailsPage from './orderDetailsPage';
@@ -34,6 +35,7 @@ function App() {
       <Route path="/empsign" component={EmpSignUpScreen}/>
       <Route path="/orders" component={ProfileOrderList}/>
       <Route path="/order/:id" component={OrderDetailsPage}/>
+      <Route path="/testPerm" component={TestPermissions}/>
       <PrivateRoute path='/backoffice' component={BackOffice} />
       <CheckLoggedIn path="/cart/:id?" component={Cart} />
 

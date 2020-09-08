@@ -24,7 +24,6 @@ const signup = (name,username,email,password,update,id) => async (dispatch) => {
     else{
         const {data} = await Axios.put(`/users/update`,{name,username,email,password,id});
         dispatch({type: USER_SIGNUP_SUCCESS,payload:data});
-        Cookie.set('userInfo', JSON.stringify(data));
     }
 
     } catch (error) {

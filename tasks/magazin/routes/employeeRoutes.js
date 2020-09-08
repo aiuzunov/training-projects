@@ -10,13 +10,14 @@ router.post("/signemployee",async (req,res) => {
     try {
 
         const {email,password} = req.body;
-        const signEmployee = await pool.query("SELECT *,roles.name as role FROM employees join roles on roles.id = employees.role_id WHERE email=$1 AND password=crypt($2, password);",[email,password]);
+        const signEmployee = await pool.query("select  employees.name,employees.username,employees.email,roles.name as role,array_agg(permissions.name) as perms from employees join roles on employees.role_id = roles.id join roles_perms on roles_perms.role_id = roles.id join permissions on permissions.id = roles_perms.perm_id WHERE email=$1 AND password=crypt($2, password) GROUP BY employees.name,employees.username,employees.email,roles.name",[email,password]);
         if(signEmployee.rowCount>0){
             res.json({
                 name:signEmployee.rows[0].name,
                 username:signEmployee.rows[0].username,
                 email: signEmployee.rows[0].email,
                 role: signEmployee.rows[0].role,
+                perms: signEmployee.rows[0].perms,
                 token: getToken(signEmployee),
             });
         }else{
@@ -31,13 +32,14 @@ router.post("/signemployee",async (req,res) => {
 //create employee
 router.post("/createemployee",async (req,res) => {
     try {
-        const {name,username,email,password} = req.body;
-        const newEmployee = await pool.query(" INSERT INTO employees (name,username,email,password) VALUES ($1,$2,$3,$4)",[name,username,email,password]);
+        const {name,username,email,password,role_id} = req.body;
+        const newEmployee = await pool.query(" INSERT INTO employees (name,username,email,password,role_id) VALUES ($1,$2,$3,crypt($4, gen_salt('bf', 8)),$5)",[name,username,email,password,role_id]);
         if(newEmployee){
             res.json({
                 name: name,
                 username: username,
                 email: email,
+                role_id: role_id,
                 token: getToken(newEmployee),
             });
         }else{
@@ -45,9 +47,49 @@ router.post("/createemployee",async (req,res) => {
         }
 
     } catch (err) {
+        console.log(err)
         res.status(500).send({msg: 'Възникна грешка със заявката,моля опитайте отново .'});
     }
 });
+
+
+//create employee
+router.post("/updateEmployee",async (req,res) => {
+    try {
+        const {name,username,email,password,role_id,id} = req.body;
+        const newEmployee = await pool.query(" UPDATE employees SET name=$1,username=$2,email=$3,password=crypt($4, gen_salt('bf', 8)),role_id=$5 where id = $6",[name,username,email,password,role_id,id]);
+        if(newEmployee){
+            res.json({
+                name: name,
+                username: username,
+                email: email,
+                role_id: role_id,
+                token: getToken(newEmployee),
+            });
+        }else{
+            res.status(401).send({msg: 'Имейла или потребителското име са заети.'});
+        }
+
+    } catch (err) {
+        console.log(err)
+
+        res.status(500).send({msg: 'Възникна грешка със заявката,моля опитайте отново .'});
+    }
+});
+
+
+
+
+router.post("/updateRole",async(req,res) => {
+    try {
+        const {role_id,employee_id} = req.body;
+        const updateRole = await pool.query("UPDATE employees SET role_id=$1 WHERE id = $2",[role_id,employee_id]);
+        res.json(updateRole);
+    } catch (err) {
+        res.status(500).send({msg: 'Възникна проблем при обновяването на статуса на поръчката.'});
+    }
+})
+
 
 router.post("/create",async (req,res) => {
     try {
@@ -105,7 +147,7 @@ router.post("/get",async(req,res) => {
             if(key=='roleFilter'){
               ++i;
               testArray.push(testfilters.roleFilter);
-              query += ` AND role=$${i}`
+              query += ` AND roles.name=$${i}`
             }
             else if(key=='eUsernameFilter'){
               ++i;

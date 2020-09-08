@@ -98,6 +98,8 @@ const getEmail = e => {
   return (
 <div style={{marginLeft:'150px',marginTop:'50px'}}>
 <form id="filterForm">
+<Grid container spacing={4} justify="start" direction = "rows">
+<Grid container item xs={12} spacing={1}>
   <form onSubmit={getUsername}>
           <TextField
             value={username}
@@ -110,6 +112,8 @@ const getEmail = e => {
             inputProps={{ 'aria-label': 'search' }}
           />
   </form>
+  </Grid>
+
   <form onSubmit={getEmail}>
           <TextField
             style={{marginRight:'10px',marginLeft:'10px'}}
@@ -137,6 +141,7 @@ const getEmail = e => {
 
           ))}
       </Select>
+      <Grid container item xs={12} spacing={3}>
 
       <MuiPickersUtilsProvider utils={DateFnsUtils}>
     <Grid container justify="start">
@@ -165,6 +170,9 @@ const getEmail = e => {
       />
     </Grid>
   </MuiPickersUtilsProvider>
+  </Grid>
+
+  </Grid>
 
   </form>
 </div>

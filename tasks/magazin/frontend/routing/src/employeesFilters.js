@@ -34,12 +34,12 @@ export default function EmployeesFilters(props) {
   const [role,setRole] = useState('');
   const employeeRoles = [{
     id: 1,
-    name: "По-готин служител",
+    name: "viewer",
     real: 1
   },
   {
     id: 2,
-    name: "Не чак толкоша готин служител",
+    name: "writer",
     real: 2
 
   }
@@ -70,6 +70,8 @@ const getEmail = e => {
   return (
 <div style={{marginLeft:'150px',marginTop:'50px'}}>
 <form id="filterForm">
+<Grid container spacing={4} justify="start" direction = "rows">
+<Grid container item xs={12} spacing={1}>
   <form onSubmit={getUsername}>
           <TextField
             value={username}
@@ -82,6 +84,8 @@ const getEmail = e => {
             inputProps={{ 'aria-label': 'search' }}
           />
   </form>
+  </Grid>
+
   <form onSubmit={getEmail}>
           <TextField
             style={{marginRight:'10px',marginLeft:'10px'}}
@@ -105,10 +109,12 @@ const getEmail = e => {
           <em>Филтрирай по роля</em>
           </MenuItem>
           {employeeRoles.map(tag => (
-             <MenuItem key={tag.id} value={tag.real}>{tag.name}</MenuItem>
+             <MenuItem key={tag.id} value={tag.name}>{tag.name}</MenuItem>
 
           ))}
       </Select>
+      </Grid>
+
 </form>
 </div>
 

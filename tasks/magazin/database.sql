@@ -126,3 +126,12 @@ CREATE TABLE cart_items(
 	FOREIGN KEY (user_id) REFERENCES users(id),
 	FOREIGN KEY (product_id) REFERENCES products(id)
 );
+
+CREATE TABLE roles_perms(
+	id BIGSERIAL,
+	role_id BIGINT NOT NULL,
+	perm_id BIGINT NOT NULL,
+	FOREIGN KEY (role_id) REFERENCES roles(id),
+	FOREIGN KEY (perm_id) REFERENCES permissions(id),
+	primary key (role_id,perm_id)
+);
