@@ -95,24 +95,33 @@ cartItems.length === 0 ?
                <h3>Количката е празна</h3>
             </div>
             :
-            cartItems.map(item =>
-            <div className="item">
-            <div className="buttons">
-                <span className="delete-btn"></span>
-                <span className="like-btn"></span>
-            </div>
+            <table style={{marginLeft:"5px"}}className="rtable">
+            <thead>
+            <tr>
+              <th>Снимка</th>
+              <th>Име</th>
+              <th>Количество</th>
+              <th>Единична цена</th>
+              <th>Общо за продукта</th>
 
+            </tr>
+            </thead>
+            <tbody>
+            {cartItems.map(item =>
+            <tr key={item.id}>
+            <td className="item">
              <div className="image">
                   <img src={`/${item.name}.png`} alt="" />
             </div>
+            </td>
 
-            <div className="description">
-                  <span>{item.name}</span>
+            <td className="description">
+                  {item.name}
 
-              </div>
+              </td>
 
 
-             <div className="quantity">
+             <td align="right" className="quantity">
                     <FormControl >
         <InputLabel htmlFor="age-native-simple">Количество</InputLabel>
         <Select
@@ -129,10 +138,10 @@ cartItems.length === 0 ?
                         <option key={instock+1} value={instock + 1}>{instock+1}</option>  )}
         </Select>
       </FormControl>
-            </div>
-                 <div className="one-price">Единична цена: {Number(item.price).toFixed(2)} {item.currency_id}</div>
-                 <div className="total-price">Oбща сума: {(item.price*item.quantity).toFixed(2)} {item.currency_id}</div>
-                 <div className="item-remove">
+      </td>
+                 <td align="right">{Number(item.price).toFixed(2)} {item.currency_id}</td>
+                 <td align="right">{(item.price*item.quantity).toFixed(2)} {item.currency_id}</td>
+                 <td>
                     <Button
                     onClick={() => removeFromCartHandler(item.product)}
                     variant="contained"
@@ -141,26 +150,45 @@ cartItems.length === 0 ?
                         Премахни
                      </Button>
 
-                 </div>
-
-            </div>
-
-
+                 </td>
+            </tr>
             )
+            }
+            <tr>
+            <th></th>
+            <th></th>
+            <th>Общ брой продукти</th>
+            <th></th>
+
+            <th>
+              Общо за поръчката
+            </th>
+            </tr>
+            <tr>
+            <td></td>
+            <td></td>
+            <td align="right">{cartItems.reduce((a,c) => parseInt(a) + parseInt(c.quantity),0)} продукт/а</td>
+            <td></td>
+
+            <td align="right">
+
+                            {(cartItems.reduce((a,c)=>a +c.price*c.quantity,0)).toFixed(2)} EUR
+
+            </td>
+            {props.isDisconnected ? <td>Няма връзка с интернет</td> :<td>
+            { defAddress ? <PayPal  isDisconnected={props.isDisconnected} address_id={defAddress} cart_items={cartItems} user_id={userInfo.id} totalprice={(cartItems.reduce((a,c)=>a +c.price*c.quantity,0)).toFixed(2)}/>:<div>Моля изберете адрес за доставка</div>}
+
+            </td> }
+
+            </tr>
+            </tbody>
+            </table>
+
         }
 
 
 </div>
-<div className="cart-action">
-            <h3>
-                Общо ( {cartItems.reduce((a,c) => parseInt(a) + parseInt(c.quantity),0)} продукт/а )
-                :
 
-                {(cartItems.reduce((a,c)=>a +c.price*c.quantity,0)).toFixed(2)} EUR
-            </h3>
-
-            {defAddress ? <PayPal  address_id={defAddress} cart_items={cartItems} user_id={userInfo.id} totalprice={(cartItems.reduce((a,c)=>a +c.price*c.quantity,0)).toFixed(2)}/>:<h3>Моля изберете адрес за доставка</h3>}
-        </div>
         </div>
 
 

@@ -15,11 +15,11 @@ import { addToCart, removeFromCart, saveCartItem, deleteCartItem } from './actio
 
 
 
-function ProductDetailsPage({ match , history }) {
+function ProductDetailsPage(props,{ match , history }) {
 
     useEffect(() => {
-        dispatch(detailsProduct(match.params.id));
-        dispatch(listTags(match.params.id));
+        dispatch(detailsProduct(props.match.params.id));
+        dispatch(listTags(props.match.params.id));
     },[]);
    // const [product,setProduct] = useState({})
    const [quantity,setQuantity] = useState(1);
@@ -33,6 +33,9 @@ function ProductDetailsPage({ match , history }) {
 
 
   const AddToCart = () => {
+    if(!userInfo){
+      window.location = "/signin"
+    }
     let product_id = product.id;
     let user_id = userInfo.id;
     dispatch(addToCart(product_id, quantity));
@@ -59,7 +62,7 @@ function ProductDetailsPage({ match , history }) {
 
            <Button
 
-        onClick={history.goBack}
+        onClick={props.history.goBack}
         variant="contained"
         color="secondary"
         className="backButton"
@@ -130,7 +133,7 @@ function ProductDetailsPage({ match , history }) {
      <span >Общo ({quantity}бр.) : {Number(product.price*quantity).toFixed(2)} {product.currency_id}.</span>
 
     </div>
-    {product.count_in_stock > 0 &&  <Button
+    {product.count_in_stock > 0 && !props.isDisconnected &&  <Button
               style={{marginTop: 30}}
               variant="contained"
               color="primary"

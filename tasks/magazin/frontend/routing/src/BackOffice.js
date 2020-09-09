@@ -1,11 +1,13 @@
 import React, { useCallback } from 'react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Prompt } from 'react-router'
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import Cookie from 'js-cookie';
 import { useSelector, useDispatch } from 'react-redux';
 import { detailsProduct, saveProduct, listProducts, deleteProduct } from './actions/productActions';
 import { Link } from 'react-router-dom';
+import AssignmentTurnedInIcon from '@material-ui/icons/AssignmentTurnedIn';
 import { employeesSignUp } from './actions/employeeActions';
 import { signin, listUsers, signup } from './actions/userActions';
 import { ThemeProvider } from '@material-ui/styles';
@@ -24,6 +26,7 @@ import OrdersFilters from './OrdersFilters';
 import Can from './Can';
 import EmployeesFilters from './employeesFilters';
 import { listPT } from './actions/ptActions';
+import TestPermissions from './TestPermissions';
 import BackOfficeStats from './BackOfficeStats';
 import StoreIcon from '@material-ui/icons/Store';
 import { listOrders } from './actions/orderActions';
@@ -134,7 +137,8 @@ const useStyles = makeStyles((theme) => ({
 
 function CRUDProducts({  match , history }) {
     const classes = useStyles();
-    const [productsPop,setProductsPop] = useState(1);
+    const [productsPop,setProductsPop] = useState(0);
+    const [permsPop,setPermsPop] = useState(0);
     const [incomeListPop,setIncomeListPop] = useState(0);
     const [bestSellersPop,setBestSellersPop] = useState(0);
     const [soldProductsPop,setSoldProductsPop] = useState(0);
@@ -193,6 +197,7 @@ function CRUDProducts({  match , history }) {
     const [changeRolePop,setChangeRolePop] = useState(0);
     const [orderId,setOrderId] = useState('');
     const [orderStatus,setOrderStatus] = useState('');
+    const [refreshPerms,setRefreshPerms] = useState(0);
     const [newOrderStatus,setNewOrderStatus] = useState('');
     const employeeSignUp = useSelector((state)=>state.employeeSignUp);
     const {loading: loadingSaveEmployee,success: employeeSaved, error:employeeSaveError} = employeeSignUp;
@@ -277,8 +282,8 @@ function CRUDProducts({  match , history }) {
         var from = fromDateFilter.toLocaleString('en-GB', { timeZone: 'UTC' }).split(",")[0]
         var to = toDateFilter.toLocaleString('en-GB', { timeZone: 'UTC' }).split(",")[0]
         dispatch(listPT({currentPage,pricefilter,tagfilter,searchfilter,ageFilter,cisFilter,from,to}));
-        dispatch(listProducts({currentPage,pricefilter,searchfilter,tagfilter,ageFilter,cisFilter,from,to}));
-        dispatch(listUsers({verifiedFilter,emailFilter,usernameFilter,from,to,currentPage}));
+        dispatch(listProducts({employeeInfo,currentPage,pricefilter,searchfilter,tagfilter,ageFilter,cisFilter,from,to}));
+        dispatch(listUsers({employeeInfo,verifiedFilter,emailFilter,usernameFilter,from,to,currentPage}));
         dispatch(listOrders(null,{currentPage,statusFilter,from,to}));
         dispatch(listEmployees({currentPage,eUsernameFilter,eEmailFilter,roleFilter}));
 
@@ -293,7 +298,7 @@ function CRUDProducts({  match , history }) {
             setCreateEmployeePop(false);
         }
     },[refreshState,productSaved,statusFilter,verifiedFilter,emailFilter,usernameFilter,pricefilter,searchfilter,tagfilter,ageFilter,cisFilter,fromDateFilter,eEmailFilter,eUsernameFilter,roleFilter,toDateFilter,currentPage,userSignedUp]);
-    console.log(ordersCount,usersCount)
+    console.log(users)
     const getCount = async () => {
 
         try {
@@ -305,7 +310,7 @@ function CRUDProducts({  match , history }) {
             const users_response = await fetch(`/users/count`);
             const usersc = await users_response.json();
             setUsersCount(usersc[0]);
-            const response = await axios.post(`/products/getProductCount`,{tagfilter,cisFilter,ageFilter,pricefilter,searchfilter,to,from});
+            const response = await axios.post(`/products/getProductCount`,{employeeInfo,tagfilter,cisFilter,ageFilter,pricefilter,searchfilter,to,from});
             setCount(response.data.max);
         } catch (err) {
           console.log(err.message);
@@ -453,6 +458,7 @@ const submitEmployeeInfo = (e) => {
       setRegisteredUsersPop(0);
       switch (key.text) {
         case 'Продукти':
+          setPermsPop(0);
           setEmployeesPop(0);
           setProductsPop(1);
           setOrdersPop(0);
@@ -460,6 +466,7 @@ const submitEmployeeInfo = (e) => {
           setOrderPop(0);
           break;
         case 'Потребители':
+          setPermsPop(0);
           setEmployeesPop(0);
           setProductsPop(0);
           setUserOrdersPop(0);
@@ -467,6 +474,7 @@ const submitEmployeeInfo = (e) => {
           setOrderPop(1);
           break;
         case 'Поръчки':
+          setPermsPop(0);
           setEmployeesPop(0);
           setProductsPop(0);
           setUserOrdersPop(0);
@@ -474,12 +482,21 @@ const submitEmployeeInfo = (e) => {
           setOrdersPop(1);
           break;
         case 'Служители':
+          setPermsPop(0);
           setEmployeesPop(1);
           setProductsPop(0);
           setUserOrdersPop(0);
           setOrderPop(0);
           setOrdersPop(0);
           break;
+        case 'Права':
+          setPermsPop(1);
+          setEmployeesPop(0);
+          setProductsPop(0);
+          setUserOrdersPop(0);
+          setOrderPop(0);
+          setOrdersPop(0);
+            break;
         default:
 
       }
@@ -489,6 +506,7 @@ const submitEmployeeInfo = (e) => {
       setUserOrdersPop(0);
       setOrdersPop(0);
       setOrderPop(0);
+      setPermsPop(0);
       setEmployeesPop(0);
       switch (key.text) {
         case 'Поръчки':
@@ -554,7 +572,9 @@ const handleUserOrdersButton = (user_id) => {
     orderspagecount += 1;
    }
     return(
+
         <div>
+
               <div className={classes.root}>
        <CssBaseline />
        <AppBar
@@ -604,12 +624,13 @@ const handleUserOrdersButton = (user_id) => {
            <ListItem>
              <ListItemText inset="true">Интерфейси</ListItemText>
            </ListItem>
-           {['Продукти', 'Потребители', 'Поръчки','Служители'].map((text, index) => (
+           {['Продукти', 'Потребители', 'Поръчки','Служители','Права'].map((text, index) => (
+ employeeInfo.perms .includes(text)?
              <ListItem onClick={() => handleSelectInterface({text})}
  button key={text}>
-               <ListItemIcon>{index == 0 ? <MenuBookIcon/> : index == 1 ? <PersonIcon /> : index == 2 ? <LocalMallIcon/> : <PersonIcon />}</ListItemIcon>
+               <ListItemIcon>{index == 0 ? <MenuBookIcon/> : index == 1 ? <PersonIcon /> : index == 2 ? <LocalMallIcon/> : index == 3? <PersonIcon /> : <AssignmentTurnedInIcon/> }</ListItemIcon>
                <ListItemText primary={text} />
-             </ListItem>
+             </ListItem>:<div></div>
            ))}
          </List>
          <Divider />
@@ -618,10 +639,11 @@ const handleUserOrdersButton = (user_id) => {
              <ListItemText inset="true">Справки</ListItemText>
            </ListItem>
            {['Поръчки', 'Потребители'].map((text, index) => (
+             employeeInfo.perms .includes("View Stats") ?
              <ListItem onClick={() => handleSelectStat({text})} button key={text}>
                <ListItemIcon>{index == 0 ? <MonetizationOnIcon/> : <PersonAddIcon /> }</ListItemIcon>
                <ListItemText primary={text} />
-             </ListItem>
+             </ListItem> : <div></div>
            ))}
          </List>
          <Divider />
@@ -638,15 +660,15 @@ const handleUserOrdersButton = (user_id) => {
          </List>
        </Drawer>
      </div>
-     {(employeeInfo.perms).includes("View Employees Interface")&&employeesPop ? <div style={{marginTop: theme.spacing(10)}}><EmployeesFilters filterEEmail={filterEEmail} filterRole={filterRole} filterEUsername={filterEUsername}/> </div>: <div></div>}
-     {(employeeInfo.perms).includes("View Users Interface")&&usersListPop ? <div style={{marginTop: theme.spacing(10)}}><UsersFilters filterEmail={filterEmail} filterVerified={filterVerified} filterUsername={filterUsername} filterFromDate={filterFromDate} filterToDate={filterToDate}/> </div>: <div></div>}
-     {(employeeInfo.perms).includes("View Orders Interface")&&ordersPop ? <div style={{marginTop: theme.spacing(10)}}><OrdersFilters filterStatus={filterStatus} filterFromDate={filterFromDate} filterToDate={filterToDate} /> </div>: <div></div>}
-     {(employeeInfo.perms).includes("View Product Interface")&&productsPop && !usersListPop ? <div style={{marginTop: theme.spacing(10)}}><ProductsFilters filterAge={filterAge} filterCIS={filterCIS} filterFromDate={filterFromDate} filterToDate={filterToDate} filterTag={filterTag} filterName={filterName} filterPrice={filterPrice}/> </div>: <div></div>}
+     {(employeeInfo.perms).includes("Служители")&&employeesPop ? <div style={{marginTop: theme.spacing(10)}}><EmployeesFilters filterEEmail={filterEEmail} filterRole={filterRole} filterEUsername={filterEUsername}/> </div>: <div></div>}
+     {(employeeInfo.perms).includes("Потребители")&&usersListPop ? <div style={{marginTop: theme.spacing(10)}}><UsersFilters filterEmail={filterEmail} filterVerified={filterVerified} filterUsername={filterUsername} filterFromDate={filterFromDate} filterToDate={filterToDate}/> </div>: <div></div>}
+     {(employeeInfo.perms).includes("Поръчки")&&ordersPop ? <div style={{marginTop: theme.spacing(10)}}><OrdersFilters filterStatus={filterStatus} filterFromDate={filterFromDate} filterToDate={filterToDate} /> </div>: <div></div>}
+     {(employeeInfo.perms).includes("Продукти")&&productsPop && !usersListPop ? <div style={{marginTop: theme.spacing(10)}}><ProductsFilters filterAge={filterAge} filterCIS={filterCIS} filterFromDate={filterFromDate} filterToDate={filterToDate} filterTag={filterTag} filterName={filterName} filterPrice={filterPrice}/> </div>: <div></div>}
         <div className="content content-margined">
 
 
             <div className="product-header">
-           {(employeeInfo.perms).includes("View Product Interface")&&!employeesPop&&!usersListPop && !ordersPop ?  <Button
+           {(employeeInfo.perms).includes("Create Products")&&!employeesPop&&!usersListPop && !ordersPop ?  <Button
              style={{ marginRight: theme.spacing(2) }}
               variant="contained"
               color="primary"
@@ -655,7 +677,7 @@ const handleUserOrdersButton = (user_id) => {
              >
                 Създай Продукт
             </Button>  :<div></div>}
-            {(employeeInfo.perms).includes("View Users Interface")&&usersListPop && !ordersPop ? <Button
+            {(employeeInfo.perms).includes("Create Users")&&usersListPop && !ordersPop ? <Button
             style={{ marginTop: theme.spacing(2) ,marginRight: theme.spacing(2) }}
               variant="contained"
               color="primary"
@@ -664,7 +686,7 @@ const handleUserOrdersButton = (user_id) => {
              >
                 Създай потребител
             </Button> : <div></div>}
-            {(employeeInfo.perms).includes("View Orders Interface")&&ordersPop ? <Button
+            {(employeeInfo.perms).includes("Create Orders")&&ordersPop ? <Button
             style={{ marginTop: theme.spacing(10) ,marginRight: theme.spacing(2) }}
               variant="contained"
               color="primary"
@@ -673,7 +695,7 @@ const handleUserOrdersButton = (user_id) => {
              >
                 Създай поръчка
             </Button> : <div></div>}
-            {(employeeInfo.perms).includes("View Employees Interface")&&employeesPop  ? <Button
+            {(employeeInfo.perms).includes("Create Employees")&&employeesPop  ? <Button
             style={{ marginTop: theme.spacing(2) ,marginRight: theme.spacing(2) }}
               variant="contained"
               color="primary"
@@ -692,8 +714,8 @@ const handleUserOrdersButton = (user_id) => {
                         <h2>{id ?  "Обновяване на продукта" : "Нов Продукт"}</h2>
                     </li>
                     <li>
-                        {loadingSave && <div>Loading...</div>}
-                        {errorSave && <div>{errorSave}</div>}
+                        {loadingSave ? <div>Loading...</div> : <div></div>}
+                        {errorSave ? <div>{errorSave}</div>: <div></div>}
                     </li>
                     <li>
                         <label htmlFor="name">
@@ -764,7 +786,7 @@ const handleUserOrdersButton = (user_id) => {
                 </ul>
             </form>
         </div>)}
-        {createUserPop && (<div className="signinform">
+        {createUserPop ? <div className="signinform">
             <form onSubmit={submitUserInfo}>
                 <ul className="form-container">
 
@@ -830,8 +852,8 @@ const handleUserOrdersButton = (user_id) => {
                     </li>
                 </ul>
             </form>
-        </div>)}
-        {createEmployeePop && (<div className="signinform">
+        </div> : <div></div>}
+        {createEmployeePop ? <div className="signinform">
             <form onSubmit={submitEmployeeInfo}>
                 <ul className="form-container">
 
@@ -909,8 +931,8 @@ const handleUserOrdersButton = (user_id) => {
                     </li>
                 </ul>
             </form>
-        </div>)}
-        {changeStatusPop && (<div className="signinform">
+        </div> : <div></div>}
+        {changeStatusPop ? <div className="signinform">
             <form onSubmit={submitStatusChange}>
                 <ul className="form-container">
 
@@ -960,8 +982,8 @@ const handleUserOrdersButton = (user_id) => {
                     </li>
                 </ul>
             </form>
-        </div>)}
-        {changeRolePop && (<div className="signinform">
+        </div> : <div></div>}
+        {changeRolePop ? <div className="signinform">
             <form onSubmit={submitRoleChange}>
                 <ul className="form-container">
 
@@ -1011,11 +1033,11 @@ const handleUserOrdersButton = (user_id) => {
                     </li>
                 </ul>
             </form>
-        </div>)}
-        {(employeeInfo.perms).includes("View Product Interface")&&productsPop && <h2 style={{marginLeft:"60px"}}>Брой продукти отговарящи на търсенето: {count} </h2>}
+        </div> : <div></div>}
+        {(employeeInfo.perms).includes("Продукти")&&productsPop && <h2 style={{marginLeft:"60px"}}>Брой продукти отговарящи на търсенето: {count} </h2>}
             {productsPop&& !ordersPop && !userOrdersPop && !usersListPop&& products&&
-            (<div className="product-list">
-                <table className="table">
+            (<div style={{marginLeft:"60px"}} className="product-list">
+                <table className="rtable">
                     <thead>
                         <tr>
                             <th>
@@ -1083,7 +1105,9 @@ const handleUserOrdersButton = (user_id) => {
                             <td>
                                  {product.brand}
                             </td>
+                              {(employeeInfo.perms).includes("Edit Products") ?
                             <th>
+
                             <Button
                                 onClick={() => popCreateMenu(product)}
                                 variant="contained"
@@ -1092,6 +1116,10 @@ const handleUserOrdersButton = (user_id) => {
                                 endIcon={<EditIcon/>}>
                                 Обнови
                             </Button>
+                            </th>:<div></div>}
+
+                            {(employeeInfo.perms).includes("Hide Products")  ?
+                            <th>
                             <Button
                                 onClick={() => deleteProductHandler(product)}
                                 variant="contained"
@@ -1100,7 +1128,7 @@ const handleUserOrdersButton = (user_id) => {
                                 endIcon={<DeleteForeverIcon/>}>
                                 Скрий
                             </Button>
-                            </th>
+                            </th>:<div></div>}
                         </tr>
                         ))}
 
@@ -1109,9 +1137,9 @@ const handleUserOrdersButton = (user_id) => {
                     </tbody>
                 </table>
             </div>)}
-            {(employeeInfo.perms).includes("View Users Interface")&&!ordersPop && !userOrdersPop && usersListPop&& products&&
-            (<div className="product-list">
-                <table className="table">
+            {(employeeInfo.perms).includes("Потребители")&&!ordersPop && !userOrdersPop && usersListPop&&
+            (<div style={{marginLeft:"60px"}} className="product-list">
+                <table className="rtable">
                     <thead>
                         <tr>
                             <th>
@@ -1133,7 +1161,7 @@ const handleUserOrdersButton = (user_id) => {
                         </tr>
                     </thead>
                     <tbody>
-                        {users.map(user => (
+                        {users && users.map(user => (
                             <tr key={user.id}>
                             <td>
                                 {(user.create_date).split("T").join(" ").slice(0,-5)}
@@ -1148,9 +1176,9 @@ const handleUserOrdersButton = (user_id) => {
                                  {user.email}
                             </td>
                             <td>
-                              {(user.verified).toString()=='true' ? <div>Да</div> : <div>Не</div>}
+                              {user.verified=='true' ? <div>Да</div> : <div>Не</div>}
                             </td>
-
+                            {(employeeInfo.perms).includes("Edit Users") ?
                             <th>
                             <Button
                                 onClick={() => popCreateUserMenu(user)}
@@ -1160,15 +1188,8 @@ const handleUserOrdersButton = (user_id) => {
                                 endIcon={<EditIcon/>}>
                                 Обнови
                             </Button>
-                            <Button
-                                onClick={() => handleUserOrdersButton(user.id)}
-                                variant="contained"
-                                size="large"
-                                color="secondary"
-                                endIcon={<StoreIcon/>}>
-                                Поръчки
-                            </Button>
-                            </th>
+
+                            </th>:<div></div>}
                         </tr>
                         ))}
 
@@ -1177,9 +1198,9 @@ const handleUserOrdersButton = (user_id) => {
                     </tbody>
                 </table>
             </div>)}
-            {(employeeInfo.perms).includes("View Employees Interface")&&employeesPop&&
-            (<div className="product-list">
-                <table className="table">
+            {(employeeInfo.perms).includes("Служители")&&employeesPop&&
+            (<div style={{marginLeft:"60px"}} className="product-list">
+                <table className="rtable">
                     <thead>
                         <tr>
                             <th>
@@ -1212,12 +1233,10 @@ const handleUserOrdersButton = (user_id) => {
                             <td>
                               {user.role}
                             </td>
+                            {(employeeInfo.perms).includes("Edit Employees") ?
 
                             <th>
-                              <Can
-  role={employeeInfo.role}
-  perform="dashboard-page:visit"
-  yes={() => (
+
     <Button
      style = {{marginLeft:"20px"}}
      variant="contained"
@@ -1226,14 +1245,11 @@ const handleUserOrdersButton = (user_id) => {
      onClick={() => openRoleChangeBox({user})}
      endIcon={<EditIcon/>}>
      Промени Ролята на Служителя
-
  </Button>
-  )}
-  no={() => <div></div>}
-/>
 
 
-                            </th>
+
+                            </th> : <div></div>}
                         </tr>
                         ))}
 
@@ -1242,9 +1258,9 @@ const handleUserOrdersButton = (user_id) => {
                     </tbody>
                 </table>
             </div>)}
-            {(employeeInfo.perms).includes("View Users Interface")&&!ordersPop && userOrdersPop&& products&&
-            (<div className="product-list">
-                <table className="table">
+            {(employeeInfo.perms).includes("Потребители")&&!ordersPop && userOrdersPop&& products&&
+            (<div style={{marginLeft:"60px"}} className="product-list">
+                <table className="rtable">
                     <thead>
                         <tr>
                           <th>
@@ -1306,6 +1322,7 @@ const handleUserOrdersButton = (user_id) => {
                               <td>
                                 {order.string_agg}
                               </td>
+                              {(employeeInfo.perms).includes("Edit Orders") ?
                             <th>
                               <Button
                                style = {{marginLeft:"20px"}}
@@ -1316,6 +1333,8 @@ const handleUserOrdersButton = (user_id) => {
                                endIcon={<EditIcon/>}>
                                Статус
                            </Button>
+                           </th>:<div></div>}
+                           <th>
                             <Link to={"/order/" + order.id}>
                             <Button
                                 variant="contained"
@@ -1337,9 +1356,9 @@ const handleUserOrdersButton = (user_id) => {
                     </tbody>
                 </table>
             </div>)}
-            {(employeeInfo.perms).includes("View Orders Interface")&&ordersPop &&
-            (<div className="product-list">
-                <table className="table">
+            {(employeeInfo.perms).includes("Поръчки")&&ordersPop &&
+            (<div style={{marginLeft:"60px"}} className="product-list">
+                <table className="rtable">
                     <thead>
                         <tr>
                           <th>
@@ -1368,9 +1387,7 @@ const handleUserOrdersButton = (user_id) => {
                           <th>
                               Продукти
                           </th>
-                          <th>
-                            Допълнителна информация
-                          </th>
+
                         </tr>
                     </thead>
                     <tbody>
@@ -1401,6 +1418,7 @@ const handleUserOrdersButton = (user_id) => {
                               <td>
                                 {order.string_agg}
                               </td>
+                              {(employeeInfo.perms).includes("Edit Orders") ?
                             <th>
                               <Button
                                style = {{marginLeft:"20px"}}
@@ -1411,6 +1429,8 @@ const handleUserOrdersButton = (user_id) => {
                                endIcon={<EditIcon/>}>
                                Статус
                            </Button>
+                           </th> : <div></div>}
+                           <th>
                             <Link to={"/order/" + order.id}>
                             <Button
                                 variant="contained"
@@ -1431,14 +1451,17 @@ const handleUserOrdersButton = (user_id) => {
 
                     </tbody>
                 </table>
+
             </div>)}
+            {(employeeInfo.perms).includes("Права") && permsPop ? <TestPermissions perms={employeeInfo.perms}/> : <div></div>}
+
             {(employeeInfo.perms).includes("View Stats")? <BackOfficeStats bestSellers = {bestSellersPop} income={incomeListPop} registeredUsers={registeredUsersPop} soldProducts={soldProductsPop}/> :<div></div>}
 
         </div>
 
-        {(employeeInfo.perms).includes("View Orders Interface") && ordersPop ? <CRUDPagination postsPerPage={postsPerPage} totalPosts={orderspagecount} paginate={paginate} /> : <div></div>}
-        {(employeeInfo.perms).includes("View Users Interface") &&!ordersPop &&usersListPop ? <CRUDPagination postsPerPage={postsPerPage} totalPosts={userpagecount} paginate={paginate} /> : <div></div>}
-        {(employeeInfo.perms).includes("View Product Interface") && productsPop && !ordersPop && !usersListPop ? <CRUDPagination postsPerPage={postsPerPage} totalPosts={pagecount} paginate={paginate} /> : <div></div>}
+        {(employeeInfo.perms).includes("Поръчки") && ordersPop ? <CRUDPagination postsPerPage={postsPerPage} totalPosts={orderspagecount} paginate={paginate} /> : <div></div>}
+        {(employeeInfo.perms).includes("Потребители") &&!ordersPop &&usersListPop ? <CRUDPagination postsPerPage={postsPerPage} totalPosts={userpagecount} paginate={paginate} /> : <div></div>}
+        {(employeeInfo.perms).includes("Продукти") && productsPop && !ordersPop && !usersListPop ? <CRUDPagination postsPerPage={postsPerPage} totalPosts={pagecount} paginate={paginate} /> : <div></div>}
         </div>
 
     );

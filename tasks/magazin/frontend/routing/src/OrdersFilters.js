@@ -64,7 +64,8 @@ export default function OrdersFilters(props) {
     props.toDateFilter(date);
   };
   return (
-<div style={{marginLeft:'150px',marginTop:'50px'}}>
+<div style={{marginLeft:'90px',marginTop:'50px'}}>
+<h2>Интерфейс за поръчки</h2>
 <form id="filterForm">
           <Select
         value={status}

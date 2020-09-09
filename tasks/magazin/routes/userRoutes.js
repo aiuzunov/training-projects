@@ -174,6 +174,9 @@ router.post("/get",async(req,res) => {
         console.log(req.body)
         const Filters = req.body;
         var testfilters = Filters;
+        var auth = await pool.query("select employees.name,employees.username,employees.email,roles.name as role,array_agg(permissions.name) from employees join roles on employees.role_id = roles.id join roles_perms on roles_perms.role_id = roles.id join permissions on permissions.id = roles_perms.perm_id where employees.name = $1 GROUP BY employees.name,employees.username,employees.email,roles.name",[testfilters.employeeInfo.name])
+        console.log(auth.rows)
+        if(auth.rows[0].array_agg.includes("Потребители")){
         const indexOfLastPost = Filters.currentPage * 9;
         const indexOfFirstPost = indexOfLastPost - 9;
         var testArray= [];
@@ -181,7 +184,7 @@ router.post("/get",async(req,res) => {
         const entries = Object.entries(testfilters);
         var i =0;
         for (const [key, value] of entries) {
-          if(key!='filter'&&value!=''&&key!=''&&key!='currentPage'){
+          if(key!='filter'&&key!='employeeInfo'&&value!=''&&key!=''&&key!='currentPage'){
             if(key=='verifiedFilter'){
               ++i;
               testArray.push(testfilters.verifiedFilter);
@@ -227,6 +230,9 @@ router.post("/get",async(req,res) => {
          stream.on('end', done)
          stream.pipe(JSONStream.stringify()).pipe(res)
        })
+     }else{
+         res.status(500).send({msg: 'Нямате права да виждате списъка с потребителите.'});
+     }
         }
        catch (err) {
         console.log(err)

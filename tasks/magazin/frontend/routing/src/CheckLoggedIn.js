@@ -11,7 +11,7 @@ function CheckLoggedIn ({component: Component,...rest}) {
       <Route
         {...rest}
         render={(props) => userInfo
-          ? <Component {...props} />
+          ? <Component isDisconnected={rest.isDisconnected}{...props} />
           : <Redirect to={{pathname: '/signin', state: {from: props.location}}} />}
       />
     )

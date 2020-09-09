@@ -12,7 +12,7 @@ import Cookie from 'js-cookie';
 
 
 
-function SignUpScreen() {    
+function SignUpScreen(props) {
     const [name,setName] = useState('');
     const [username,setUsername] = useState('');
     const [email,setEmail] = useState('');
@@ -21,27 +21,26 @@ function SignUpScreen() {
     const userSignUp = useSelector(state=>state.userSignUp);
     const {userInfo, loading, error} = userSignUp;
     const dispatch = useDispatch();
-    const history = useHistory();
 
     useEffect(() => {
-        
+
         if(Cookie.getJSON('userInfo')){
-            history.push("/")
+            props.history.push("/")
         }
 
         if(loading==false&&error==undefined){
             setTimeout(
-                () => window.location = "/signin", 
+                () => window.location = "/signin",
                 10000
               );
         }
-    
-        
-        
-    },[userInfo,loading]);
- 
 
-    
+
+
+    },[userInfo,loading]);
+
+
+
 
    const submitInfo = (e) => {
        if(password==password2){
@@ -51,10 +50,10 @@ function SignUpScreen() {
        }else{
            alert("Passwords must match")
        }
-       
-       
+
+
    };
- 
+
     return(
         <div>
             <NavBar/>
@@ -68,7 +67,7 @@ function SignUpScreen() {
                         {loading && <div>Loading...</div>}
                         {error && <div>{error}</div>}
                         {loading==false&&error==undefined&&<div>
-                        <Typography color="secondary">Имейл за верификация беше изпратен на следния адрес :  {email}</Typography> 
+                        <Typography color="secondary">Имейл за верификация беше изпратен на следния адрес :  {email}</Typography>
                         <Typography color="secondary"> Ще бъдете автоматично прехвърлен към страницата за влизане след 10 секунди</Typography>
                         </div>}
                     </li>
@@ -103,34 +102,57 @@ function SignUpScreen() {
                         <input required type="password" name="password2" id="password2" onChange={(e) => setPassword2(e.target.value)}/>
                     </li>
                     <li>
-                    <Button 
-                    type="submit"
-                    variant="contained"
-                    color="primary"
-                    size="large"
-                    >
-                        Регистрация
-                     </Button>
+                    {props.isDisconnected ?
+                           <Button
+                          disabled
+                          type="submit"
+                          variant="contained"
+                          color="primary"
+                          size="large"
+                          >
+                            Регистрация
+                           </Button>
+                           :
+                           <Button
+                             type="submit"
+                             variant="contained"
+                             color="primary"
+                             size="large"
+                             >
+                                 Регистрация
+                              </Button>}
+
                     </li>
-                    Вече имаш акаунт? 
+                    Вече имаш акаунт?
 
                     <li>
-                    <Button 
-                    size="large"
-                    href="/signin"
-                    variant="contained"
-                    color="primary"
-                    >
-                        Влез в твоя акаунт
-                     </Button>
-                     
+                    {props.isDisconnected ?
+                      <Button
+                        disabled
+                        size="large"
+                        href="/signin"
+                        variant="contained"
+                        color="primary"
+                        >
+                            Влез в твоя акаунт
+                         </Button>:
+                         <Button
+                         size="large"
+                         href="/signin"
+                         variant="contained"
+                         color="primary"
+                         >
+                             Влез в твоя акаунт
+                          </Button>}
+
+
                     </li>
                 </ul>
             </form>
         </div>
-        
+
         </div>
-       
+
     );
 }
 

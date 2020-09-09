@@ -123,7 +123,8 @@ const sortByCreation = [{
   const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
   const checkedIcon = <CheckBoxIcon fontSize="small" />;
   return (
-<div style={{marginLeft:'150px',marginTop:'50px'}}>
+<div style={{marginLeft:'90px',marginTop:'50px'}}>
+<h2>Интерфейс за продукти</h2>
 <form id="filterForm">
 <Grid container spacing={4} justify="start" direction = "rows">
 <Grid container item xs={12} spacing={1}>
@@ -218,10 +219,11 @@ inputProps={{ 'aria-label': 'Without label' }}
   ))}
 </Select>
 <Slider
+      style={{marginLeft:"100px",marginTop:"25px"}}
       className={classes.root}
       value={price}
       onChange={handlePriceChange}
-      valueLabelDisplay="auto"
+      valueLabelDisplay="on"
       aria-labelledby="range-slider"
     />
 </Grid>

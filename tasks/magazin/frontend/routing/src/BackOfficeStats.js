@@ -49,6 +49,7 @@ function BackOfficeStats(props){
     const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
     const [fromDate, setFromDate] =  React.useState(new Date('2014-08-18T21:11:54'));
     const [toDate, setToDate] =  React.useState(new Date('2021-08-18T21:11:54'));
+
     const handleFromDateChange = (date) => {
       setFromDate(date);
     };
@@ -182,8 +183,8 @@ function BackOfficeStats(props){
       </MuiPickersUtilsProvider></div>:<div></div>}
 
 
-      {incomeListPop ? <div className="product-list">
-        <div style={{marginLeft:"60px"}}>
+      {incomeListPop ? <div style={{marginLeft:"60px"}} className="product-list">
+        <div>
         <ExcelFile element={<button style={{marginTop:"10px"}}>Експортирай данните</button>}>
                <ExcelSheet data={incomes} name="Orders">
                    <ExcelColumn label="Направена на" value="created"/>
@@ -199,7 +200,7 @@ function BackOfficeStats(props){
            </ExcelFile>
            <h3 style={{marginTop:"10px"}}>Брой поръчки отговарящи на търсенето: {incomes.length}</h3>
          </div>
-          <table className="table">
+             <table className="rtable">
               <thead>
                   <tr>
                       <th>
@@ -309,8 +310,8 @@ function BackOfficeStats(props){
 
           </table>
       </div>: <div>  </div>}
-      {registeredUsersPop ? <div className="product-list">
-        <div style={{marginLeft:"60px"}}>
+      {registeredUsersPop ? <div style={{marginLeft:"60px"}} className="product-list">
+        <div>
         <ExcelFile element={<button style={{marginTop:"10px"}}>Експортирай данните</button>}>
                <ExcelSheet data={regUsers} name="Users">
                    <ExcelColumn label="Дата на регистрация" value="create_date"/>
@@ -322,7 +323,7 @@ function BackOfficeStats(props){
            </ExcelFile>
            <h3 style={{marginTop:"10px"}}>Брой потребители отговарящи на търсенето: {regUsers.length}</h3>
          </div>
-          <table className="table">
+          <table className="rtable">
               <thead>
                 <tr>
                     <th>
@@ -359,7 +360,7 @@ function BackOfficeStats(props){
                          {user.email}
                     </td>
                     <td>
-                      {(user.verified).toString()=='true' ? <div>Да</div> : <div>Не</div>}
+                      {user.verified=='true' ? <div>Да</div> : <div>Не</div>}
                     </td>
                 </tr>
                 ))}

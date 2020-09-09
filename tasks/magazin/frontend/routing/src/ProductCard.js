@@ -49,6 +49,9 @@ function ProductCard(props) {
   const { userInfo } = userSignIn;
   const bull = <span className={classes.bullet}>•</span>;
   const AddToCart = () => {
+    if(!userInfo){
+      window.location = "/signin"
+    }
     let product_id = props.id;
     let user_id = userInfo.id;
     let quantity = 1;
@@ -126,4 +129,3 @@ function ProductCard(props) {
 }
 
 export default withRouter(ProductCard);
-

@@ -68,7 +68,8 @@ const getEmail = e => {
     props.filterRole(e.target.value);
   }
   return (
-<div style={{marginLeft:'150px',marginTop:'50px'}}>
+<div style={{marginLeft:'90px',marginTop:'50px'}}>
+<h2>Интерфейс за служители</h2>
 <form id="filterForm">
 <Grid container spacing={4} justify="start" direction = "rows">
 <Grid container item xs={12} spacing={1}>

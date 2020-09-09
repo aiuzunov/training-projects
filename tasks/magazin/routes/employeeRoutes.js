@@ -10,19 +10,21 @@ router.post("/signemployee",async (req,res) => {
     try {
 
         const {email,password} = req.body;
-        const signEmployee = await pool.query("select  employees.name,employees.username,employees.email,roles.name as role,array_agg(permissions.name) as perms from employees join roles on employees.role_id = roles.id join roles_perms on roles_perms.role_id = roles.id join permissions on permissions.id = roles_perms.perm_id WHERE email=$1 AND password=crypt($2, password) GROUP BY employees.name,employees.username,employees.email,roles.name",[email,password]);
-        if(signEmployee.rowCount>0){
-            res.json({
-                name:signEmployee.rows[0].name,
-                username:signEmployee.rows[0].username,
-                email: signEmployee.rows[0].email,
-                role: signEmployee.rows[0].role,
-                perms: signEmployee.rows[0].perms,
-                token: getToken(signEmployee),
-            });
-        }else{
-            res.status(401).send({msg: 'Грешна парола или имейл.'});
-        }
+
+          const signEmployee = await pool.query("select  employees.name,employees.username,employees.email,roles.name as role,array_agg(permissions.name) as perms from employees join roles on employees.role_id = roles.id join roles_perms on roles_perms.role_id = roles.id join permissions on permissions.id = roles_perms.perm_id WHERE email=$1 AND password=crypt($2, password) GROUP BY employees.name,employees.username,employees.email,roles.name",[email,password]);
+          if(signEmployee.rowCount>0){
+              res.json({
+                  name:signEmployee.rows[0].name,
+                  username:signEmployee.rows[0].username,
+                  email: signEmployee.rows[0].email,
+                  role: signEmployee.rows[0].role,
+                  perms: signEmployee.rows[0].perms,
+                  token: getToken(signEmployee),
+              });
+          }else{
+              res.status(401).send({msg: 'Грешна парола или имейл.'});
+          }
+
     } catch (err) {
         res.status(500).send({msg: 'Възникна грешка със заявката,моля опитайте отново .'});
     }

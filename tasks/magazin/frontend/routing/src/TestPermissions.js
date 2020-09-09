@@ -12,6 +12,8 @@ import Select from '@material-ui/core/Select';
 import { useSelector, useDispatch } from 'react-redux';
 import Checkbox from '@material-ui/core/Checkbox';
 import Chip from '@material-ui/core/Chip';
+import { employeeSign } from './actions/employeeActions';
+
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -51,7 +53,7 @@ function getStyles(name, personName, theme) {
   };
 }
 
-export default function TestPermissions() {
+export default function TestPermissions(props) {
   const classes = useStyles();
   const theme = useTheme();
   const rpList = useSelector((state) => state.rpList);
@@ -64,17 +66,21 @@ export default function TestPermissions() {
 
 useEffect(() => {
   dispatch(listRoles());
-}, [refresh]);
-  const permHandler = (role_id,perm_id,action) => {
-    dispatch(updatePermissions(role_id,perm_id,action));
-    setRefresh(!refresh);
 
+
+}, [success]);
+  const permHandler = (role_id,perm_id,action) => {
+    if((props.perms).includes("Edit Permissions")){
+
+
+    dispatch(updatePermissions(role_id,perm_id,action));
+    }
 }
   return (
-    <div>
-
+    <div style={{marginLeft:"60px"}}>
+    <h2> Интерфейс за права </h2>
       <div className="product-list">
-          <table className="table">
+          <table className="rtable rtable--flip">
               <thead>
                   <tr>
                       <th>
@@ -98,6 +104,39 @@ useEffect(() => {
                       <th>
                           Справки
                       </th>
+                      <th>
+                          Интерфейс за права
+                      </th>
+                      <th>
+                          Създаване на продукти
+                      </th>
+                      <th>
+                          Обновяване на продукти
+                      </th>
+                      <th>
+                          Скриване на продукти
+                      </th>
+                      <th>
+                          Създаване на потребители
+                      </th>
+                      <th>
+                          Редактиране на потребители
+                      </th>
+                      <th>
+                          Създаване на поръчки
+                      </th>
+                      <th>
+                          Редактиране на поръчки
+                      </th>
+                      <th>
+                          Редактиране на права
+                      </th>
+                      <th>
+                          Създаване на служители
+                      </th>
+                      <th>
+                          Редактиране на служители
+                      </th>
 
                   </tr>
               </thead>
@@ -108,19 +147,54 @@ useEffect(() => {
                   <td>
                        {role.role}
                   </td>
-                      {role.permissions.includes("View Product Interface") ? <div>✓ <button   onClick={() => permHandler(role.id,1,'take')}>Промени</button></div> : <div>✗ <button   onClick={() => permHandler(role.id,1,'give')}>Промени</button></div> }
                   <td>
-                      {role.permissions.includes("View Orders Interface") ?  <div>✓ <button   onClick={() => permHandler(role.id,2,'take')}>Промени</button></div> : <div>✗ <button   onClick={() => permHandler(role.id,2,'give')}>Промени</button></div>}
+                      {role.permissions.includes("Продукти") ? <div>✓ <button   onClick={() => permHandler(role.id,1,'take')}>Промени</button></div> : <div>✗ <button   onClick={() => permHandler(role.id,1,'give')}>Промени</button></div> }
+                  </td>
+                  <td>
+                      {role.permissions.includes("Поръчки") ?  <div>✓ <button   onClick={() => permHandler(role.id,2,'take')}>Промени</button></div> : <div>✗ <button   onClick={() => permHandler(role.id,2,'give')}>Промени</button></div>}
 
                   </td>
                   <td>
-                      {role.permissions.includes("View Users Interface") ? <div>✓ <button   onClick={() => permHandler(role.id,3,'take')}>Промени</button></div> : <div>✗ <button   onClick={() => permHandler(role.id,3,'give')}>Промени</button></div>}
+                      {role.permissions.includes("Потребители") ? <div>✓ <button   onClick={() => permHandler(role.id,3,'take')}>Промени</button></div> : <div>✗ <button   onClick={() => permHandler(role.id,3,'give')}>Промени</button></div>}
                   </td>
                   <td>
-                      {role.permissions.includes("View Employees Interface") ?<div>✓ <button   onClick={() => permHandler(role.id,4,'take')}>Промени</button></div> : <div>✗ <button   onClick={() => permHandler(role.id,4,'give')}>Промени</button></div>}
+                      {role.permissions.includes("Служители") ?<div>✓ <button   onClick={() => permHandler(role.id,4,'take')}>Промени</button></div> : <div>✗ <button   onClick={() => permHandler(role.id,4,'give')}>Промени</button></div>}
                   </td>
                   <td>
                       {role.permissions.includes("View Stats") ?<div>✓ <button   onClick={() => permHandler(role.id,5,'take')}>Промени</button></div>: <div>✗ <button   onClick={() => permHandler(role.id,5,'give')}>Промени</button></div>}
+                  </td>
+                  <td>
+                      {role.permissions.includes("Права") ?<div>✓ <button   onClick={() => permHandler(role.id,6,'take')}>Промени</button></div>: <div>✗ <button   onClick={() => permHandler(role.id,6,'give')}>Промени</button></div>}
+                  </td>
+                  <td>
+                      {role.permissions.includes("Create Products") ?<div>✓ <button   onClick={() => permHandler(role.id,7,'take')}>Промени</button></div>: <div>✗ <button   onClick={() => permHandler(role.id,7,'give')}>Промени</button></div>}
+                  </td>
+                  <td>
+                      {role.permissions.includes("Edit Products") ?<div>✓ <button   onClick={() => permHandler(role.id,8,'take')}>Промени</button></div>: <div>✗ <button   onClick={() => permHandler(role.id,8,'give')}>Промени</button></div>}
+                  </td>
+                  <td>
+                      {role.permissions.includes("Hide Products") ?<div>✓ <button   onClick={() => permHandler(role.id,9,'take')}>Промени</button></div>: <div>✗ <button   onClick={() => permHandler(role.id,9,'give')}>Промени</button></div>}
+                  </td>
+                  <td>
+                      {role.permissions.includes("Create Users") ?<div>✓ <button   onClick={() => permHandler(role.id,10,'take')}>Промени</button></div>: <div>✗ <button   onClick={() => permHandler(role.id,10,'give')}>Промени</button></div>}
+                  </td>
+                  <td>
+                      {role.permissions.includes("Edit Users") ?<div>✓ <button   onClick={() => permHandler(role.id,11,'take')}>Промени</button></div>: <div>✗ <button   onClick={() => permHandler(role.id,11,'give')}>Промени</button></div>}
+                  </td>
+                  <td>
+                      {role.permissions.includes("Create Orders") ?<div>✓ <button   onClick={() => permHandler(role.id,12,'take')}>Промени</button></div>: <div>✗ <button   onClick={() => permHandler(role.id,12,'give')}>Промени</button></div>}
+                  </td>
+                  <td>
+                      {role.permissions.includes("Edit Orders") ?<div>✓ <button   onClick={() => permHandler(role.id,13,'take')}>Промени</button></div>: <div>✗ <button   onClick={() => permHandler(role.id,13,'give')}>Промени</button></div>}
+                  </td>
+                  <td>
+                      {role.permissions.includes("Edit Permissions") ?<div>✓ <button   onClick={() => permHandler(role.id,14,'take')}>Промени</button></div>: <div>✗ <button   onClick={() => permHandler(role.id,14,'give')}>Промени</button></div>}
+                  </td>
+                  <td>
+                      {role.permissions.includes("Create Employees") ?<div>✓ <button   onClick={() => permHandler(role.id,15,'take')}>Промени</button></div>: <div>✗ <button   onClick={() => permHandler(role.id,15,'give')}>Промени</button></div>}
+                  </td>
+                  <td>
+                      {role.permissions.includes("Edit Employees") ?<div>✓ <button   onClick={() => permHandler(role.id,16,'take')}>Промени</button></div>: <div>✗ <button   onClick={() => permHandler(role.id,16,'give')}>Промени</button></div>}
                   </td>
               </tr>
               ))}

@@ -16,28 +16,53 @@ import EmpSignUpScreen from './EmpSignUpScreen';
 import ProfileOrderList from './ProfileOrderList';
 import OrderDetailsPage from './orderDetailsPage';
 import BackOfficeStats from './BackOfficeStats';
+import NetworkDetector from './checkers/NetworkDetector';
+import { useState, useEffect } from 'react';
 
-function App() {
 
+function App(props) {
+  const [disconnected,setDisconnected] = useState(false)
+  useEffect(() => {
+    setDisconnected(props.isDisconnected)
+
+  },[props.isDisconnected]);
   return (
+
     <Router>
       <Switch>
 
-
-      <Route path="/" exact>
-        <ProductsPage/>
-      </Route>
+      <Route exact
+    path='/'
+    render={(props) => (
+      <ProductsPage {...props} isDisconnected={disconnected} />
+    )}
+    />
       <Route path="/product/:id" component={ProductDetailsPage}/>
-      <Route path="/signin" component={SignInScreen}/>
-      <Route path="/signup" component={SignUpScreen}/>
-      <Route path="/signinemp" component={SignInEmployees}/>
+      <Route
+    path='/product/:id'
+    render={(props) => (
+      <SignInScreen {...props} isDisconnected={disconnected} />
+    )}
+  />
+      <Route
+    path='/signin'
+    render={(props) => (
+      <SignInScreen {...props} isDisconnected={disconnected} />
+    )}
+  />
+  <Route
+path='/signup'
+render={(props) => (
+  <SignUpScreen {...props} isDisconnected={disconnected} />
+)}
+/>      <Route path="/signinemp" component={SignInEmployees}/>
       <Route path="/profile" component={UserProfile}/>
       <Route path="/empsign" component={EmpSignUpScreen}/>
       <Route path="/orders" component={ProfileOrderList}/>
       <Route path="/order/:id" component={OrderDetailsPage}/>
       <Route path="/testPerm" component={TestPermissions}/>
       <PrivateRoute path='/backoffice' component={BackOffice} />
-      <CheckLoggedIn path="/cart/:id?" component={Cart} />
+      <CheckLoggedIn isDisconnected={disconnected} path="/cart/:id?" component={Cart} />
 
 
 
@@ -48,4 +73,4 @@ function App() {
 
 
 
-export default App;
+export default NetworkDetector(App);

@@ -28,6 +28,10 @@ router.post("/getProducts", async (req, res) => {
   try {
     const Filters = req.body;
     var testfilters = Filters;
+    if(testfilters.employeeInfo){
+    var auth = await pool.query("select employees.name,employees.username,employees.email,roles.name as role,array_agg(permissions.name) from employees join roles on employees.role_id = roles.id join roles_perms on roles_perms.role_id = roles.id join permissions on permissions.id = roles_perms.perm_id where employees.name = $1 GROUP BY employees.name,employees.username,employees.email,roles.name",[testfilters.employeeInfo.name])
+    console.log(auth.rows)
+    if(auth.rows[0].array_agg.includes("Продукти")){
     const indexOfLastPost = Filters.currentPage * 9;
     const indexOfFirstPost = indexOfLastPost - 9;
     var testArray= [];
@@ -55,7 +59,7 @@ router.post("/getProducts", async (req, res) => {
 
 const entries = Object.entries(testfilters);
 for (const [key, value] of entries) {
-  if(key!='filter'&&value!=''&&key!='pricefilter'&&key!='searchfilter'&&key!='tagfilter'&&key!='ageFilter'&&key!='cisFilter'&&key!='currentPage'){
+  if(key!='filter'&&value!=''&&key!='employeeInfo'&&key!='pricefilter'&&key!='searchfilter'&&key!='tagfilter'&&key!='ageFilter'&&key!='cisFilter'&&key!='currentPage'){
     if(key=='from'){
       query = query + ` AND DATE(create_date)>=$${i}`
       i++;
@@ -119,6 +123,106 @@ for (const [key, value] of entries) {
      stream.on('end', done)
      stream.pipe(JSONStream.stringify()).pipe(res)
    })
+ }else{
+   res
+     .status(500)
+     .send({ msg: "Нямате права да виждате продуктите ." });
+ }}
+ else{
+   const Filters = req.body;
+   var testfilters = Filters;
+   const indexOfLastPost = Filters.currentPage * 9;
+   const indexOfFirstPost = indexOfLastPost - 9;
+   var testArray= [];
+   var query = 'SELECT DISTINCT t.id,name,image,brand,price,count_in_stock,description,create_date,edit_time,currency_id from (SELECT *, count(*) OVER ';
+   if(testfilters.ageFilter){
+     switch(testfilters.ageFilter){
+       case 'ASC':
+         query+='(ORDER BY create_date ASC, id)'
+         break;
+       case 'DESC':
+         query+='(ORDER BY create_date DESC, id DESC)'
+         break;
+     }
+   }else{
+     query+=`(ORDER BY id)`
+   }
+   if(testfilters.searchfilter!=''){
+     var i=2;
+     testArray.push(testfilters.searchfilter);
+      query += " ROWNUM FROM products where LOWER(name) LIKE concat('%',LOWER($1),'%')";
+   }else{
+     var i=1;
+      query += " ROWNUM FROM products WHERE 1=1";
+   }
+
+const entries = Object.entries(testfilters);
+for (const [key, value] of entries) {
+ if(key!='filter'&&value!=''&&key!='employeeInfo'&&key!='pricefilter'&&key!='searchfilter'&&key!='tagfilter'&&key!='ageFilter'&&key!='cisFilter'&&key!='currentPage'){
+   if(key=='from'){
+     query = query + ` AND DATE(create_date)>=$${i}`
+     i++;
+     testArray.push(testfilters.from);
+
+   }
+   else if(key=='to'){
+     testArray.push(testfilters.to);
+     query = query + ` AND DATE(create_date)<=$${i}`
+     i++;
+   }
+   else{
+   query = query + ` AND ${key}=$${i}`;
+   testArray.push(value)
+   i++;
+ }
+ }
+
+}
+ query += ` AND price>=$${i} AND price<=$${i+1}`
+ testArray.push(testfilters.pricefilter[0])
+ testArray.push(testfilters.pricefilter[1])
+ if(testfilters.cisFilter){
+   switch(testfilters.cisFilter){
+     case 1:
+       query+=' and count_in_stock=0'
+       break;
+     case 2:
+       query+=' and count_in_stock=1'
+       break;
+     case 3:
+       query+=' and count_in_stock>1'
+       break;
+   }
+ }
+ if(testfilters.tagfilter.length==0){
+   testArray.push(indexOfFirstPost)
+   testArray.push(indexOfLastPost)
+   query+=`) as t join tags_products on t.id = tags_products.product_id where rownum>$${i+2} and rownum <= $${i+3}`
+ }else{
+   testArray.push(testfilters.tagfilter)
+   testArray.push(indexOfFirstPost)
+   testArray.push(indexOfLastPost)
+   query+=`) as t join tags_products on t.id = tags_products.product_id where tags_products.tag_id = ANY ($${i+2}) AND rownum>$${i+3} and rownum <= $${i+4}`
+
+ }
+ if(testfilters.ageFilter){
+       switch(testfilters.ageFilter){
+         case 'ASC':
+           query+=' ORDER BY create_date ASC'
+           break;
+         case 'DESC':
+           query+=' ORDER BY create_date DESC, id DESC'
+           break;
+       }
+     }
+     pool.connect((err, client, done) => {
+    if (err) throw err;
+    const data = new QueryStream(query,testArray)
+    const stream = client.query(data)
+    stream.on('end', done)
+    stream.pipe(JSONStream.stringify()).pipe(res)
+  })
+ }
   } catch (err) {
     console.log(err)
     res
@@ -132,7 +236,9 @@ router.post("/getProductCount", async (req, res) => {
   try {
     const testfilters = req.body;
     var testArray= [];
-
+    var auth = await pool.query("select employees.name,employees.username,employees.email,roles.name as role,array_agg(permissions.name) from employees join roles on employees.role_id = roles.id join roles_perms on roles_perms.role_id = roles.id join permissions on permissions.id = roles_perms.perm_id where employees.name = $1 GROUP BY employees.name,employees.username,employees.email,roles.name",[testfilters.employeeInfo.name])
+    console.log(auth.rows)
+    if(auth.rows[0].array_agg.includes("Продукти")){
     var query = 'SELECT MAX(ROWNUM) from (SELECT *, count(*) OVER ';
     if(testfilters.ageFilter){
       switch(testfilters.ageFilter){
@@ -158,7 +264,7 @@ router.post("/getProductCount", async (req, res) => {
 const entries = Object.entries(testfilters);
 
 for (const [key, value] of entries) {
-  if(key!='filter'&&value!=''&&key!='pricefilter'&&key!='searchfilter'&&key!='tagfilter'&&key!='ageFilter'&&key!='cisFilter'){
+  if(key!='filter'&&value!=''&&key!='employeeInfo'&&key!='pricefilter'&&key!='searchfilter'&&key!='tagfilter'&&key!='ageFilter'&&key!='cisFilter'){
     if(key=='from'){
       query = query + ` AND DATE(create_date)>=$${i}`
       i++;
@@ -216,6 +322,8 @@ for (const [key, value] of entries) {
   console.log(query)
   var test = await pool.query(query,testArray)
     res.json(test.rows[0]);
+  }
+
   } catch (err) {
     console.log("max error",err)
     res

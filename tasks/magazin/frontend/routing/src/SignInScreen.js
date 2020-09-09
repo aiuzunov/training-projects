@@ -10,7 +10,7 @@ import Cookie from 'js-cookie';
 
 
 
-function SignInScreen({  match , history }) {
+function SignInScreen(props,{ match , history} ) {
     const [username,setUsername] = useState('');
     const [email,setEmail] = useState('');
     const [password,setPassword] = useState('');
@@ -18,12 +18,11 @@ function SignInScreen({  match , history }) {
     const userSignIn = useSelector(state=>state.userSignIn);
     const {userInfo, loading, error} = userSignIn;
     const dispatch = useDispatch();
-
     useEffect(() => {
       getCount();
 
         if(Cookie.getJSON('userInfo')){
-            history.push("/")
+            props.history.push("/")
         }
 
     },[userInfo]);
@@ -40,7 +39,7 @@ function SignInScreen({  match , history }) {
           console.log(err.message);
         }
       };
-
+      console.log(props)
    const submitInfo = (e) => {
        e.preventDefault();
        dispatch(signin(email,password))
@@ -75,27 +74,44 @@ function SignInScreen({  match , history }) {
                         <input type="password" name="password" id="password" onChange={(e) => setPassword(e.target.value)}/>
                     </li>
                     <li>
-                    <Button
-                    type="submit"
-                    variant="contained"
-                    color="primary"
-                    >
-                        Влизане
-                     </Button>
+                    {props.isDisconnected ?   <Button
+                      disabled
+                      type="submit"
+                      variant="contained"
+                      color="primary"
+                      >
+                          Влизане
+                       </Button> :   <Button
+                         type="submit"
+                         variant="contained"
+                         color="primary"
+                         >
+                             Влизане
+                          </Button>}
+
+
 
                     </li>
                     <li>
                         Нямаш акаунт?
                     </li>
                     <li>
-
-                        <Button
+                    {props.isDisconnected ?     <Button
+                    disabled
                     href="/signup"
                     variant="contained"
                     color="primary"
                     >
                         Създай нов акаунт
                      </Button>
+ :     <Button
+ href="/signup"
+ variant="contained"
+ color="primary"
+ >
+     Създай нов акаунт
+  </Button>
+}
 
                     </li>
                 </ul>
