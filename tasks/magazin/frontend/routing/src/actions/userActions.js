@@ -1,15 +1,26 @@
 import Cookie from 'js-cookie';
-import { USER_GET_REQUEST,USER_GET_SUCCESS,USER_GET_FAIL,USER_SIGNIN_FAIL, USER_SIGNIN_SUCCESS, USER_SIGNIN_REQUEST, USER_SIGNUP_FAIL, USER_SIGNUP_SUCCESS, USER_SIGNUP_REQUEST, USER_LOGOUT_REQUEST, USER_LOGOUT_SUCCESS, USER_LOGOUT_FAIL, USER_LIST_REQUEST, USER_LIST_SUCCESS, USER_LIST_FAIL } from '../constants/userConstants';
+import {USER_SETTINGS_FAIL,USER_SETTINGS_REQUEST,USER_SETTINGS_SUCCESS, USER_GET_REQUEST,USER_GET_SUCCESS,USER_GET_FAIL,USER_SIGNIN_FAIL, USER_SIGNIN_SUCCESS, USER_SIGNIN_REQUEST, USER_SIGNUP_FAIL, USER_SIGNUP_SUCCESS, USER_SIGNUP_REQUEST, USER_LOGOUT_REQUEST, USER_LOGOUT_SUCCESS, USER_LOGOUT_FAIL, USER_LIST_REQUEST, USER_LIST_SUCCESS, USER_LIST_FAIL } from '../constants/userConstants';
 import Axios from 'axios';
 
-const signin = (email,password) => async (dispatch) => {
-    dispatch({type: USER_SIGNIN_REQUEST,payload:{email,password}});
+const signin = (captchvalue,email,password) => async (dispatch) => {
+    console.log(captchvalue)
+    dispatch({type: USER_SIGNIN_REQUEST,payload:{captchvalue,email,password}});
     try {
-        const {data} = await Axios.post(`/users/sign`,{email,password});
+        const {data} = await Axios.post(`/users/sign`,{captchvalue,email,password});
         dispatch({type: USER_SIGNIN_SUCCESS,payload:data});
         Cookie.set('userInfo', JSON.stringify(data));
     } catch (error) {
         dispatch({type: USER_SIGNIN_FAIL,payload: error.response.data.msg});
+    }
+}
+
+const settingsChange = (chance1,chance2,time1,time2) => async (dispatch) => {
+    dispatch({type: USER_SETTINGS_REQUEST,payload:{chance1,chance2,time1,time2}});
+    try {
+        const {data} = await Axios.post(`/users/changeSettings`,{chance1,chance2,time1,time2});
+        dispatch({type: USER_SETTINGS_SUCCESS,payload:data});
+    } catch (error) {
+        dispatch({type: USER_SETTINGS_FAIL,payload: error.response.data.msg});
     }
 }
 
@@ -64,4 +75,4 @@ const getUser = (id) => async (dispatch) => {
 };
 
 
-export {signin, signup,logout,listUsers,getUser}
+export {signin, signup,logout,listUsers,getUser,settingsChange}

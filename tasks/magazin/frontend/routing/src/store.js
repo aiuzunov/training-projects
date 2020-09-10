@@ -3,7 +3,7 @@ import { productListReducer, productDetailsReducer, productSaveReducer, productD
 import thunk from 'redux-thunk';
 import { cartReducer, CartItemSaveReducer, CartItemDeleteReducer } from './reducer/cartReducers';
 import Cookie from 'js-cookie';
-import { userSignInReducer,userGetReducer, userSignUpReducer, userLogoutReducer, userListReducer } from './reducer/userReducers';
+import {userSettingsReducer, userSignInReducer,userGetReducer, userSignUpReducer, userLogoutReducer, userListReducer } from './reducer/userReducers';
 import { tagListReducer } from './reducer/tagsReducers';
 import { rpUpdateReducer,rpListReducer } from './reducer/rpReducers';
 import { ptListReducer } from './reducer/ptReducers';
@@ -52,6 +52,7 @@ const reducer = combineReducers({
     updatePermission: rpUpdateReducer,
     bestSellersList: bestSellersListReducer,
     employeesList: employeeListReducer,
+    changeSettings: userSettingsReducer,
 })
 
 const composeEnhancer = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;

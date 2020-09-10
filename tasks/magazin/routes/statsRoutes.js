@@ -9,12 +9,34 @@ router.post("/monthlyIncome", async (req, res) => {
     try {
       const Filters = req.body;
       var testfilters = Filters;
+      console.log("Grpby",testfilters.groupBy)
       var testArray= [];
+      if(testfilters.groupBy!=''){
+        switch(testfilters.groupBy){
+          case 'USER':
+            var query = 'SELECT DISTINCT users.name,users.email,users.username,sum(t.price) as price,currency FROM orders as t join users on t.user_id = users.id join order_items on order_items.order_id = t.id join products on order_items.product_id = products.id join addresses on addresses.id = t.address_id where DATE(created)>=$1 and DATE(created)<=$2 group by  users.name,users.email,users.username,currency'
+            testArray.push(testfilters.from)
+            testArray.push(testfilters.to)
+            break;
+          case 'MONTH':
+            var query = 'SELECT EXTRACT(MONTH FROM created) AS date,users.name,users.email,users.username,SUM(orders.price) as price,currency FROM orders join users on orders.user_id = users.id where DATE(created)>=$1 and DATE(created)<=$2 group by date,users.name,users.email,users.username,currency'
+            testArray.push(testfilters.from)
+            testArray.push(testfilters.to)
+            break;
+          case 'YEAR':
+          var query = 'SELECT EXTRACT(YEAR FROM created) AS date,users.name,users.email,users.username,SUM(orders.price) as price,currency FROM orders join users on orders.user_id = users.id where DATE(created)>=$1 and DATE(created)<=$2 group by date,users.name,users.email,users.username,currency'
+          testArray.push(testfilters.from)
+          testArray.push(testfilters.to)
+          break;
+          default:
+          break;
+        }
+      }else {
       var query = "select * from (SELECT t.*,users.name,users.email,users.username,addresses.address,string_agg(products.name, ', '), count(*) OVER (ORDER BY t.id) as rownum FROM orders as t join users on t.user_id = users.id join order_items on order_items.order_id = t.id join products on order_items.product_id = products.id join addresses on addresses.id = t.address_id WHERE 1=1";
       const entries = Object.entries(testfilters);
       var i =0;
       for (const [key, value] of entries) {
-        if(key!='filter'&&value!=''&&key!=''&&key!='currentPage'){
+        if(key!='filter'&&value!=''&&key!=''&&key!='currentPage'&&key!="groupBy"){
           if(key=='from'){
             ++i;
             query = query + ` AND DATE(created)>=$${i}`
@@ -39,6 +61,7 @@ router.post("/monthlyIncome", async (req, res) => {
         }
       }
       query+=` group by t.id,users.name,users.email,users.username,addresses.address)d`
+    }
       console.log("Stat",query)
       pool.connect((err, client, done) => {
      if (err) throw err;

@@ -34,6 +34,8 @@ function BackOfficeStats(props){
     const [incomeListPop,setIncomeListPop] = useState(0);
     const [bestSellersPop,setBestSellersPop] = useState(0);
     const [soldProductsPop,setSoldProductsPop] = useState(0);
+    const [groupBy, setGroupBy] = useState('');
+
     const [registeredUsersPop,setRegisteredUsersPop] = useState(0);
     const incomesList = useSelector((state) => state.incomesList);
     const { incomes , loading: incomesLoading, error:incomesError } = incomesList;
@@ -106,41 +108,49 @@ function BackOfficeStats(props){
       name: "Декември"
     }
   ];
-  const groupByOptions = [{
+  const groupByOptions = [
+    {
     id: 1,
+    show: "Без Филтър",
+    name: "",
+  },
+  {
+    id: 2,
     show: "Месец",
     name: "MONTH",
   },
   {
-    id: 2,
+    id: 3,
     show: "Година",
     name: "YEAR",
   },
   {
-    id:3,
-    show: "Ден",
-    name: "DATE"
+    id:4,
+    show: "Потребител",
+    name: "USER"
   }
   ];
   const handleMonthChange = (event) => {
     setMonthId(event.target.value);
   };
-
+  const updateGroupBy = e => {
+     setGroupBy(e.target.value);
+   }
 
     useEffect(() => {
       var from = fromDate.toLocaleString('en-GB', { timeZone: 'UTC' });
       var to = toDate.toLocaleString('en-GB', { timeZone: 'UTC' });
       setIncomeListPop(props.income);
       setRegisteredUsersPop(props.registeredUsers);
-      dispatch(listIncomes({from,to}));
+      dispatch(listIncomes({groupBy,from,to}));
     //dispatch(listSoldProducts({from,to}));
      dispatch(listRegisteredUsers({from,to}));
 
     //  dispatch(listBestSellers({from,to}));
 
-    },[monthId,props.registeredUsers,props.income,toDate,fromDate]);
+  },[groupBy,monthId,props.registeredUsers,props.income,toDate,fromDate]);
     console.log(incomes.reduce((a,c)=>a + Number(c.price),0))
-
+    console.log(incomes)
     return(
       <div>
 
@@ -179,8 +189,21 @@ function BackOfficeStats(props){
               'aria-label': 'change date',
             }}
           />
+          {incomeListPop ? <Select
+    value={groupBy}
+    onChange={updateGroupBy}
+    displayEmpty
+    inputProps={{ 'aria-label': 'Without label' }}
+  >
+      {groupByOptions.map(tag => (
+         <MenuItem key={tag.id} value={tag.name}>{tag.show}</MenuItem>
+
+      ))}
+  </Select> : 1==1}
         </Grid>
-      </MuiPickersUtilsProvider></div>:<div></div>}
+      </MuiPickersUtilsProvider>
+
+      </div>:<div></div>}
 
 
       {incomeListPop ? <div style={{marginLeft:"60px"}} className="product-list">
@@ -198,14 +221,15 @@ function BackOfficeStats(props){
                    <ExcelColumn label="Продукти" value="string_agg"/>
                </ExcelSheet>
            </ExcelFile>
-           <h3 style={{marginTop:"10px"}}>Брой поръчки отговарящи на търсенето: {incomes.length}</h3>
+           <h3 style={{marginTop:"10px"}}>Брой резултати отговарящи на търсенето: {incomes.length}</h3>
          </div>
              <table className="rtable">
               <thead>
                   <tr>
+                    {groupBy != 'USER' ?
                       <th>
-                       Направена на
-                      </th>
+                      {groupBy == '' ? <div>Направена на</div> : groupBy == 'MONTH' ? <div> Месец </div> : groupBy =='YEAR' ? <div>Година</div> : <div></div>}
+                      </th> : 1==1}
                       <th>
                         Име на потребителя
                       </th>
@@ -215,28 +239,37 @@ function BackOfficeStats(props){
                       <th>
                         Имейл на потребителя
                       </th>
+                      {groupBy == '' ?
                       <th>
-                        Адрес за доставка
-                      </th>
+                        {groupBy == '' ? <div>Адрес за доставка</div> : 1==1}
+                      </th> : 1==1}
                       <th>
                        Обща сума на поръчката
 
                       </th>
-
+                      {groupBy == '' ?
                       <th>
                           Статус на поръчката
-                      </th>
+                      </th> : 1==1}
+                      {groupBy == '' ?
                       <th>
                           Продукти
-                      </th>
+                      </th> : 1==1}
                   </tr>
               </thead>
               <tbody>
                   {incomes.map(order => (
                       <tr key={order.id}>
+                      {groupBy != 'USER' ?
                       <td>
-                      {(order.created).split("T").join(" ").slice(0,-5)}
-                      </td>
+                      {groupBy=='' ? <div>{(order.created).split("T").join(" ").slice(0,-5)}</div> :  groupBy=='MONTH' ? months.map(month => (
+
+                         month.id == order.date ? <div>
+                             {month.id} ({month.name})
+                         </div> : <div></div>
+
+                       )):order.date}
+                      </td> : 1==1}
                       <td>
                         {order.name}
                       </td>
@@ -246,19 +279,21 @@ function BackOfficeStats(props){
                       <td>
                         {order.email}
                       </td>
+                      {groupBy == '' ?
                       <td>
                         {order.address}
-                      </td>
+                      </td> : 1==2}
                       <td align="right">
                           {order.price} {order.currency}
                       </td>
-
+                      {groupBy == '' ?
                       <td>
                       {order.order_status}
-                      </td>
+                      </td> : 1==1}
+                      {groupBy == '' ?
                       <td>
                         {order.string_agg}
-                      </td>
+                      </td> : 1==1}
 
 
                   </tr>
@@ -274,25 +309,33 @@ function BackOfficeStats(props){
                         </th>
                         <th>
                         </th>
+                        {groupBy != 'USER' ?
                         <th>
                         </th>
+                         : 1==1}
+                        {groupBy != 'MONTH' && groupBy != 'YEAR' && groupBy != 'USER' ?
                         <th>
-                         Общo
-                        </th>
+                        </th> : 1==1}
+                        {groupBy != 'MONTH' && groupBy != 'YEAR' && groupBy != 'USER' ?
                         <th>
-                        </th>
+                        </th> : 1==1}
+                        {groupBy != 'MONTH' && groupBy != 'YEAR' && groupBy != 'USER' ?
                         <th>
-                        </th>
+                        </th> : 1==1}
                     </tr>
                 </thead>
                 <tbody>
                   <tr>
+                    <th>
+                    Общo
+
+                    </th>
+                    {groupBy != 'MONTH' && groupBy != 'YEAR' && groupBy != 'USER' ?
                     <td>
-                    </td>
+                    </td> : 1==1 }
+                    { groupBy != 'USER' ?
                     <td>
-                    </td>
-                    <td>
-                    </td>
+                    </td> : 1==1}
                     <td>
                     </td>
                     <td>
@@ -300,11 +343,12 @@ function BackOfficeStats(props){
                     <td align="right">
                         {incomes.reduce((a,c)=>a + Number(c.price),0)} EUR
                     </td>
-
+                    {groupBy != 'MONTH' && groupBy != 'YEAR' && groupBy != 'USER' ?
                     <td>
-                    </td>
+                    </td> : 1==1}
+                    {groupBy != 'MONTH' && groupBy != 'YEAR' && groupBy != 'USER' ?
                     <td>
-                    </td>
+                    </td> : 1==1}
                   </tr>
                 </tbody>
 

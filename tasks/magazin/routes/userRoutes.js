@@ -7,7 +7,10 @@ require("dotenv").config();
 var CryptoJS = require("crypto-js");
 const QueryStream = require('pg-query-stream')
 const JSONStream = require('JSONStream')
+require("es6-promise").polyfill()
+require("isomorphic-fetch")
 
+const RECAPTCHA_SERVER_KEY = process.env.RECAPTCHA_SERVER_KEY
 
 
 
@@ -17,6 +20,10 @@ setInterval(async function() {
   await pool.query("DELETE FROM users WHERE verified = false");
 }, the_interval);
 
+async function unlockAccount(email) {
+  console.log(12)
+  await pool.query("UPDATE users set locked=false where email=$1",[email]);
+}
 
 var smtpTransport = nodemailer.createTransport({
     service: "gmail",
@@ -29,13 +36,28 @@ var rand,mailOptions,host,link;
 
 router.post("/sign",async (req,res) => {
     try {
+        const {captchvalue,email,password} = req.body;
+        const lockSettings = await pool.query("select * from lock_settings where id = 1");
 
-        const {email,password} = req.body;
-        console.log(email,password)
+        const isHuman = await fetch(`https://www.google.com/recaptcha/api/siteverify`, {
+            method: "post",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/x-www-form-urlencoded; charset=utf-8"
+              },
+              body: `secret=${RECAPTCHA_SERVER_KEY}&response=${captchvalue}`
+              })
+                .then(res => res.json())
+                .then(json => json.success)
+                .catch(err => {
+                  throw new Error(`Error in Google Siteverify API. ${err.message}`)
+                })
+
+
         const signUser = await pool.query("SELECT * FROM users WHERE email=$1 AND password=crypt($2, password);",[email,password]);
-        console.log(signUser)
-        if(signUser.rowCount>0){
+        if(signUser.rowCount>0&&captchvalue != null && isHuman){
             if(signUser.rows[0].verified=='true'){
+                await pool.query("DELETE FROM failed_logins where email=$1",[email])
                 res.json({
                     id: signUser.rows[0].id,
                     name:signUser.rows[0].name,
@@ -48,8 +70,54 @@ router.post("/sign",async (req,res) => {
                 res.status(401).send({msg: 'Моля потвърдете вашият имейл.'})
             }
         }else{
+          const checkFailedLogins = await pool.query("SELECT COUNT(1) AS failed FROM failed_logins join users on failed_logins.email = users.email WHERE users.email = $1 and users.verified='true'",[email])
+          const checkLocked = await pool.query("SELECT locked FROM users WHERE email=$1",[email]);
+          if(checkFailedLogins.rows[0].failed>=lockSettings.rows[0].firstlock&&checkLocked.rowCount>0){
+            if(!checkLocked.rows[0].locked){
+              console.log("unlockAccount1")
+              await pool.query("UPDATE users set locked=true where email=$1",[email])
+              res.status(500).send({msg: `Акаунта ви беше заключен моля изчакайте ${lockSettings.rows[0].timeaftersecondlock} минути преди да опитате отново.`});
+              await pool.query(`insert into failed_logins (email,attempted) VALUES($1,CURRENT_TIMESTAMP)`,[email]);
+              setTimeout(unlockAccount,lockSettings.rows[0].timeaftersecondlock*60000,email)
+            }else{
+              res.status(500).send({msg: 'Акаунта ви е заключен моля изчакайте.'});
+
+            }
+
+
+          }
+          else if(checkFailedLogins.rows[0].failed==lockSettings.rows[0].firstlock&&checkLocked.rowCount>0){
+            if(!checkLocked.rows[0].locked){
+              await pool.query("UPDATE users set locked=true where email=$1",[email])
+              res.status(500).send({msg: `Акаунта ви беше заключен моля изчакайте  ${lockSettings.rows[0].timeafterfirstlock} минути преди да опитате отново.`});
+              console.log(email)
+              await pool.query(`insert into failed_logins (email,attempted) VALUES($1,CURRENT_TIMESTAMP)`,[email]);
+              setTimeout(unlockAccount,lockSettings.rows[0].timeafterfirstlock*60000,email)
+            }else{
+              res.status(500).send({msg: 'Акаунта ви е заключен моля изчакайте.'});
+
+            }
+
+
+          }else if(checkLocked.rowCount==0){
+            res.status(401).send({msg: 'Несъществуващ имейл.'});
+          }
+          else if(checkFailedLogins.rows[0].failed>lockSettings.rows[0].firstlock&&checkFailedLogins.rows[0].failed<lockSettings.rows[0].secondlock&&checkLocked.rowCount>0 ){
+            if(!checkLocked.rows[0].locked){
+                        await pool.query(`insert into failed_logins (email,attempted) VALUES($1,CURRENT_TIMESTAMP)`,[email]);
+                        res.status(401).send({msg: 'Грешен имейл или парола.'});
+                      }else{
+                          res.status(500).send({msg: 'Акаунта ви е заключен моля изчакайте.'});
+                      }
+          }
+          else{
+
+            await pool.query(`insert into failed_logins (email,attempted) VALUES($1,CURRENT_TIMESTAMP)`,[email]);
             res.status(401).send({msg: 'Грешен имейл или парола.'});
+          }
+
         }
+
     } catch (err) {
         console.log(err)
         res.status(500).send({msg: 'Възникна проблем, моля опитайте по-късно.'});
@@ -251,6 +319,20 @@ router.get("/info",async(req,res) => {
         res.status(500).send({msg: 'There was a problem with the server.'});
     }
 })
+
+router.post("/changeSettings",async(req,res) => {
+    try {
+        const settings = req.body;
+        const lockSettings = await pool.query(`update lock_settings set firstlock = $1 , secondlock=$2, timeafterfirstlock=$3,timeaftersecondlock=$4 where id =1`,[settings.chance1,settings.chance2,settings.time1,settings.time2]);
+        console.log(lockSettings.rows[0])
+        res.json(lockSettings.rows[0]);
+    } catch (err) {
+        console.log(err)
+        res.status(500).send({msg: 'There was a problem with the server.'});
+    }
+})
+
+
 
 router.get("/count", async (req, res) => {
     try {

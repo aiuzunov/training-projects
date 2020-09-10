@@ -9,6 +9,7 @@ import SignUpScreen from './SignUpScreen';
 import BackOffice from './BackOffice';
 import SignInEmployees from './signInEmployees';
 import CheckLoggedIn from './CheckLoggedIn';
+import LockSettings from './LockSettings';
 import PrivateRoute from './PrivateRoute';
 import UserProfile from './userProfile';
 import TestPermissions from './TestPermissions';
@@ -59,6 +60,7 @@ render={(props) => (
       <Route path="/profile" component={UserProfile}/>
       <Route path="/empsign" component={EmpSignUpScreen}/>
       <Route path="/orders" component={ProfileOrderList}/>
+      <Route path="/backoffice/LockSettings" component={LockSettings}/>
       <Route path="/order/:id" component={OrderDetailsPage}/>
       <Route path="/testPerm" component={TestPermissions}/>
       <PrivateRoute path='/backoffice' component={BackOffice} />

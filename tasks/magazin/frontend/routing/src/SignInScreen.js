@@ -7,17 +7,20 @@ import { signin } from './actions/userActions';
 import { Button } from '@material-ui/core';
 import NavBar from './NavBar';
 import Cookie from 'js-cookie';
+import ReCAPTCHA from "react-google-recaptcha"
 
 
 
 function SignInScreen(props,{ match , history} ) {
     const [username,setUsername] = useState('');
     const [email,setEmail] = useState('');
+    const recaptchaRef = React.createRef();
     const [password,setPassword] = useState('');
     const [count,setCount] = useState(0);
     const userSignIn = useSelector(state=>state.userSignIn);
     const {userInfo, loading, error} = userSignIn;
     const dispatch = useDispatch();
+    const [captchvalue,setCaptchValue]=useState('');
     useEffect(() => {
       getCount();
 
@@ -26,7 +29,10 @@ function SignInScreen(props,{ match , history} ) {
         }
 
     },[userInfo]);
-
+    function onChange(value) {
+      console.log("Captcha value:", value)
+      setCaptchValue(value);
+    }
     const getCount = async () => {
         try {
             const response = await fetch(
@@ -42,8 +48,12 @@ function SignInScreen(props,{ match , history} ) {
       console.log(props)
    const submitInfo = (e) => {
        e.preventDefault();
-       dispatch(signin(email,password))
+       recaptchaRef.current.reset()
+       dispatch(signin(captchvalue,email,password))
+       setCaptchValue('')
+
    };
+   console.log(captchvalue)
 
     return(
         <div>
@@ -65,16 +75,19 @@ function SignInScreen(props,{ match , history} ) {
                         <label htmlFor="email">
                              Имейл адрес
                         </label>
-                        <input type="email" name="email" id="email" onChange={(e) => setEmail(e.target.value)}/>
+                        <input required type="email" name="email" id="email" onChange={(e) => setEmail(e.target.value)}/>
                     </li>
                     <li>
                         <label htmlFor="password">
                             Парола
                         </label>
-                        <input type="password" name="password" id="password" onChange={(e) => setPassword(e.target.value)}/>
+                        <input required type="password" name="password" id="password" onChange={(e) => setPassword(e.target.value)}/>
                     </li>
                     <li>
-                    {props.isDisconnected ?   <Button
+                    <ReCAPTCHA ref={recaptchaRef} sitekey="6LfabMoZAAAAAFEunVzgVLF_WFS_Re3kFuT-AU_X" onChange={onChange} />
+                    </li>
+                    <li>
+                    {!captchvalue || props.isDisconnected ?   <Button
                       disabled
                       type="submit"
                       variant="contained"

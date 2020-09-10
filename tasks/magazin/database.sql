@@ -135,3 +135,10 @@ CREATE TABLE roles_perms(
 	FOREIGN KEY (perm_id) REFERENCES permissions(id),
 	primary key (role_id,perm_id)
 );
+
+CREATE TABLE lock_settings(
+	firstLock bigint not null,
+	secondLock bigint not null,
+	timeAfterFirstLock bigint not null,
+	timeAfterSecondLock bigint not null
+)

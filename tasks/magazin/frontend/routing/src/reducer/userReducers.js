@@ -1,4 +1,4 @@
-import { USER_GET_REQUEST,USER_GET_SUCCESS,USER_GET_FAIL,USER_SIGNIN_FAIL, USER_SIGNIN_SUCCESS, USER_SIGNIN_REQUEST, USER_SIGNUP_REQUEST, USER_SIGNUP_SUCCESS, USER_SIGNUP_FAIL, USER_LOGOUT_REQUEST, USER_LOGOUT_SUCCESS, USER_LOGOUT_FAIL, USER_LIST_REQUEST, USER_LIST_SUCCESS, USER_LIST_FAIL } from "../constants/userConstants";
+import { USER_SETTINGS_FAIL,USER_SETTINGS_REQUEST,USER_SETTINGS_SUCCESS,USER_GET_REQUEST,USER_GET_SUCCESS,USER_GET_FAIL,USER_SIGNIN_FAIL, USER_SIGNIN_SUCCESS, USER_SIGNIN_REQUEST, USER_SIGNUP_REQUEST, USER_SIGNUP_SUCCESS, USER_SIGNUP_FAIL, USER_LOGOUT_REQUEST, USER_LOGOUT_SUCCESS, USER_LOGOUT_FAIL, USER_LIST_REQUEST, USER_LIST_SUCCESS, USER_LIST_FAIL } from "../constants/userConstants";
 
 function userSignInReducer(state = {}, action) {
     switch (action.type) {
@@ -11,6 +11,18 @@ function userSignInReducer(state = {}, action) {
       default: return state;
     }
   }
+
+  function userSettingsReducer(state = {}, action) {
+      switch (action.type) {
+        case USER_SETTINGS_REQUEST:
+          return { loading: true };
+        case USER_SETTINGS_SUCCESS:
+          return { loading: false, userSettings: action.payload };
+        case USER_SETTINGS_FAIL:
+          return { loading: false, error: action.payload };
+        default: return state;
+      }
+    }
 
   function userSignUpReducer(state = {}, action) {
     switch (action.type) {
@@ -63,4 +75,4 @@ function userGetReducer(state = {}, action) {
   }
 
 
-export {userSignInReducer,userSignUpReducer,userLogoutReducer,userListReducer,userGetReducer};
+export {userSignInReducer,userSignUpReducer,userLogoutReducer,userListReducer,userGetReducer,userSettingsReducer};
