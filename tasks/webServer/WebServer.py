@@ -5,6 +5,7 @@ import socket
 import requests as req
 import urllib.parse
 from collections import namedtuple
+import json
 
 
 SERVER_ADDRESS = (HOST, PORT) = '', 5000
@@ -25,7 +26,7 @@ def grim_reaper(signum, frame):
             return
 
 
-RequestMeta = namedtuple('RequestMeta', [
+META = namedtuple('META', [
     'method',
     'path',
     'query_string',
@@ -33,6 +34,14 @@ RequestMeta = namedtuple('RequestMeta', [
     'headers',
     'user_agent',
 ])
+
+def chunks(f):
+    while True:
+        data = f.read(8192)
+        if not data:
+            break
+        yield data
+
 
 
 class RESP_METH:
@@ -50,23 +59,15 @@ class RESP_METH:
 
 
 def parse_http_request(request):
-
     split_response = request.split(b'\r\n\r\n', 1)
-    if len(split_response) != 2:
-        return None
-    request_line_and_headers = split_response[0].split(b'\r\n')
-    request_line = request_line_and_headers[0]
-    req_line_tokens = request_line.split(b' ')
-
-    if len(req_line_tokens) != 3:
-        return None
-    method = req_line_tokens[0]
-
-    if method not in RESP_METH.request_methods:
-        return None
-
-    path = urllib.parse.unquote(req_line_tokens[1].decode())
-
+    assert len(split_response) == 2
+    start_line_and_headers = split_response[0].split(b'\r\n')
+    request_line = start_line_and_headers[0]
+    start_line_parts = request_line.split(b' ')
+    assert len(start_line_parts) == 3
+    method = start_line_parts[0]
+    assert method in RESP_METH.request_methods
+    path = urllib.parse.unquote(start_line_parts[1].decode())
     if '?' in path:
         target_query_part = path.split('?', 1)[1]
         if len(target_query_part) > 0:
@@ -77,12 +78,11 @@ def parse_http_request(request):
         query_string = None
     headers = {}
 
-    for header_field in request_line_and_headers[1:]:
+    for header_field in start_line_and_headers[1:]:
         header_field_split = header_field.split(b':', 1)
-        if len(header_field_split[0]) != len(
+        assert len(header_field_split[0]) == len(
             header_field_split[0].strip()
-        ):
-            return None
+        )
         field_name = header_field_split[0]
         field_value = header_field_split[1].strip()
         headers[field_name] = field_value
@@ -90,16 +90,16 @@ def parse_http_request(request):
     body = split_response[1]
     user_agent = headers['User-Agent'] if 'User-Agent' in headers else None
 
-    result = RequestMeta(
+    result = META(
         method=method,
         path=path,
-        query_string=query_string,
-        http_version=req_line_tokens[2],
         headers=headers,
+        query_string=query_string,
+        http_version=start_line_parts[2],
         user_agent=user_agent,
     )
 
-    return result
+    return [result,body]
 
 
 def gen_res(status_code, headers={}, body=b''):
@@ -107,12 +107,19 @@ def gen_res(status_code, headers={}, body=b''):
     assert type(headers) is dict
     assert type(body) is bytes
     assert status_code in RESP_METH.response_phrases
+    if body!=b'':
+        y = json.loads(body)
+        body_result = '{"result":"' + str(float(y["first"]) + float(y["second"])) + '"}'
+        body=body_result.encode('latin-1')
 
     result = (b'HTTP/1.0 ' + status_code + b' ' +
               RESP_METH.response_phrases[status_code])
-
     for field_name, field_value in headers.items():
-        result += (b'\r\n' + field_name + b': ' + field_value)
+        if field_name == b'Content-Length':
+            result += (b'\r\n' + field_name + b': ' + str(len(body)).encode('latin-1'))
+        else:
+            result += (b'\r\n' + field_name + b': ' + field_value)
+
 
     result += (b'\r\n\r\n' + body)
 
@@ -122,22 +129,23 @@ def handle_request(client_connection):
 
     request = client_connection.recv(1024)
     test = parse_http_request(request)
-    headers = gen_res(b'200',test.headers)
-    data = "HTTP/1.0 200 OK\r\n"
-    if test.path == '/':
+    headers = gen_res(b'200',test[0].headers,test[1])
+    data = ""
+    if test[0].path == '/':
         f = open("./index.html", "r")
         data += headers.decode('latin-1')
-        data += f.read()+"\r\n\r\n"
+        if test[0].method==b'GET':
+            data += f.read()
+        data += "\r\n\r\n"
         client_connection.sendall(data.encode())
     else:
-        print(test.headers[b'Accept'])
-        with open("."+test.path, "rb") as f:
-            image_data = f.read()
         data += headers.decode('latin-1')
         client_connection.send(data.encode())
-        client_connection.send(image_data)
-        print("Reqest \n")
+        with open("."+test[0].path, "rb") as f:
+            for chunk in chunks(f):
+                client_connection.send(chunk)
         client_connection.send(b"\r\n\r\n")
+    print("Request Completed")
 
 
 def serve_forever():
@@ -145,6 +153,7 @@ def serve_forever():
     listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     listen_socket.bind(SERVER_ADDRESS)
     listen_socket.listen(REQUEST_QUEUE_SIZE)
+
     print('Serving HTTP on port {port} ...'.format(port=PORT))
 
     signal.signal(signal.SIGCHLD, grim_reaper)

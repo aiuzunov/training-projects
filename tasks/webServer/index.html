@@ -1,28 +1,32 @@
 <html>
 <head>
-<title>Web Server Test</title>
+<title>Sum of two numbers</title>
 </head>
 <body>
+
 <script>
+
+function append_to_div(div_name, data){
+       document.getElementById(div_name).innerText = data;
+   }
 
 async function testt() {
 let data = {first: `${document.getElementById('mult1').value}` , second: `${document.getElementById('mult2').value}`};
-await fetch("http://localhost:5000/post/data/here", {
+const response = await fetch("http://localhost:5000/", {
   method: "POST",
-  body: JSON.stringify(data)
-}).then(res => {
-  console.log("Request complete! response:", res);
-});
+  body: JSON.stringify(data)})
+const json = await response.json();
+console.log(json);
+append_to_div("test_result",json["result"])
 }
 </script>
 
-
 <form name=test_form>
-<input type="text" id="mult1" name="test_text" value="0" size="4">
-<span> * </span>
-<input type="text" id= "mult2" name="mult2" value="0" size='4'>
+<input required type="number" id="mult1" name="test_text" value="0" size="4">
+<span> + </span>
+<input required type="number" id= "mult2" name="mult2" value="0" size='4'>
 <span> = </span>
-<span id="test_result">0</span>
+<span name="test_result" id="test_result">0</span>
 <input type=button onClick="testt();" value="calculate" title="start">
 </form>
 
