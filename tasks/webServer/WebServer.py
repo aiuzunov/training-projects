@@ -60,13 +60,10 @@ class RESP_METH:
 
 def parse_http_request(request):
     split_response = request.split(b'\r\n\r\n', 1)
-    assert len(split_response) == 2
     start_line_and_headers = split_response[0].split(b'\r\n')
     request_line = start_line_and_headers[0]
     start_line_parts = request_line.split(b' ')
-    assert len(start_line_parts) == 3
     method = start_line_parts[0]
-    assert method in RESP_METH.request_methods
     path = urllib.parse.unquote(start_line_parts[1].decode())
     if '?' in path:
         target_query_part = path.split('?', 1)[1]
@@ -80,9 +77,6 @@ def parse_http_request(request):
 
     for header_field in start_line_and_headers[1:]:
         header_field_split = header_field.split(b':', 1)
-        assert len(header_field_split[0]) == len(
-            header_field_split[0].strip()
-        )
         field_name = header_field_split[0]
         field_value = header_field_split[1].strip()
         headers[field_name] = field_value
@@ -103,10 +97,6 @@ def parse_http_request(request):
 
 
 def gen_res(status_code, headers={}, body=b''):
-    assert type(status_code) is bytes
-    assert type(headers) is dict
-    assert type(body) is bytes
-    assert status_code in RESP_METH.response_phrases
     if body!=b'':
         y = json.loads(body)
         body_result = '{"result":"' + str(float(y["first"]) + float(y["second"])) + '"}'
@@ -120,32 +110,26 @@ def gen_res(status_code, headers={}, body=b''):
         else:
             result += (b'\r\n' + field_name + b': ' + field_value)
 
-
     result += (b'\r\n\r\n' + body)
-
     return result
 
 def handle_request(client_connection):
-
     request = client_connection.recv(1024)
-    test = parse_http_request(request)
-    headers = gen_res(b'200',test[0].headers,test[1])
+    parsed_request = parse_http_request(request)
+    res = gen_res(b'200',parsed_request[0].headers,parsed_request[1])
     data = ""
-    if test[0].path == '/':
+    if parsed_request[0].path == '/':
         f = open("./index.html", "r")
-        data += headers.decode('latin-1')
-        if test[0].method==b'GET':
+        data += res.decode('latin-1')
+        if parsed_request[0].method==b'GET':
             data += f.read()
-        data += "\r\n\r\n"
         client_connection.sendall(data.encode())
     else:
-        data += headers.decode('latin-1')
+        data += res.decode('latin-1')
         client_connection.send(data.encode())
-        with open("."+test[0].path, "rb") as f:
+        with open("."+parsed_request[0].path, "rb") as f:
             for chunk in chunks(f):
                 client_connection.send(chunk)
-        client_connection.send(b"\r\n\r\n")
-    print("Request Completed")
 
 
 def serve_forever():
@@ -154,7 +138,7 @@ def serve_forever():
     listen_socket.bind(SERVER_ADDRESS)
     listen_socket.listen(REQUEST_QUEUE_SIZE)
 
-    print('Serving HTTP on port {port} ...'.format(port=PORT))
+    print('The HTTP server is listening on PORT {port}'.format(port=PORT))
 
     signal.signal(signal.SIGCHLD, grim_reaper)
 
@@ -171,10 +155,12 @@ def serve_forever():
         pid = os.fork()
         if pid == 0:
             listen_socket.close()
+            print("%d(child) created by %d(parent) is completing its task" % (os.getpid(), os.getppid()))
             handle_request(client_connection)
             client_connection.close()
             os._exit(0)
         else:
+            print("%d (parent) just created %d." % (os.getpid(), pid))
             client_connection.close()
 
 if __name__ == '__main__':
