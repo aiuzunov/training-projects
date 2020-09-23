@@ -1,0 +1,42 @@
+This is ApacheBench, Version 2.3 <$Revision: 1843412 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient).....done
+
+
+Server Software:        
+Server Hostname:        localhost
+Server Port:            9100
+
+Document Path:          /discord-0.0.12.deb
+Document Length:        68328818 bytes
+
+Concurrency Level:      5
+Time taken for tests:   1.201 seconds
+Complete requests:      50
+Failed requests:        0
+Total transferred:      3416445050 bytes
+HTML transferred:       3416440900 bytes
+Requests per second:    41.62 [#/sec] (mean)
+Time per request:       120.141 [ms] (mean)
+Time per request:       24.028 [ms] (mean, across all concurrent requests)
+Transfer rate:          2777047.07 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.0      0       0
+Processing:    96  119   5.9    118     138
+Waiting:        2    4   1.8      3       9
+Total:         96  119   6.0    118     138
+
+Percentage of the requests served within a certain time (ms)
+  50%    118
+  66%    120
+  75%    120
+  80%    121
+  90%    125
+  95%    130
+  98%    138
+  99%    138
+ 100%    138 (longest request)

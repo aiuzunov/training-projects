@@ -1,0 +1,53 @@
+This is ApacheBench, Version 2.3 <$Revision: 1843412 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+Completed 500 requests
+Completed 1000 requests
+Completed 1500 requests
+Completed 2000 requests
+Completed 2500 requests
+Completed 3000 requests
+Completed 3500 requests
+Completed 4000 requests
+Completed 4500 requests
+Completed 5000 requests
+Finished 5000 requests
+
+
+Server Software:        
+Server Hostname:        localhost
+Server Port:            9100
+
+Document Path:          /peng.png
+Document Length:        24518 bytes
+
+Concurrency Level:      1000
+Time taken for tests:   2.981 seconds
+Complete requests:      5000
+Failed requests:        0
+Total transferred:      123005000 bytes
+HTML transferred:       122590000 bytes
+Requests per second:    1677.20 [#/sec] (mean)
+Time per request:       596.231 [ms] (mean)
+Time per request:       0.596 [ms] (mean, across all concurrent requests)
+Transfer rate:          40293.78 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    4   8.5      0      27
+Processing:    12  531 146.6    594     618
+Waiting:        4  531 146.6    594     617
+Total:         39  535 138.7    594     618
+
+Percentage of the requests served within a certain time (ms)
+  50%    594
+  66%    596
+  75%    598
+  80%    598
+  90%    600
+  95%    601
+  98%    606
+  99%    608
+ 100%    618 (longest request)
