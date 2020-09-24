@@ -20,7 +20,7 @@ try:
     string = ''
     for k,v in query_components.items():
         sum += int(v)
-        string += str(v) + '+'
+        string += str(v) + ' + '
     string = string[:-1]
 except Exception as e:
     exc_type, exc_obj, exc_tb = sys.exc_info()

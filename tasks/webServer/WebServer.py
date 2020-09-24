@@ -7,11 +7,30 @@ import subprocess
 import requests as req
 import urllib.parse
 import json
+import logging
 
 
 from datetime import datetime
 from collections import namedtuple
 from pathlib import Path
+from Logs import LogInit
+
+
+try:
+    logger = logging.getLogger('Web Server Logger')
+    logger.setLevel(logging.DEBUG)
+
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+    LogInit(logger,logging.WARNING,'./logs/warning.log',formatter).initialize()
+    LogInit(logger,logging.ERROR,'./logs/error.log',formatter).initialize()
+    LogInit(logger,logging.INFO,'./logs/info.log',formatter).initialize()
+    LogInit(logger,logging.DEBUG,'./logs/debug.log',formatter).initialize()
+except Exception as e:
+    exc_type, exc_obj, exc_tb = sys.exc_info()
+    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+    print(e,exc_type, fname, exc_tb.tb_lineno)
+
 
 
 
@@ -31,7 +50,7 @@ def grim_reaper(signum, frame):
                 -1,
                  os.WNOHANG
             )
-        except OSError:
+        except OSError as e:
             return
 
         if pid == 0:
@@ -45,7 +64,6 @@ META = namedtuple('META', [
     'http_version',
     'headers',
     'user_agent',
-    'headers2'
 ])
 
 def chunks(f):
@@ -84,7 +102,7 @@ def set_environment(*args, **kwargs):
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        print(exc_type, fname, exc_tb.tb_lineno)
+        logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
 
 
 def parse_http_request(request):
@@ -113,7 +131,6 @@ def parse_http_request(request):
         field_name = header_field_split[0]
         field_value = header_field_split[1].strip()
         headers[field_name] = field_value
-    headers2 = str(headers)
     if method == b'POST':
         body = split_response[1]
 
@@ -130,7 +147,6 @@ def parse_http_request(request):
         query_string=query_string,
         http_version=start_line_parts[2],
         user_agent=user_agent,
-        headers2=headers2,
     )
 
     return [result,body]
@@ -166,14 +182,25 @@ def handle_request(client_connection,client_address):
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        print(exc_type, fname, exc_tb.tb_lineno)
+        logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+
     if path.exists():
         if path.is_dir():
-            f = open("./index.html", "r")
-            data += res.decode('utf-8')
-            if parsed_request[0].method==b'GET':
-                data += f.read()
-            client_connection.sendall(data.encode())
+            try:
+                chunk = None
+                data += res.decode('utf-8')
+                client_connection.send(data.encode())
+                if parsed_request[0].method==b'GET':
+                    with open("./index.html", "rb") as f:
+                        for chunk in chunks(f):
+                            client_connection.send(chunk)
+                        if chunk != None:
+                            logger.debug("Client: {}, User-Agent: {}".format(client_address[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
+                            logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}".format(client_address[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path))
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
         if path.is_file():
             if str(path).startswith("cgi-bin") and ext == '.py':
                 executable = sys.executable
@@ -189,7 +216,7 @@ def handle_request(client_connection,client_address):
                     except Exception as e:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                        print(exc_type, fname, exc_tb.tb_lineno)
+                        logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
                     script_args = [executable,str(path)]
                     process = subprocess.Popen(script_args, stdin=subprocess.PIPE,
                                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -207,6 +234,10 @@ def handle_request(client_connection,client_address):
                                 client_connection.send(line)
                             if line == None:
                                 return
+                            else:
+                                logger.debug("Client: {}, User-Agent: {}".format(client_address[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
+                                logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}, Body: {}".format(client_address[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path,parsed_request[1]))
+
                         elif parsed_request[0].method == b'GET':
                             line = None
                             data = 'HTTP/1.0 200 OK\rDate: {}\rConnection: keep-alive\r'.format(get_date()).encode()
@@ -217,24 +248,42 @@ def handle_request(client_connection,client_address):
                                 except Exception as e:
                                     exc_type, exc_obj, exc_tb = sys.exc_info()
                                     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                                    print(exc_type, fname, exc_tb.tb_lineno)
+                                    logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
                             if line == None:
                                 return
+                            else:
+                                logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}, Query: {}".format(client_address[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path,parsed_request[0].query_string))
+                                logger.debug("Client: {}, User-Agent: {}".format(client_address[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
                         else:
                             return
                     except Exception as e:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                        print(exc_type, fname, exc_tb.tb_lineno)
+                        logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
             else:
                 data += res.decode('utf-8')
-                client_connection.send(data.encode())
-                with open("."+parsed_request[0].path, "rb") as f:
-                    for chunk in chunks(f):
-                        client_connection.send(chunk)
+                chunk = None
+                try:
+                    client_connection.send(data.encode())
+                    with open("."+parsed_request[0].path, "rb") as f:
+                        for chunk in chunks(f):
+                            client_connection.send(chunk)
+                        if chunk != None:
+                            logger.debug("Client: {}, User-Agent: {}".format(client_address[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
+                            logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}".format(client_address[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path))
+                except Exception as e:
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                    logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
     else:
-        doesnt_exist = b"HTTP/1.0 404 Not Found\r\n"+b"\r\n\r\nError 404 \r\nResource not found"
-        client_connection.sendall(doesnt_exist)
+        try:
+            doesnt_exist = b"HTTP/1.0 404 Not Found\r\n"+b"\r\n\r\nError 404 \r\nResource not found"
+            client_connection.sendall(doesnt_exist)
+            logger.warning("Client: {} Requested Non Existent File\Path: {}".format(client_address[0],parsed_request[0].path))
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
 
 def serve_forever():
     try:
@@ -246,13 +295,13 @@ def serve_forever():
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        print(e,exc_type, fname, exc_tb.tb_lineno)
+        logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
     try:
         signal.signal(signal.SIGCHLD, grim_reaper)
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        print(e,exc_type, fname, exc_tb.tb_lineno)
+        logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
     while True:
         try:
             client_connection, client_address = listen_socket.accept()
@@ -262,6 +311,7 @@ def serve_forever():
                 continue
             else:
                 raise
+
         try:
             pid = os.fork()
             if pid == 0:
@@ -274,7 +324,7 @@ def serve_forever():
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(e,exc_type, fname, exc_tb.tb_lineno)
+            logger.error("1{} {} {} ".format(e, fname, exc_tb.tb_lineno))
 
 if __name__ == '__main__':
     serve_forever()

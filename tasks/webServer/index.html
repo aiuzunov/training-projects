@@ -1,34 +1,12 @@
 <html>
 <head>
-<title>Sum of two numbers</title>
+<title>aa</title>
 </head>
 <body>
+<form action = "/cgi-bin/full_name.py" method = "post">
+First Name: <input type = "text" name = "first_name"><br />
+Last Name: <input type = "text" name = "last_name" />
 
-<script>
-
-function append_to_div(div_name, data){
-       document.getElementById(div_name).innerText = data;
-   }
-
-async function testt() {
-let data = {first: `${document.getElementById('mult1').value}` , second: `${document.getElementById('mult2').value}`};
-const response = await fetch("http://localhost:5000/", {
-  method: "POST",
-  body: JSON.stringify(data)})
-const json = await response.json();
-console.log(json);
-append_to_div("test_result",json["result"])
-}
-</script>
-
-<form name=test_form>
-<input required type="number" id="mult1" name="test_text" value="0" size="4">
-<span> + </span>
-<input required type="number" id= "mult2" name="mult2" value="0" size='4'>
-<span> = </span>
-<span name="test_result" id="test_result">0</span>
-<input type=button onClick="testt();" value="calculate" title="start">
+<input type = "submit" value = "Submit" />
 </form>
-
-</body>
 </html>

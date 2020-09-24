@@ -1,0 +1,56 @@
+This is ApacheBench, Version 2.3 <$Revision: 1843412 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+Completed 100 requests
+Completed 200 requests
+Completed 300 requests
+Completed 400 requests
+Completed 500 requests
+Completed 600 requests
+Completed 700 requests
+Completed 800 requests
+Completed 900 requests
+Completed 1000 requests
+Finished 1000 requests
+
+
+Server Software:        
+Server Hostname:        localhost
+Server Port:            9100
+
+Document Path:          /cgi-bin/full_name.py
+Document Length:        6180 bytes
+
+Concurrency Level:      10
+Time taken for tests:   19.000 seconds
+Complete requests:      1000
+Failed requests:        0
+Total transferred:      6294000 bytes
+Total body sent:        226000
+HTML transferred:       6180000 bytes
+Requests per second:    52.63 [#/sec] (mean)
+Time per request:       189.997 [ms] (mean)
+Time per request:       19.000 [ms] (mean, across all concurrent requests)
+Transfer rate:          323.50 [Kbytes/sec] received
+                        11.62 kb/s sent
+                        335.12 kb/s total
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.0      0       1
+Processing:    72  189  44.1    194     313
+Waiting:        4   27  10.2     28      57
+Total:         72  189  44.1    194     313
+
+Percentage of the requests served within a certain time (ms)
+  50%    194
+  66%    211
+  75%    220
+  80%    225
+  90%    241
+  95%    253
+  98%    267
+  99%    278
+ 100%    313 (longest request)
