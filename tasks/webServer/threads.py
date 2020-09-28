@@ -179,8 +179,8 @@ def recvall(sock):
     return data
 
 def handle_request(client_connection,client_address):
-    request = recvall(client_connection)
     print_lock.release()
+    request = recvall(client_connection)
     parsed_request = parse_http_request(request)
     res = gen_res(b'200',parsed_request[0].headers,parsed_request[1])
     data = ""
