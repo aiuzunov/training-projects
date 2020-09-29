@@ -117,6 +117,9 @@ def parse_http_request(request):
     method = start_line_parts[0]
     path = ''
     try:
+        if len(start_line_parts)<3:
+            return None
+
         path = urllib.parse.unquote(start_line_parts[1].decode())
 
 
@@ -151,12 +154,14 @@ def parse_http_request(request):
             http_version=start_line_parts[2],
             user_agent=user_agent,
         )
+
+        return [result,body]
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+        return None
 
-    return [result,body]
 
 
 def gen_res(status_code, headers={}, body=b''):
@@ -182,6 +187,19 @@ def handle_request(client_connection,client_address):
     print_lock.release()
     request = recvall(client_connection)
     parsed_request = parse_http_request(request)
+    if parsed_request == None:
+        try:
+            doesnt_exist = b"HTTP/1.0 501 Internal Server Error\r\n"+b"\r\n\r\nError 501 \r\Internal Server Error"
+            client_connection.sendall(doesnt_exist)
+            logger.warning("Client: {} Error with request".format(client_address[0]))
+            client_connection.close()
+            return
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+            client_connection.close()
+            return
     res = gen_res(b'200',parsed_request[0].headers,parsed_request[1])
     data = ""
     try:
@@ -191,6 +209,8 @@ def handle_request(client_connection,client_address):
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+        client_connection.close()
+        return
 
     if path.exists():
         if path.is_dir():
@@ -210,6 +230,8 @@ def handle_request(client_connection,client_address):
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                 logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+                client_connection.close()
+                return
         if path.is_file():
             if str(path).startswith("cgi-bin") and ext == '.py':
                 executable = sys.executable
@@ -226,6 +248,8 @@ def handle_request(client_connection,client_address):
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                         logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+                        client_connection.close()
+                        return
                     script_args = [executable,str(path)]
                     process = subprocess.Popen(script_args, stdin=subprocess.PIPE,
                                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -243,6 +267,7 @@ def handle_request(client_connection,client_address):
                                 client_connection.send(line)
                             client_connection.close()
                             if line == None:
+                                client_connection.close()
                                 return
                             else:
                                 logger.debug("Client: {}, User-Agent: {}".format(client_address[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
@@ -259,18 +284,24 @@ def handle_request(client_connection,client_address):
                                     exc_type, exc_obj, exc_tb = sys.exc_info()
                                     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                                     logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+                                    client_connection.close()
+                                    return
                             client_connection.close()
                             if line == None:
+                                client_connection.close()
                                 return
                             else:
                                 logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}, Query: {}".format(client_address[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path,parsed_request[0].query_string))
                                 logger.debug("Client: {}, User-Agent: {}".format(client_address[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
                         else:
+                            client_connection.close()
                             return
                     except Exception as e:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                         logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+                        client_connection.close()
+                        return
             else:
                 data += res.decode('utf-8')
                 chunk = None
@@ -287,15 +318,21 @@ def handle_request(client_connection,client_address):
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                     logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+                    client_connection.close()
+                    return
+
     else:
         try:
             doesnt_exist = b"HTTP/1.0 404 Not Found\r\n"+b"\r\n\r\nError 404 \r\nResource not found"
             client_connection.sendall(doesnt_exist)
             logger.warning("Client: {} Requested Non Existent File\Path: {}".format(client_address[0],parsed_request[0].path))
+            client_connection.close()
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+            client_connection.close()
+            return
 
 def serve_forever():
     try:
