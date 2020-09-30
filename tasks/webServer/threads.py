@@ -184,7 +184,8 @@ def recvall(sock):
     return data
 
 def handle_request(client_connection,client_address):
-    print_lock.release()
+    #print_lock.release()
+    #print(threading.active_count())
     request = recvall(client_connection)
     parsed_request = parse_http_request(request)
     if parsed_request == None:
@@ -321,6 +322,7 @@ def handle_request(client_connection,client_address):
                     client_connection.close()
                     return
 
+
     else:
         try:
             doesnt_exist = b"HTTP/1.0 404 Not Found\r\n"+b"\r\n\r\nError 404 \r\nResource not found"
@@ -333,7 +335,7 @@ def handle_request(client_connection,client_address):
             logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
             client_connection.close()
             return
-
+    return
 def serve_forever():
     try:
         listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -362,8 +364,10 @@ def serve_forever():
                 raise
 
         try:
-            print_lock.acquire()
-            start_new_thread(handle_request, (client_connection, client_address, ))
+            #print_lock.acquire()
+            x = threading.Thread(target=handle_request, args=(client_connection, client_address, ))
+            x.start()
+            #start_new_thread(handle_request, (client_connection, client_address, ))
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]

@@ -113,54 +113,61 @@ def set_environment(*args, **kwargs):
 
 
 def parse_http_request(request):
-    split_response = request.split(b'\r\n\r\n', 1)
-    start_line_and_headers = split_response[0].split(b'\r\n')
-    request_line = start_line_and_headers[0]
-    start_line_parts = request_line.split(b' ')
-    method = start_line_parts[0]
-    path = ''
     try:
-        path = urllib.parse.unquote(start_line_parts[1].decode())
-        if path:
-            if '?' in path:
-                target_query_part = path.split('?', 1)[1]
-                if len(target_query_part) > 0:
-                    query_string = target_query_part
+        split_response = request.split(b'\r\n\r\n', 1)
+        start_line_and_headers = split_response[0].split(b'\r\n')
+        request_line = start_line_and_headers[0]
+        start_line_parts = request_line.split(b' ')
+        method = start_line_parts[0]
+        path = ''
+        try:
+            path = urllib.parse.unquote(start_line_parts[1].decode())
+            if path:
+                if '?' in path:
+                    target_query_part = path.split('?', 1)[1]
+                    if len(target_query_part) > 0:
+                        query_string = target_query_part
+                    else:
+                        query_string = ''
                 else:
                     query_string = ''
             else:
-                query_string = ''
+                return
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+        headers = {}
+        for header_field in start_line_and_headers[1:]:
+            header_field_split = header_field.split(b':', 1)
+            field_name = header_field_split[0]
+            field_value = header_field_split[1].strip()
+            headers[field_name] = field_value
+        if method == b'POST':
+            body = split_response[1]
+
         else:
-            return
-    except:
+            body = b''
+        if 'User-Agent' in headers:
+            user_agent = headers['User-Agent']
+        else:
+            user_agent = None
+        result = META(
+            method=method,
+            path=path.split('?', 1)[0],
+            headers=headers,
+            query_string=query_string,
+            http_version=start_line_parts[2],
+            user_agent=user_agent,
+        )
+
+        return [result,body]
+    except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        print(exc_type, fname, exc_tb.tb_lineno)
-    headers = {}
-    for header_field in start_line_and_headers[1:]:
-        header_field_split = header_field.split(b':', 1)
-        field_name = header_field_split[0]
-        field_value = header_field_split[1].strip()
-        headers[field_name] = field_value
-    if method == b'POST':
-        body = split_response[1]
+        logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+        return None
 
-    else:
-        body = b''
-    if 'User-Agent' in headers:
-        user_agent = headers['User-Agent']
-    else:
-        user_agent = None
-    result = META(
-        method=method,
-        path=path.split('?', 1)[0],
-        headers=headers,
-        query_string=query_string,
-        http_version=start_line_parts[2],
-        user_agent=user_agent,
-    )
-
-    return [result,body]
 
 
 def gen_res(status_code, headers={}, body=b''):
@@ -185,6 +192,21 @@ def recvall(sock):
 async def handle_request(client_reader, client_writer):
     request = await client_reader.read(2048)
     parsed_request = parse_http_request(request)
+    if parsed_request == None:
+        try:
+            doesnt_exist = b"HTTP/1.0 501 Internal Server Error\r\n"+b"\r\n\r\nError 501 \r\Internal Server Error"
+            client_writer.write(doesnt_exist)
+            await client_writer.drain()
+            if len(client_address)>0:
+                logger.warning("Client: {} Error with request".format(client_address[0]))
+            client_writer.close()
+            return
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+            client_writer.close()
+            return
     res = gen_res(b'200',parsed_request[0].headers,parsed_request[1])
     data = ""
     try:
@@ -316,10 +338,10 @@ async def handle_request(client_reader, client_writer):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+    return
 
 def serve_forever():
     try:
-        print(os.environ.get('SERVER_NAME', 'localhost'))
         loop = asyncio.new_event_loop()
         socket_server = asyncio.start_server(handle_request, host=os.environ.get('SERVER_NAME', 'localhost'),
                                             port=9100, backlog=2048,
