@@ -360,10 +360,6 @@ def serve_forever():
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
-    try:
-        resource.setrlimit(resource.RLIMIT_NOFILE, (100000, 100000))
-    except Exception as e:
-        print(e)
 
     while True:
         try:
