@@ -75,7 +75,7 @@ META = namedtuple('META', [
 
 async def chunks(f):
     while True:
-        data = await f.read(8192)
+        data = await f.read(65536)
         if not data:
             break
         yield data
@@ -179,26 +179,26 @@ def gen_res(status_code, headers={}, body=b''):
     result += (b'\r\n\r\n' + body)
     return result
 
-def recvall(sock):
+async def recvall(sock):
     BUFF_SIZE = 8192
     data = b''
     while True:
-        part = sock.recv(BUFF_SIZE)
+        part = await sock.read(BUFF_SIZE)
         data += part
         if len(part) < BUFF_SIZE:
             break
     return data
 
 async def handle_request(client_reader, client_writer):
-    request = await client_reader.read(2048)
+    request = await recvall(client_reader)
     parsed_request = parse_http_request(request)
     if parsed_request == None:
         try:
             doesnt_exist = b"HTTP/1.0 501 Internal Server Error\r\n"+b"\r\n\r\nError 501 \r\Internal Server Error"
             client_writer.write(doesnt_exist)
             await client_writer.drain()
-            if len(client_address)>0:
-                logger.warning("Client: {} Error with request".format(client_address[0]))
+            if len(client_writer.get_extra_info('peername')[0])>0:
+                logger.warning("Client: {} Error with request".format(client_writer.get_extra_info('peername')[0]))
             client_writer.close()
             return
         except Exception as e:
@@ -217,7 +217,6 @@ async def handle_request(client_reader, client_writer):
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
         return
-
     if path.exists():
         if path.is_dir():
             try:
@@ -273,13 +272,8 @@ async def handle_request(client_reader, client_writer):
                                     break
                                 client_writer.write(chunk)
                                 await client_writer.drain()
-                            try:
                                 client_writer.close()
-                            except:
-                                pass
-                            if line == None:
-                                return
-                            else:
+                            if line!=None:
                                 logger.debug("Client: {}, User-Agent: {}".format(client_writer.get_extra_info('peername')[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
                                 logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}, Body: {}".format(client_writer.get_extra_info('peername')[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path,parsed_request[1]))
 
@@ -294,17 +288,10 @@ async def handle_request(client_reader, client_writer):
                                     break
                                 client_writer.write(chunk)
                                 await client_writer.drain()
-                            try:
                                 client_writer.close()
-                            except:
-                                pass
-                            if line == None:
-                                return
-                            else:
+                            if line !=None:
                                 logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}, Query: {}".format(client_writer.get_extra_info('peername')[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path,parsed_request[0].query_string))
                                 logger.debug("Client: {}, User-Agent: {}".format(client_writer.get_extra_info('peername')[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
-                        else:
-                            return
                     except Exception as e:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
@@ -334,11 +321,11 @@ async def handle_request(client_reader, client_writer):
             client_writer.write(doesnt_exist)
             await client_writer.drain()
             logger.warning("Client: {} Requested Non Existent File\Path: {}".format(client_writer.get_extra_info('peername')[0],parsed_request[0].path))
+            client_writer.close()
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
-    return
 
 def serve_forever():
     try:
@@ -348,12 +335,8 @@ def serve_forever():
                                             family=socket.AF_INET, reuse_address=True
                                             )
         print('The HTTP server is listening on PORT {port}'.format(port=PORT))
-    except Exception as e:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
-    try:
         loop.run_until_complete(socket_server)
+        loop.run_forever()
         loop.add_signal_handler(signal.SIGCHLD, grim_reaper)
     except Exception as e:
         print(e)
@@ -361,11 +344,6 @@ def serve_forever():
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
 
-    while True:
-        try:
-            loop.run_forever()
-        except Exception as e:
-            print(e)
 
 if __name__ == '__main__':
     serve_forever()
