@@ -106,50 +106,53 @@ def set_environment(*args, **kwargs):
 
 
 def parse_http_request(request):
-    split_response = request.split(b'\r\n\r\n', 1)
-    start_line_and_headers = split_response[0].split(b'\r\n')
-    request_line = start_line_and_headers[0]
-    start_line_parts = request_line.split(b' ')
-    method = start_line_parts[0]
     try:
+        if request == None:
+            return -2
+        split_response = request
+        start_line_and_headers = split_response[0].split(b'\r\n')
+        request_line = start_line_and_headers[0]
+        start_line_parts = request_line.split(b' ')
+        method = start_line_parts[0]
         path = urllib.parse.unquote(start_line_parts[1].decode())
-    except:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        print(exc_type, fname, exc_tb.tb_lineno)
-    if '?' in path:
-        target_query_part = path.split('?', 1)[1]
-        if len(target_query_part) > 0:
-            query_string = target_query_part
+        if '?' in path:
+            target_query_part = path.split('?', 1)[1]
+            if len(target_query_part) > 0:
+                query_string = target_query_part
+            else:
+                query_string = ''
         else:
             query_string = ''
-    else:
-        query_string = ''
-    headers = {}
-    for header_field in start_line_and_headers[1:]:
-        header_field_split = header_field.split(b':', 1)
-        field_name = header_field_split[0]
-        field_value = header_field_split[1].strip()
-        headers[field_name] = field_value
-    if method == b'POST':
-        body = split_response[1]
+        headers = {}
+        for header_field in start_line_and_headers[1:]:
+            header_field_split = header_field.split(b':', 1)
+            field_name = header_field_split[0]
+            field_value = header_field_split[1].strip()
+            headers[field_name] = field_value
+        if method == b'POST':
+            body = split_response[1]
 
-    else:
-        body = b''
-    if 'User-Agent' in headers:
-        user_agent = headers['User-Agent']
-    else:
-        user_agent = None
-    result = META(
-        method=method,
-        path=path.split('?', 1)[0],
-        headers=headers,
-        query_string=query_string,
-        http_version=start_line_parts[2],
-        user_agent=user_agent,
-    )
+        else:
+            body = b''
+        if 'User-Agent' in headers:
+            user_agent = headers['User-Agent']
+        else:
+            user_agent = None
+        result = META(
+            method=method,
+            path=path.split('?', 1)[0],
+            headers=headers,
+            query_string=query_string,
+            http_version=start_line_parts[2],
+            user_agent=user_agent,
+        )
 
-    return [result,body]
+        return [result,body]
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        print(e, fname, exc_tb.tb_lineno)
+        return None
 
 
 def gen_res(status_code, headers={}, body=b''):
@@ -162,18 +165,51 @@ def gen_res(status_code, headers={}, body=b''):
     return result
 
 def recvall(sock):
-    BUFF_SIZE = 4096
-    data = b''
+    BUFF_SIZE = 8192
     while True:
-        part = sock.recv(BUFF_SIZE)
-        data += part
-        if len(part) < BUFF_SIZE:
+        try:
+            part = sock.recv(BUFF_SIZE)
+        except socket.error as e:
             break
-    return data
+        if b'\r\n\r\n' in part:
+            headers = part.split(b'\r\n\r\n', 1)[0]
+            body =  part.split(b'\r\n\r\n', 1)[1]
+            return [headers,body]
+        else:
+            return -1
+
+        # if len(data) > 8192:
+        #     headers = data.split(b'\r\n\r\n', 1)[0]
+        #     body =  data.split(b'\r\n\r\n', 1)[1]
+        #     if len(headers)>8192:
+        #         return -1
+        #     break
+
+def send_body(process,sock):
+    BUFF_SIZE = 4096
+    while True:
+        try:
+            print(1)
+            part = sock.recv(BUFF_SIZE)
+        except socket.error as e:
+            break
+        process.stdin.write(part)
+
+
 
 def handle_request(client_connection,client_address):
+    #print(client_connection)
+    client_connection.setblocking(0)
     request = recvall(client_connection)
+    if request == -1:
+        big_headers = b"HTTP/1.0 413 Entity Too Large\r\n"+b"\r\n\r\nError 413 \r\nEntity Too Large"
+        client_connection.sendall(big_headers)
+        client_connection.close()
+        return
     parsed_request = parse_http_request(request)
+    if not parsed_request or parsed_request == -2:
+        client_connection.close()
+        return
     res = gen_res(b'200',parsed_request[0].headers,parsed_request[1])
     data = ""
     try:
@@ -225,7 +261,7 @@ def handle_request(client_connection,client_address):
                         if parsed_request[0].method == b'POST':
                             if parsed_request[1] != b'':
                                 process.stdin.write(parsed_request[1])
-                            bytes_read = len(parsed_request[1])
+                                send_body(process,client_connection)
                             process.stdin.close()
                             line = None
                             data = 'HTTP/1.0 200 OK\rDate: {}\rConnection: keep-alive\r'.format(get_date()).encode()
@@ -261,12 +297,14 @@ def handle_request(client_connection,client_address):
                         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                         logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
             else:
+                print(res)
                 data += res.decode('utf-8')
                 chunk = None
                 try:
                     client_connection.send(data.encode())
                     with open("."+parsed_request[0].path, "rb") as f:
                         for chunk in chunks(f):
+                            print(len(chunk))
                             client_connection.send(chunk)
                         if chunk != None:
                             logger.debug("Client: {}, User-Agent: {}".format(client_address[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
@@ -312,19 +350,19 @@ def serve_forever():
             else:
                 raise
 
-        try:
-            pid = os.fork()
-            if pid == 0:
-                listen_socket.close()
-                handle_request(client_connection,client_address)
-                client_connection.close()
-                os._exit(0)
-            else:
-                client_connection.close()
-        except Exception as e:
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            logger.error("1{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+        # try:
+        pid = os.fork()
+        if pid == 0:
+            listen_socket.close()
+            handle_request(client_connection,client_address)
+            client_connection.close()
+            os._exit(0)
+        else:
+            client_connection.close()
+        # except Exception as e:
+        #     exc_type, exc_obj, exc_tb = sys.exc_info()
+        #     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        #     logger.error("1{} {} {} ".format(e, fname, exc_tb.tb_lineno))
 
 if __name__ == '__main__':
     serve_forever()
