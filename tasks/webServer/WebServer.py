@@ -107,14 +107,16 @@ def set_environment(*args, **kwargs):
 
 def parse_http_request(request):
     try:
-        if request == None:
-            return -2
+        assert len(request) == 2,"Bad request"
         split_response = request
         start_line_and_headers = split_response[0].split(b'\r\n')
+        assert len(start_line_and_headers) > 0,"Bad length for start_line_and_headers"
         request_line = start_line_and_headers[0]
         start_line_parts = request_line.split(b' ')
+        assert len(start_line_parts) == 3
         method = start_line_parts[0]
         path = urllib.parse.unquote(start_line_parts[1].decode())
+        assert isinstance(path, str)
         if '?' in path:
             target_query_part = path.split('?', 1)[1]
             if len(target_query_part) > 0:
@@ -158,6 +160,7 @@ def parse_http_request(request):
 def gen_res(status_code, headers={}, body=b''):
     result = (b'HTTP/1.0 ' + status_code + b' ' +
               RESP_METH.response_phrases[status_code])
+    assert len(headers)>0
     for field_name, field_value in headers.items():
         result += (b'\r\n' + field_name + b': ' + field_value)
 
@@ -165,18 +168,18 @@ def gen_res(status_code, headers={}, body=b''):
     return result
 
 def recvall(sock):
-    BUFF_SIZE = 8192
-    while True:
-        try:
+    try:
+        BUFF_SIZE = 8192
+        while True:
             part = sock.recv(BUFF_SIZE)
-        except socket.error as e:
-            break
-        if b'\r\n\r\n' in part:
-            headers = part.split(b'\r\n\r\n', 1)[0]
-            body =  part.split(b'\r\n\r\n', 1)[1]
-            return [headers,body]
-        else:
-            return -1
+            if len(part) < BUFF_SIZE:
+                headers = part.split(b'\r\n\r\n', 1)[0]
+                body =  part.split(b'\r\n\r\n', 1)[1]
+                return [headers,body]
+            else:
+                return 1
+    except Exception as e:
+        return -1
 
         # if len(data) > 8192:
         #     headers = data.split(b'\r\n\r\n', 1)[0]
@@ -184,37 +187,39 @@ def recvall(sock):
         #     if len(headers)>8192:
         #         return -1
         #     break
-
-def send_body(process,sock):
-    BUFF_SIZE = 4096
-    while True:
-        try:
-            print(1)
-            part = sock.recv(BUFF_SIZE)
-        except socket.error as e:
-            break
-        process.stdin.write(part)
+#
+# def send_body(process,sock):
+#     BUFF_SIZE = 4096
+#     while True:
+#         try:
+#             part = sock.recv(BUFF_SIZE)
+#         except socket.error as e:
+#             break
+#         process.stdin.write(part)
 
 
 
 def handle_request(client_connection,client_address):
     #print(client_connection)
-    client_connection.setblocking(0)
+    #client_connection.setblocking(0)
     request = recvall(client_connection)
+    assert request!=None
     if request == -1:
-        big_headers = b"HTTP/1.0 413 Entity Too Large\r\n"+b"\r\n\r\nError 413 \r\nEntity Too Large"
-        client_connection.sendall(big_headers)
-        client_connection.close()
+        server_error = b"HTTP/1.0 501 Internal Server Error\r\n"+b"\r\n\r\nError 501 \r\nInternal Server Error"
+        client_connection.sendall(server_error)
         return
     parsed_request = parse_http_request(request)
-    if not parsed_request or parsed_request == -2:
-        client_connection.close()
+    if request == 1 and parsed_request[0].method==b'GET':
+        big_headers = b"HTTP/1.0 413 Entity Too Large\r\n"+b"\r\n\r\nError 413 \r\nEntity Too Large"
+        client_connection.sendall(big_headers)
         return
     res = gen_res(b'200',parsed_request[0].headers,parsed_request[1])
-    data = ""
+    assert isinstance(res,(bytes, bytearray))
     try:
         path =  Path("./{path}".format(path=parsed_request[0].path))
+        assert isinstance(path,Path)
         ext = Path("./{path}".format(path=parsed_request[0].path)).suffix
+        assert isinstance(ext,str)
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
@@ -224,8 +229,7 @@ def handle_request(client_connection,client_address):
         if path.is_dir():
             try:
                 chunk = None
-                data += res.decode('utf-8')
-                client_connection.send(data.encode())
+                client_connection.send(res)
                 if parsed_request[0].method==b'GET':
                     with open("./index.html", "rb") as f:
                         for chunk in chunks(f):
@@ -240,8 +244,12 @@ def handle_request(client_connection,client_address):
         if path.is_file():
             if str(path).startswith("cgi-bin") and ext == '.py':
                 executable = sys.executable
+                assert isinstance(executable,str)
                 if executable:
                     try:
+                        assert len(parsed_request) == 2
+                        assert isinstance(parsed_request[0].headers,dict)
+                        assert len(client_address) == 2
                         set_environment(headers = parsed_request[0].headers,
                         arguments = parsed_request[0].query_string,
                         path=str(path),
@@ -261,7 +269,12 @@ def handle_request(client_connection,client_address):
                         if parsed_request[0].method == b'POST':
                             if parsed_request[1] != b'':
                                 process.stdin.write(parsed_request[1])
-                                send_body(process,client_connection)
+                                if request == 1:
+                                    while True:
+                                        part = client_connection.recv(8192)
+                                        if len(part) < 8192:
+                                            break
+                                        process.stdin.write(part)
                             process.stdin.close()
                             line = None
                             data = 'HTTP/1.0 200 OK\rDate: {}\rConnection: keep-alive\r'.format(get_date()).encode()
@@ -297,14 +310,11 @@ def handle_request(client_connection,client_address):
                         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                         logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
             else:
-                print(res)
-                data += res.decode('utf-8')
                 chunk = None
                 try:
-                    client_connection.send(data.encode())
+                    client_connection.send(res)
                     with open("."+parsed_request[0].path, "rb") as f:
                         for chunk in chunks(f):
-                            print(len(chunk))
                             client_connection.send(chunk)
                         if chunk != None:
                             logger.debug("Client: {}, User-Agent: {}".format(client_address[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
@@ -326,7 +336,7 @@ def handle_request(client_connection,client_address):
 def serve_forever():
     try:
         listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
         listen_socket.bind(SERVER_ADDRESS)
         listen_socket.listen(REQUEST_QUEUE_SIZE)
         print('The HTTP server is listening on PORT {port}'.format(port=PORT))
@@ -343,6 +353,10 @@ def serve_forever():
     while True:
         try:
             client_connection, client_address = listen_socket.accept()
+            # client_connection.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 100)
+            # client_connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 1)
+            # client_connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 3)
+            # client_connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 5)
         except IOError as e:
             code, msg = e.args
             if code == errno.EINTR:

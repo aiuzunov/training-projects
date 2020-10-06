@@ -109,20 +109,20 @@ def set_environment(*args, **kwargs):
         logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
 
 
+
+
 def parse_http_request(request):
-    split_response = request.split(b'\r\n\r\n', 1)
-    start_line_and_headers = split_response[0].split(b'\r\n')
-    request_line = start_line_and_headers[0]
-    start_line_parts = request_line.split(b' ')
-    method = start_line_parts[0]
-    path = ''
     try:
-        if len(start_line_parts)<3:
-            return None
-
+        assert len(request) == 2,"Bad request"
+        split_response = request
+        start_line_and_headers = split_response[0].split(b'\r\n')
+        assert len(start_line_and_headers) > 0,"Bad length for start_line_and_headers"
+        request_line = start_line_and_headers[0]
+        start_line_parts = request_line.split(b' ')
+        assert len(start_line_parts) == 3
+        method = start_line_parts[0]
         path = urllib.parse.unquote(start_line_parts[1].decode())
-
-
+        assert isinstance(path, str)
         if '?' in path:
             target_query_part = path.split('?', 1)[1]
             if len(target_query_part) > 0:
@@ -154,12 +154,12 @@ def parse_http_request(request):
             http_version=start_line_parts[2],
             user_agent=user_agent,
         )
-
         return [result,body]
+
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+        print(e, fname, exc_tb.tb_lineno)
         return None
 
 
@@ -173,39 +173,45 @@ def gen_res(status_code, headers={}, body=b''):
     result += (b'\r\n\r\n' + body)
     return result
 
+
 def recvall(sock):
-    BUFF_SIZE = 8192
-    data = b''
-    while True:
-        part = sock.recv(BUFF_SIZE)
-        data += part
-        if len(part) < BUFF_SIZE:
-            break
-    return data
+    try:
+        BUFF_SIZE = 8192
+        while True:
+            part = sock.recv(BUFF_SIZE)
+            if len(part) < BUFF_SIZE:
+                headers = part.split(b'\r\n\r\n', 1)[0]
+                body =  part.split(b'\r\n\r\n', 1)[1]
+                return [headers,body]
+            else:
+                return 1
+    except Exception as e:
+        return -1
+
 
 def handle_request(client_connection,client_address):
     #print_lock.release()
     #print(threading.active_count())
     request = recvall(client_connection)
+    assert request!=None
+    if request == -1:
+        server_error = b"HTTP/1.0 501 Internal Server Error\r\n"+b"\r\n\r\nError 501 \r\nInternal Server Error"
+        client_connection.sendall(server_error)
+        client_connection.close()
+        return
     parsed_request = parse_http_request(request)
-    if parsed_request == None:
-        try:
-            doesnt_exist = b"HTTP/1.0 501 Internal Server Error\r\n"+b"\r\n\r\nError 501 \r\Internal Server Error"
-            client_connection.sendall(doesnt_exist)
-            logger.warning("Client: {} Error with request".format(client_address[0]))
-            client_connection.close()
-            return
-        except Exception as e:
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
-            client_connection.close()
-            return
+    if request == 1 and parsed_request[0].method==b'GET':
+        big_headers = b"HTTP/1.0 413 Entity Too Large\r\n"+b"\r\n\r\nError 413 \r\nEntity Too Large"
+        client_connection.sendall(big_headers)
+        client_connection.close()
+        return
     res = gen_res(b'200',parsed_request[0].headers,parsed_request[1])
-    data = ""
+    assert isinstance(res,(bytes, bytearray))
     try:
         path =  Path("./{path}".format(path=parsed_request[0].path))
+        assert isinstance(path,Path)
         ext = Path("./{path}".format(path=parsed_request[0].path)).suffix
+        assert isinstance(ext,str)
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
@@ -217,8 +223,7 @@ def handle_request(client_connection,client_address):
         if path.is_dir():
             try:
                 chunk = None
-                data += res.decode('utf-8')
-                client_connection.send(data.encode())
+                client_connection.send(res)
                 if parsed_request[0].method==b'GET':
                     with open("./index.html", "rb") as f:
                         for chunk in chunks(f):
@@ -259,7 +264,12 @@ def handle_request(client_connection,client_address):
                         if parsed_request[0].method == b'POST':
                             if parsed_request[1] != b'':
                                 process.stdin.write(parsed_request[1])
-                            bytes_read = len(parsed_request[1])
+                                if request == 1:
+                                    while True:
+                                        part = client_connection.recv(8192)
+                                        if len(part) < 8192:
+                                            break
+                                        process.stdin.write(part)
                             process.stdin.close()
                             line = None
                             data = 'HTTP/1.0 200 OK\rDate: {}\rConnection: keep-alive\r'.format(get_date()).encode()
@@ -304,10 +314,9 @@ def handle_request(client_connection,client_address):
                         client_connection.close()
                         return
             else:
-                data += res.decode('utf-8')
                 chunk = None
                 try:
-                    client_connection.send(data.encode())
+                    client_connection.send(res)
                     with open("."+parsed_request[0].path, "rb") as f:
                         for chunk in chunks(f):
                             client_connection.send(chunk)
