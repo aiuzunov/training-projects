@@ -10,6 +10,8 @@ import json
 import logging
 
 
+
+from functools import wraps
 from datetime import datetime
 from collections import namedtuple
 from pathlib import Path
@@ -34,8 +36,34 @@ except Exception as e:
 
 
 
-SERVER_ADDRESS = (HOST, PORT) = '', 9100
-REQUEST_QUEUE_SIZE = 2048
+SERVER_ADDRESS = (HOST, PORT) = '', 8888
+REQUEST_QUEUE_SIZE = 1024
+
+
+class TimeoutError(Exception):
+    def __init__(self, value = "Timed Out"):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
+def timeout(seconds=5, error_message=os.strerror(errno.ETIME)):
+    def decorator(func):
+        def _handle_timeout(signum, frame):
+            print(frame)
+            raise TimeoutError(error_message)
+
+        def wrapper(*args, **kwargs):
+            signal.signal(signal.SIGALRM, _handle_timeout)
+            signal.alarm(seconds)
+            try:
+                result = func(*args, **kwargs)
+            finally:
+                signal.alarm(0)
+            return result
+
+        return wraps(func)(wrapper)
+
+    return decorator
 
 def get_date():
     now = datetime.now()
@@ -198,7 +226,7 @@ def recvall(sock):
 #         process.stdin.write(part)
 
 
-
+@timeout(5, os.strerror(errno.ETIMEDOUT))
 def handle_request(client_connection,client_address):
     #print(client_connection)
     #client_connection.setblocking(0)
@@ -333,50 +361,44 @@ def handle_request(client_connection,client_address):
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
 
+
+def handle_request2(client_connection,client_address):
+    request = client_connection.recv(1024)
+    print(request.decode())
+    http_response = b"""\
+HTTP/1.1 200 OK
+
+Hello, World!
+"""
+    client_connection.sendall(http_response)
 def serve_forever():
-    try:
-        listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
-        listen_socket.bind(SERVER_ADDRESS)
-        listen_socket.listen(REQUEST_QUEUE_SIZE)
-        print('The HTTP server is listening on PORT {port}'.format(port=PORT))
-    except Exception as e:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
-    try:
-        signal.signal(signal.SIGCHLD, grim_reaper)
-    except Exception as e:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+    listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    listen_socket.bind(SERVER_ADDRESS)
+    listen_socket.listen(REQUEST_QUEUE_SIZE)
+    print('Serving HTTP on port {port} ...'.format(port=PORT))
+
+    signal.signal(signal.SIGCHLD, grim_reaper)
+
     while True:
         try:
             client_connection, client_address = listen_socket.accept()
-            # client_connection.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 100)
-            # client_connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 1)
-            # client_connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 3)
-            # client_connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 5)
         except IOError as e:
             code, msg = e.args
+            # restart 'accept' if it was interrupted
             if code == errno.EINTR:
                 continue
             else:
                 raise
 
-        # try:
         pid = os.fork()
-        if pid == 0:
-            listen_socket.close()
+        if pid == 0:  # child
+            listen_socket.close()  # close child copy
             handle_request(client_connection,client_address)
             client_connection.close()
             os._exit(0)
-        else:
-            client_connection.close()
-        # except Exception as e:
-        #     exc_type, exc_obj, exc_tb = sys.exc_info()
-        #     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        #     logger.error("1{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+        else:  # parent
+            client_connection.close()  # close parent copy and loop over
 
 if __name__ == '__main__':
     serve_forever()

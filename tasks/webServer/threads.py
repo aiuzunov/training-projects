@@ -10,7 +10,7 @@ import json
 import logging
 import threading
 
-
+from functools import wraps
 from _thread import *
 from datetime import datetime
 from collections import namedtuple
@@ -77,6 +77,30 @@ def chunks(f):
             break
         yield data
 
+
+class TimeoutError(Exception):
+    def __init__(self, value = "Timed Out"):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
+def timeout(seconds=5, error_message=os.strerror(errno.ETIME)):
+    def decorator(func):
+        def _handle_timeout(signum, frame):
+            raise TimeoutError(error_message)
+
+        def wrapper(*args, **kwargs):
+            signal.signal(signal.SIGALRM, _handle_timeout)
+            signal.alarm(seconds)
+            try:
+                result = func(*args, **kwargs)
+            finally:
+                signal.alarm(0)
+            return result
+
+        return wraps(func)(wrapper)
+
+    return decorator
 
 
 class RESP_METH:
@@ -188,7 +212,7 @@ def recvall(sock):
     except Exception as e:
         return -1
 
-
+@timeout(10, os.strerror(errno.ETIMEDOUT))
 def handle_request(client_connection,client_address):
     #print_lock.release()
     #print(threading.active_count())

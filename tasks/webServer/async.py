@@ -190,6 +190,7 @@ async def recvall(sock):
     return data
 
 async def handle_request(client_reader, client_writer):
+    print(os.getpid())
     request = await recvall(client_reader)
     parsed_request = parse_http_request(request)
     if parsed_request == None:
@@ -219,9 +220,7 @@ async def handle_request(client_reader, client_writer):
     if path.exists():
         if path.is_dir():
             try:
-                chunk = None
-                data += res.decode('utf-8')
-                client_writer.write(data.encode())
+                client_writer.write(res)
                 if parsed_request[0].method==b'GET':
                     async with aiofiles.open("./index.html", "rb") as f:
                         async for chunk in chunks(f):
@@ -263,12 +262,18 @@ async def handle_request(client_reader, client_writer):
                             line = None
                             data = 'HTTP/1.0 200 OK\rDate: {}\rConnection: keep-alive\r'.format(await get_date()).encode()
                             client_writer.write(data)
-                            while True:
-                                chunk = await process.stdout.read(4096)
-                                if not chunk:
-                                    break
-                                client_writer.write(chunk)
+                            try:
+                                while True:
+                                #chunk = await process.stdout.read(4096)
+                                    chunk = await asyncio.wait_for(process.stdout.read(4096),timeout = 0.1)
+                                    if not chunk:
+                                        break
+                                    client_writer.write(chunk)
                                 client_writer.close()
+                            except asyncio.TimeoutError as e:
+                                client_writer.write(b"HTTP/1.0 408 Request Timeout\r\n"+b"\r\n\r\nError 408 \r\Request Timeout")
+                                client_writer.close()
+                                return
                             #if line!=None:
                                 #logger.debug("Client: {}, User-Agent: {}".format(client_writer.get_extra_info('peername')[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
                                 #logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}, Body: {}".format(client_writer.get_extra_info('peername')[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path,parsed_request[1]))
@@ -277,12 +282,18 @@ async def handle_request(client_reader, client_writer):
                             line = None
                             data = 'HTTP/1.0 200 OK\rDate: {}\rConnection: keep-alive\r'.format(await get_date()).encode()
                             client_writer.write(data)
-                            while True:
-                                chunk = await process.stdout.read(4096)
-                                if not chunk:
-                                    break
-                                client_writer.write(chunk)
-                            client_writer.close()
+                            try:
+                                while True:
+                                #chunk = await process.stdout.read(4096)
+                                    chunk = await asyncio.wait_for(process.stdout.read(4096),timeout = 0.1)
+                                    if not chunk:
+                                        break
+                                    client_writer.write(chunk)
+                                client_writer.close()
+                            except asyncio.TimeoutError as e:
+                                client_writer.write(b"HTTP/1.0 408 Request Timeout\r\n"+b"\r\n\r\nError 408 \r\Request Timeout")
+                                client_writer.close()
+                                return
                             #if line !=None:
                                 #logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}, Query: {}".format(client_writer.get_extra_info('peername')[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path,parsed_request[0].query_string))
                                 #logger.debug("Client: {}, User-Agent: {}".format(client_writer.get_extra_info('peername')[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
@@ -291,10 +302,8 @@ async def handle_request(client_reader, client_writer):
                         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                         #logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
             else:
-                data += res.decode('utf-8')
-                chunk = None
                 try:
-                    client_writer.write(data.encode())
+                    client_writer.write(res)
 
                     async with aiofiles.open("."+parsed_request[0].path, "rb") as f:
                         async for chunk in chunks(f):
