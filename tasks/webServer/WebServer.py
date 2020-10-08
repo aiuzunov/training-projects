@@ -1,42 +1,15 @@
-import errno
-import os
-import signal
-import sys
-import socket
-import subprocess
-import requests as req
-import urllib.parse
-import json
-import logging
+import errno, os, signal, socket, subprocess, sys
 
-
-
-from functools import wraps
 from datetime import datetime
+from functools import wraps
 from collections import namedtuple
 from pathlib import Path
-from Logs import LogInit
 
-
-try:
-    logger = logging.getLogger('Web Server Logger')
-    logger.setLevel(logging.DEBUG)
-
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-    LogInit(logger,logging.WARNING,'./logs/warning.log',formatter).initialize()
-    LogInit(logger,logging.ERROR,'./logs/error.log',formatter).initialize()
-    LogInit(logger,logging.INFO,'./logs/info.log',formatter).initialize()
-    LogInit(logger,logging.DEBUG,'./logs/debug.log',formatter).initialize()
-except Exception as e:
-    exc_type, exc_obj, exc_tb = sys.exc_info()
-    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-    print(e,exc_type, fname, exc_tb.tb_lineno)
+#logging.basicConfig(filename='example.log', level=logging.DEBUG)
 
 
 
-
-SERVER_ADDRESS = (HOST, PORT) = '', 8888
+SERVER_ADDRESS = (HOST, PORT) = '', 9100
 REQUEST_QUEUE_SIZE = 1024
 
 
@@ -49,7 +22,6 @@ class TimeoutError(Exception):
 def timeout(seconds=5, error_message=os.strerror(errno.ETIME)):
     def decorator(func):
         def _handle_timeout(signum, frame):
-            print(frame)
             raise TimeoutError(error_message)
 
         def wrapper(*args, **kwargs):
@@ -128,9 +100,10 @@ def set_environment(*args, **kwargs):
         os.environ['REMOTE_ADDR'] = kwargs.get('client_address', '')
         os.environ['HTTP_ACCEPT'] = kwargs.get('headers').get(b'Accept',b'').decode('utf-8')
     except Exception as e:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+        print(e)
+        # exc_type, exc_obj, exc_tb = sys.exc_info()
+        # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        # logging.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
 
 
 def parse_http_request(request):
@@ -143,7 +116,7 @@ def parse_http_request(request):
         start_line_parts = request_line.split(b' ')
         assert len(start_line_parts) == 3
         method = start_line_parts[0]
-        path = urllib.parse.unquote(start_line_parts[1].decode())
+        path = start_line_parts[1].decode()
         assert isinstance(path, str)
         if '?' in path:
             target_query_part = path.split('?', 1)[1]
@@ -179,9 +152,10 @@ def parse_http_request(request):
 
         return [result,body]
     except Exception as e:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        print(e, fname, exc_tb.tb_lineno)
+        print(e)
+        # exc_type, exc_obj, exc_tb = sys.exc_info()
+        # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        # print(e, fname, exc_tb.tb_lineno)
         return None
 
 
@@ -190,7 +164,8 @@ def gen_res(status_code, headers={}, body=b''):
               RESP_METH.response_phrases[status_code])
     assert len(headers)>0
     for field_name, field_value in headers.items():
-        result += (b'\r\n' + field_name + b': ' + field_value)
+        if field_name != b'Connection':
+            result += (b'\r\n' + field_name + b': ' + field_value)
 
     result += (b'\r\n\r\n' + body)
     return result
@@ -225,11 +200,8 @@ def recvall(sock):
 #             break
 #         process.stdin.write(part)
 
-
-@timeout(5, os.strerror(errno.ETIMEDOUT))
+@timeout(10, os.strerror(errno.ETIMEDOUT))
 def handle_request(client_connection,client_address):
-    #print(client_connection)
-    #client_connection.setblocking(0)
     request = recvall(client_connection)
     assert request!=None
     if request == -1:
@@ -249,9 +221,10 @@ def handle_request(client_connection,client_address):
         ext = Path("./{path}".format(path=parsed_request[0].path)).suffix
         assert isinstance(ext,str)
     except Exception as e:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+        print(e)
+        # exc_type, exc_obj, exc_tb = sys.exc_info()
+        # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        # logging.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
 
     if path.exists():
         if path.is_dir():
@@ -262,13 +235,18 @@ def handle_request(client_connection,client_address):
                     with open("./index.html", "rb") as f:
                         for chunk in chunks(f):
                             client_connection.send(chunk)
-                        if chunk != None:
-                            logger.debug("Client: {}, User-Agent: {}".format(client_address[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
-                            logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}".format(client_address[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path))
+                        if chunk == None:
+                            server_error = b"HTTP/1.0 501 Internal Server Error\r\n"+b"\r\n\r\nError 501 \r\nInternal Server Error"
+                            client_connection.sendall(server_error)
+                        else:
+                            pass
+                            #logging.debug("Client: {}, User-Agent: {}".format(client_address[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
+                            #logging.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}".format(client_address[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path))
             except Exception as e:
-                exc_type, exc_obj, exc_tb = sys.exc_info()
-                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+                print(e)
+                # exc_type, exc_obj, exc_tb = sys.exc_info()
+                # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                # logging.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
         if path.is_file():
             if str(path).startswith("cgi-bin") and ext == '.py':
                 executable = sys.executable
@@ -286,9 +264,10 @@ def handle_request(client_connection,client_address):
                         server_port='9100'
                         )
                     except Exception as e:
-                        exc_type, exc_obj, exc_tb = sys.exc_info()
-                        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                        logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+                        print(e)
+                        # exc_type, exc_obj, exc_tb = sys.exc_info()
+                        # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                        # logging.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
                     script_args = [executable,str(path)]
                     process = subprocess.Popen(script_args, stdin=subprocess.PIPE,
                                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -312,8 +291,9 @@ def handle_request(client_connection,client_address):
                             if line == None:
                                 return
                             else:
-                                logger.debug("Client: {}, User-Agent: {}".format(client_address[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
-                                logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}, Body: {}".format(client_address[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path,parsed_request[1]))
+                                pass
+                                #logging.debug("Client: {}, User-Agent: {}".format(client_address[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
+                                #ogging.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}, Body: {}".format(client_address[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path,parsed_request[1]))
 
                         elif parsed_request[0].method == b'GET':
                             line = None
@@ -322,21 +302,26 @@ def handle_request(client_connection,client_address):
                             for line in process.stdout:
                                 try:
                                     client_connection.send(line)
+
                                 except Exception as e:
-                                    exc_type, exc_obj, exc_tb = sys.exc_info()
-                                    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                                    logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+                                    print(e)
+                                    # exc_type, exc_obj, exc_tb = sys.exc_info()
+                                    # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                                    # logging.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
                             if line == None:
                                 return
                             else:
-                                logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}, Query: {}".format(client_address[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path,parsed_request[0].query_string))
-                                logger.debug("Client: {}, User-Agent: {}".format(client_address[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
+                                pass
+                                #logging.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}, Query: {}".format(client_address[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path,parsed_request[0].query_string))
+                                #logging.debug("Client: {}, User-Agent: {}".format(client_address[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
                         else:
                             return
                     except Exception as e:
-                        exc_type, exc_obj, exc_tb = sys.exc_info()
-                        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                        logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+                        print(e)
+
+                        # exc_type, exc_obj, exc_tb = sys.exc_info()
+                        # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                        # logging.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
             else:
                 chunk = None
                 try:
@@ -344,36 +329,31 @@ def handle_request(client_connection,client_address):
                     with open("."+parsed_request[0].path, "rb") as f:
                         for chunk in chunks(f):
                             client_connection.send(chunk)
-                        if chunk != None:
-                            logger.debug("Client: {}, User-Agent: {}".format(client_address[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
-                            logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}".format(client_address[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path))
+                        #if chunk != None:
+                            #logging.debug("Client: {}, User-Agent: {}".format(client_address[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
+                            #logging.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}".format(client_address[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path))
                 except Exception as e:
-                    exc_type, exc_obj, exc_tb = sys.exc_info()
-                    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                    logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+                    print(e)
+                    # exc_type, exc_obj, exc_tb = sys.exc_info()
+                    # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                    # logging.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
     else:
         try:
             doesnt_exist = b"HTTP/1.0 404 Not Found\r\n"+b"\r\n\r\nError 404 \r\nResource not found"
             client_connection.sendall(doesnt_exist)
-            logger.warning("Client: {} Requested Non Existent File\Path: {}".format(client_address[0],parsed_request[0].path))
+            #logging.warning("Client: {} Requested Non Existent File\Path: {}".format(client_address[0],parsed_request[0].path))
         except Exception as e:
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+            print(e)
+            # exc_type, exc_obj, exc_tb = sys.exc_info()
+            # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            # logging.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
 
 
-def handle_request2(client_connection,client_address):
-    request = client_connection.recv(1024)
-    print(request.decode())
-    http_response = b"""\
-HTTP/1.1 200 OK
 
-Hello, World!
-"""
-    client_connection.sendall(http_response)
 def serve_forever():
     listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    #listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
     listen_socket.bind(SERVER_ADDRESS)
     listen_socket.listen(REQUEST_QUEUE_SIZE)
     print('Serving HTTP on port {port} ...'.format(port=PORT))
@@ -385,20 +365,20 @@ def serve_forever():
             client_connection, client_address = listen_socket.accept()
         except IOError as e:
             code, msg = e.args
-            # restart 'accept' if it was interrupted
             if code == errno.EINTR:
                 continue
             else:
                 raise
 
         pid = os.fork()
-        if pid == 0:  # child
-            listen_socket.close()  # close child copy
+        if pid == 0:
+            #listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+            listen_socket.close()
             handle_request(client_connection,client_address)
             client_connection.close()
             os._exit(0)
-        else:  # parent
-            client_connection.close()  # close parent copy and loop over
+        else:
+            client_connection.close()
 
 if __name__ == '__main__':
     serve_forever()
