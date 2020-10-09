@@ -3,23 +3,16 @@ import os
 import signal
 import sys
 import socket
-import subprocess
-import requests as req
-import urllib.parse
-import json
-import logging
 import time
 import asyncio
-import aiofiles
-import resource
+import subprocess
 
 
-
-from aiologger import Logger
+#from aiologger import Logger
 from datetime import datetime
 from collections import namedtuple
 from pathlib import Path
-from Logs import LogInit
+#from Logs import LogInit
 
 
 #
@@ -73,9 +66,9 @@ META = namedtuple('META', [
     'user_agent',
 ])
 
-async def chunks(f):
+def chunks(f):
     while True:
-        data = await f.read(65536)
+        data = f.read(65536)
         if not data:
             break
         yield data
@@ -121,7 +114,7 @@ def parse_http_request(request):
         method = start_line_parts[0]
         path = ''
         try:
-            path = urllib.parse.unquote(start_line_parts[1].decode())
+            path = start_line_parts[1].decode()
             if path:
                 if '?' in path:
                     target_query_part = path.split('?', 1)[1]
@@ -189,8 +182,9 @@ async def recvall(sock):
             break
     return data
 
+
+
 async def handle_request(client_reader, client_writer):
-    print(os.getpid())
     request = await recvall(client_reader)
     parsed_request = parse_http_request(request)
     if parsed_request == None:
@@ -222,8 +216,8 @@ async def handle_request(client_reader, client_writer):
             try:
                 client_writer.write(res)
                 if parsed_request[0].method==b'GET':
-                    async with aiofiles.open("./index.html", "rb") as f:
-                        async for chunk in chunks(f):
+                    with open("./index.html", "rb") as f:
+                        for chunk in chunks(f):
                             client_writer.write(chunk)
                         client_writer.close()
 
@@ -249,7 +243,7 @@ async def handle_request(client_reader, client_writer):
                     except Exception as e:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                        logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+                        #logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
                     process =  await asyncio.create_subprocess_exec(executable,str(path), stdin=subprocess.PIPE,
                                                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     try:
@@ -257,19 +251,21 @@ async def handle_request(client_reader, client_writer):
                         if parsed_request[0].method == b'POST':
                             if parsed_request[1] != b'':
                                 process.stdin.write(parsed_request[1])
-                            bytes_read = len(parsed_request[1])
                             process.stdin.close()
                             line = None
                             data = 'HTTP/1.0 200 OK\rDate: {}\rConnection: keep-alive\r'.format(await get_date()).encode()
                             client_writer.write(data)
                             try:
-                                while True:
-                                #chunk = await process.stdout.read(4096)
-                                    chunk = await asyncio.wait_for(process.stdout.read(4096),timeout = 0.1)
-                                    if not chunk:
-                                        break
-                                    client_writer.write(chunk)
+                                stdout, stderr = await process.communicate()
+                                client_writer.write(stdout)
                                 client_writer.close()
+                                # while True:
+                                # #chunk = await process.stdout.read(4096)
+                                #     chunk = await asyncio.wait_for(process.stdout.read(4096),timeout = 0.1)
+                                #     if not chunk:
+                                #         break
+                                #     client_writer.write(chunk)
+                                # client_writer.close()
                             except asyncio.TimeoutError as e:
                                 client_writer.write(b"HTTP/1.0 408 Request Timeout\r\n"+b"\r\n\r\nError 408 \r\Request Timeout")
                                 client_writer.close()
@@ -283,12 +279,8 @@ async def handle_request(client_reader, client_writer):
                             data = 'HTTP/1.0 200 OK\rDate: {}\rConnection: keep-alive\r'.format(await get_date()).encode()
                             client_writer.write(data)
                             try:
-                                while True:
-                                #chunk = await process.stdout.read(4096)
-                                    chunk = await asyncio.wait_for(process.stdout.read(4096),timeout = 0.1)
-                                    if not chunk:
-                                        break
-                                    client_writer.write(chunk)
+                                stdout, stderr = await process.communicate()
+                                client_writer.write(stdout)
                                 client_writer.close()
                             except asyncio.TimeoutError as e:
                                 client_writer.write(b"HTTP/1.0 408 Request Timeout\r\n"+b"\r\n\r\nError 408 \r\Request Timeout")
@@ -304,10 +296,11 @@ async def handle_request(client_reader, client_writer):
             else:
                 try:
                     client_writer.write(res)
-
-                    async with aiofiles.open("."+parsed_request[0].path, "rb") as f:
-                        async for chunk in chunks(f):
+                    await client_writer.drain()
+                    with open("."+parsed_request[0].path, "rb") as f:
+                        for chunk in chunks(f):
                             client_writer.write(chunk)
+                            await client_writer.drain()
                     client_writer.close()
                         #if chunk != None:
                             #logger.debug("Client: {}, User-Agent: {}".format(client_writer.get_extra_info('peername')[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))

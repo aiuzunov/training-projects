@@ -1,41 +1,22 @@
-import errno, os, signal, socket, subprocess, sys
+import multiprocessing as mp
+import logging
+import socket
+import time
+import signal
+import errno
+import os
+import subprocess
+import sys
 
 from datetime import datetime
-from functools import wraps
 from collections import namedtuple
 from pathlib import Path
-
-#logging.basicConfig(filename='example.log', level=logging.DEBUG)
-
-
 
 SERVER_ADDRESS = (HOST, PORT) = '', 9100
 REQUEST_QUEUE_SIZE = 1024
 
-#
-# class TimeoutError(Exception):
-#     def __init__(self, value = "Timed Out"):
-#         self.value = value
-#     def __str__(self):
-#         return repr(self.value)
-#
-# def timeout(seconds=5, error_message=os.strerror(errno.ETIME)):
-#     def decorator(func):
-#         def _handle_timeout(signum, frame):
-#             raise TimeoutError(error_message)
-#
-#         def wrapper(*args, **kwargs):
-#             signal.signal(signal.SIGALRM, _handle_timeout)
-#             signal.alarm(seconds)
-#             try:
-#                 result = func(*args, **kwargs)
-#             finally:
-#                 signal.alarm(0)
-#             return result
-#
-#         return wraps(func)(wrapper)
-#
-#     return decorator
+logger = mp.log_to_stderr(logging.DEBUG)
+
 def _handle_timeout(signum, frame):
     raise TimeoutError
 def get_date():
@@ -43,19 +24,6 @@ def get_date():
     curr_date = now.strftime("%c") + ' (GMT+3)'
     return curr_date
 
-
-def grim_reaper(signum, frame):
-    while True:
-        try:
-            pid, status = os.waitpid(
-                -1,
-                 os.WNOHANG
-            )
-        except OSError as e:
-            return
-
-        if pid == 0:
-            return
 
 
 META = namedtuple('META', [
@@ -159,7 +127,6 @@ def parse_http_request(request):
         # print(e, fname, exc_tb.tb_lineno)
         return None
 
-
 def gen_res(status_code, headers={}, body=b''):
     result = (b'HTTP/1.0 ' + status_code + b' ' +
               RESP_METH.response_phrases[status_code])
@@ -185,30 +152,12 @@ def recvall(sock):
     except Exception as e:
         return -1
 
-        # if len(data) > 8192:
-        #     headers = data.split(b'\r\n\r\n', 1)[0]
-        #     body =  data.split(b'\r\n\r\n', 1)[1]
-        #     if len(headers)>8192:
-        #         return -1
-        #     break
-#
-# def send_body(process,sock):
-#     BUFF_SIZE = 4096
-#     while True:
-#         try:
-#             part = sock.recv(BUFF_SIZE)
-#         except socket.error as e:
-#             break
-#         process.stdin.write(part)
 
-#@timeout(10, os.strerror(errno.ETIMEDOUT))
 def handle_request(client_connection,client_address):
     client_connection.settimeout(10)
     request = recvall(client_connection)
     assert request!=None
     if request == -1:
-        server_error = b"HTTP/1.0 501 Internal Server Error\r\n"+b"\r\n\r\nError 501 \r\nInternal Server Error"
-        client_connection.sendall(server_error)
         return
     parsed_request = parse_http_request(request)
     if request == 1 and parsed_request[0].method==b'GET':
@@ -238,6 +187,7 @@ def handle_request(client_connection,client_address):
                         for chunk in chunks(f):
                             client_connection.send(chunk)
                         if chunk == None:
+                            print("WHAT!!")
                             server_error = b"HTTP/1.0 501 Internal Server Error\r\n"+b"\r\n\r\nError 501 \r\nInternal Server Error"
                             client_connection.sendall(server_error)
                         #else:
@@ -359,37 +309,36 @@ def handle_request(client_connection,client_address):
             # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             # logging.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
 
+def worker(socket):
+    while True:
+        client_connection, client_address = socket.accept()
+        logger.debug("{u} connected".format(u=client_address))
+        handle_request(client_connection,client_address)
+        #client_connection.send(b"OK")
+        client_connection.close()
+
 
 
 def serve_forever():
-    listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    #listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-    listen_socket.bind(SERVER_ADDRESS)
-    listen_socket.listen(REQUEST_QUEUE_SIZE)
-    print('Serving HTTP on port {port} ...'.format(port=PORT))
+    serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    serversocket.bind(SERVER_ADDRESS)
+    serversocket.listen(REQUEST_QUEUE_SIZE)
+    workers_cnt = 5
 
-    signal.signal(signal.SIGCHLD, grim_reaper)
+    workers = [mp.Process(target=worker, args=(serversocket,)) for i in
+            range(workers_cnt)]
+
+    for p in workers:
+        p.daemon = True
+        p.start()
 
     while True:
         try:
-            client_connection, client_address = listen_socket.accept()
-        except IOError as e:
-            code, msg = e.args
-            if code == errno.EINTR:
-                continue
-            else:
-                raise
+            time.sleep(10)
+        except:
+            break
 
-        pid = os.fork()
-        if pid == 0:
-            #listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-            listen_socket.close()
-            handle_request(client_connection,client_address)
-            client_connection.close()
-            os._exit(0)
-        else:
-            client_connection.close()
 
 if __name__ == '__main__':
     serve_forever()
