@@ -1,5 +1,5 @@
 #import multiprocessing as mp
-import logging
+#import logging
 import socket
 import time
 import signal
@@ -52,7 +52,7 @@ META = namedtuple('META', [
 
 def chunks(f):
     while True:
-        data = f.read(8192)
+        data = f.read(65536)
         if not data:
             break
         yield data
@@ -158,7 +158,7 @@ def recvall(sock):
         BUFF_SIZE = 8192
         while True:
             part = sock.recv(BUFF_SIZE)
-            if len(part) < BUFF_SIZE:
+            if b'\r\n\r\n' in part:
                 headers = part.split(b'\r\n\r\n', 1)[0]
                 body =  part.split(b'\r\n\r\n', 1)[1]
                 return [headers,body]
@@ -171,7 +171,6 @@ def recvall(sock):
 def handle_request(client_connection,client_address):
     client_connection.settimeout(10)
     request = recvall(client_connection)
-    assert request!=None
     if request == -1:
         return
     parsed_request = parse_http_request(request)
@@ -202,7 +201,6 @@ def handle_request(client_connection,client_address):
                         for chunk in chunks(f):
                             client_connection.send(chunk)
                         if chunk == None:
-                            print("WHAT!!")
                             server_error = b"HTTP/1.0 501 Internal Server Error\r\n"+b"\r\n\r\nError 501 \r\nInternal Server Error"
                             client_connection.sendall(server_error)
                         #else:
@@ -249,16 +247,16 @@ def handle_request(client_connection,client_address):
                                             break
                                         process.stdin.write(part)
                                         process.stdin.flush()
-                            process.stdin.close()
                             line = None
                             data = 'HTTP/1.0 200 OK\rDate: {}\rConnection: keep-alive\r'.format(get_date()).encode()
                             client_connection.send(data)
-                            while True:
-                                next_line = process.stdout.readline()
-                                if not next_line:
-                                    break
-                                process.stdout.flush()
-                                client_connection.send(next_line)
+                            try:
+                                stdout, stderr = process.communicate(timeout = 15)
+                            except TimeoutExpired:
+                                process.kill()
+                                outs, errs = process.communicate()
+                            client_connection.send(stdout)
+                            client_connection.close()
                             # for line in process.stdout:
                             #     client_connection.send(line)
                             # if line == None:
@@ -271,12 +269,10 @@ def handle_request(client_connection,client_address):
                             line = None
                             data = 'HTTP/1.0 200 OK\rDate: {}\rConnection: keep-alive\r'.format(get_date()).encode()
                             client_connection.send(data)
-                            while True:
-                                next_line = process.stdout.readline()
-                                if not next_line:
-                                    break
-                                process.stdout.flush()
-                                client_connection.send(next_line)
+                            stdout, stderr = process.communicate(timeout = 15)
+                            client_connection.send(stdout)
+                            client_connection.close()
+
                             if line == None:
                                 return
                             else:

@@ -6,6 +6,7 @@ import socket
 import time
 import asyncio
 import subprocess
+import aiofiles
 
 
 #from aiologger import Logger
@@ -42,6 +43,7 @@ async def get_date():
     curr_date = now.strftime("%c") + ' (GMT+3)'
     return curr_date
 
+lock = asyncio.Lock()
 
 # def grim_reaper(signum, frame):
 #     while True:
@@ -107,29 +109,24 @@ def set_environment(*args, **kwargs):
 
 def parse_http_request(request):
     try:
-        split_response = request.split(b'\r\n\r\n', 1)
+        assert len(request) == 2,"Bad request"
+        split_response = request
         start_line_and_headers = split_response[0].split(b'\r\n')
+        assert len(start_line_and_headers) > 0,"Bad length for start_line_and_headers"
         request_line = start_line_and_headers[0]
         start_line_parts = request_line.split(b' ')
+        assert len(start_line_parts) == 3
         method = start_line_parts[0]
-        path = ''
-        try:
-            path = start_line_parts[1].decode()
-            if path:
-                if '?' in path:
-                    target_query_part = path.split('?', 1)[1]
-                    if len(target_query_part) > 0:
-                        query_string = target_query_part
-                    else:
-                        query_string = ''
-                else:
-                    query_string = ''
+        path = start_line_parts[1].decode()
+        assert isinstance(path, str)
+        if '?' in path:
+            target_query_part = path.split('?', 1)[1]
+            if len(target_query_part) > 0:
+                query_string = target_query_part
             else:
-                return
-        except Exception as e:
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            #logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+                query_string = ''
+        else:
+            query_string = ''
         headers = {}
         for header_field in start_line_and_headers[1:]:
             header_field_split = header_field.split(b':', 1)
@@ -156,9 +153,10 @@ def parse_http_request(request):
 
         return [result,body]
     except Exception as e:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        #logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+        print(e)
+    # exc_type, exc_obj, exc_tb = sys.exc_info()
+    # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+    # print(e, fname, exc_tb.tb_lineno)
         return None
 
 
@@ -173,24 +171,39 @@ def gen_res(status_code, headers={}, body=b''):
     return result
 
 async def recvall(sock):
-    BUFF_SIZE = 8192
-    data = b''
-    while True:
-        part = await sock.read(BUFF_SIZE)
-        data += part
-        if len(part) < BUFF_SIZE:
-            break
-    return data
+    try:
+        HEADERS_LIMIT = 8192
+        part = await sock.read(HEADERS_LIMIT)
+        if b'\r\n\r\n' in part:
+            headers = part.split(b'\r\n\r\n', 1)[0]
+            body =  part.split(b'\r\n\r\n', 1)[1]
+            return [headers,body]
+        else:
+            return 1
+
+
+    except Exception as e:
+        print(e)
+        return -1
 
 
 
 async def handle_request(client_reader, client_writer):
+    # request = await recvall(client_reader)
+    # parsed_request = parse_http_request(request)
     request = await recvall(client_reader)
+    assert isinstance(request,(list,int))
+    if request == -1:
+        return
+    elif request == 1:
+        big_headers = b"HTTP/1.0 413 Entity Too Large\r\n"+b"\r\n\r\nError 413 \r\nEntity Too Large"
+        client_writer.write(big_headers)
+        return
     parsed_request = parse_http_request(request)
     if parsed_request == None:
         try:
-            doesnt_exist = b"HTTP/1.0 501 Internal Server Error\r\n"+b"\r\n\r\nError 501 \r\Internal Server Error"
-            client_writer.write(doesnt_exist)
+            internal_error = b"HTTP/1.0 501 Internal Server Error\r\n"+b"\r\n\r\nError 501 \r\Internal Server Error"
+            client_writer.write(internal_error)
             #if len(client_writer.get_extra_info('peername')[0])>0:
                 #logger.warning("Client: {} Error with request".format(client_writer.get_extra_info('peername')[0]))
             client_writer.close()
@@ -202,7 +215,7 @@ async def handle_request(client_reader, client_writer):
             client_writer.close()
             return
     res = gen_res(b'200',parsed_request[0].headers,parsed_request[1])
-    data = ""
+    assert isinstance(res,(bytes, bytearray))
     try:
         path =  Path("./{path}".format(path=parsed_request[0].path))
         ext = Path("./{path}".format(path=parsed_request[0].path)).suffix
@@ -251,13 +264,31 @@ async def handle_request(client_reader, client_writer):
                         if parsed_request[0].method == b'POST':
                             if parsed_request[1] != b'':
                                 process.stdin.write(parsed_request[1])
+                            if int(parsed_request[0].headers[b'Content-Length'].decode('utf-8')) - len(request[1]) >= 0:
+                                while True:
+                                    part = client_reader.read(8192)
+                                    if len(part) < 8192:
+                                        break
+                                    process.stdin.write(part)
+                                    process.stdin.flush()
                             process.stdin.close()
                             line = None
                             data = 'HTTP/1.0 200 OK\rDate: {}\rConnection: keep-alive\r'.format(await get_date()).encode()
                             client_writer.write(data)
                             try:
-                                stdout, stderr = await process.communicate()
-                                client_writer.write(stdout)
+                                future = asyncio.ensure_future(process.communicate())
+                                done, pending = await asyncio.wait([future], timeout=5)
+                                if pending:
+                                    if process.returncode is None:
+                                        try:
+                                            process.kill()
+                                            client_writer.write(b"HTTP/1.0 408 Request Timeout\r\n"+b"\r\n\r\nError 408 \r\Request Timeout")
+                                            client_writer.close()
+                                            return
+                                        except ProcessLookupError:
+                                            pass
+                                output, err = await future
+                                client_writer.write(output)
                                 client_writer.close()
                                 # while True:
                                 # #chunk = await process.stdout.read(4096)
@@ -279,8 +310,16 @@ async def handle_request(client_reader, client_writer):
                             data = 'HTTP/1.0 200 OK\rDate: {}\rConnection: keep-alive\r'.format(await get_date()).encode()
                             client_writer.write(data)
                             try:
-                                stdout, stderr = await process.communicate()
-                                client_writer.write(stdout)
+                                future = asyncio.ensure_future(process.communicate())
+                                done, pending = await asyncio.wait([future], timeout=2)
+                                if pending:
+                                    if process.returncode is None:
+                                        try:
+                                            process.kill()
+                                        except ProcessLookupError:
+                                            pass
+                                output, err = await future
+                                client_writer.write(output)
                                 client_writer.close()
                             except asyncio.TimeoutError as e:
                                 client_writer.write(b"HTTP/1.0 408 Request Timeout\r\n"+b"\r\n\r\nError 408 \r\Request Timeout")
@@ -297,10 +336,17 @@ async def handle_request(client_reader, client_writer):
                 try:
                     client_writer.write(res)
                     await client_writer.drain()
-                    with open("."+parsed_request[0].path, "rb") as f:
-                        for chunk in chunks(f):
-                            client_writer.write(chunk)
-                            await client_writer.drain()
+                    async with aiofiles.open("/dev/urandom", 'rb') as f:
+                        for _ in range(3):
+                            data = await f.read(1024)
+                            #print(repr(data))
+                            if not data:
+                                break
+                            client_writer.write(data)
+                    # with open("."+parsed_request[0].path, "rb") as f:
+                    #     for chunk in chunks(f):
+                    #         client_writer.write(chunk)
+                    #         await client_writer.drain()
                     client_writer.close()
                         #if chunk != None:
                             #logger.debug("Client: {}, User-Agent: {}".format(client_writer.get_extra_info('peername')[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))

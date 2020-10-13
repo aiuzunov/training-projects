@@ -15,7 +15,7 @@ from pathlib import Path
 SERVER_ADDRESS = (HOST, PORT) = '', 9100
 REQUEST_QUEUE_SIZE = 1024
 
-logger = mp.log_to_stderr(logging.DEBUG)
+#logger = mp.log_to_stderr(logging.DEBUG)
 
 def _handle_timeout(signum, frame):
     raise TimeoutError
@@ -37,7 +37,7 @@ META = namedtuple('META', [
 
 def chunks(f):
     while True:
-        data = f.read(8192)
+        data = f.read(65536)
         if not data:
             break
         yield data
@@ -143,7 +143,7 @@ def recvall(sock):
         BUFF_SIZE = 8192
         while True:
             part = sock.recv(BUFF_SIZE)
-            if len(part) < BUFF_SIZE:
+            if b'\r\n\r\n' in part:
                 headers = part.split(b'\r\n\r\n', 1)[0]
                 body =  part.split(b'\r\n\r\n', 1)[1]
                 return [headers,body]
@@ -312,9 +312,7 @@ def handle_request(client_connection,client_address):
 def worker(socket):
     while True:
         client_connection, client_address = socket.accept()
-        logger.debug("{u} connected".format(u=client_address))
         handle_request(client_connection,client_address)
-        #client_connection.send(b"OK")
         client_connection.close()
 
 
@@ -324,10 +322,11 @@ def serve_forever():
     serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     serversocket.bind(SERVER_ADDRESS)
     serversocket.listen(REQUEST_QUEUE_SIZE)
-    workers_cnt = 5
+
+    workers_count = 5
 
     workers = [mp.Process(target=worker, args=(serversocket,)) for i in
-            range(workers_cnt)]
+            range(workers_count)]
 
     for p in workers:
         p.daemon = True
