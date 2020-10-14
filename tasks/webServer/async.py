@@ -335,13 +335,12 @@ async def handle_request(client_reader, client_writer):
             else:
                 try:
                     client_writer.write(res)
-                    await client_writer.drain()
                     async with aiofiles.open("/dev/urandom", 'rb') as f:
-                        for _ in range(3):
-                            data = await f.read(1024)
+                        for x in range(4):
+                            data = await f.read(65536)
                             #print(repr(data))
-                            if not data:
-                                break
+                            if x == 2:
+                                await client_writer.drain()
                             client_writer.write(data)
                     # with open("."+parsed_request[0].path, "rb") as f:
                     #     for chunk in chunks(f):
