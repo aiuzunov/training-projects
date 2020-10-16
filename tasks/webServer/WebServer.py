@@ -372,27 +372,15 @@ def serve_forever():
     signal.signal(signal.SIGCHLD, grim_reaper)
 
     while True:
-        try:
-            client_connection, client_address = listen_socket.accept()
-        except IOError as e:
-            code, msg = e.args
-            if code == errno.EINTR:
-                continue
-            else:
-                raise
+        client_connection, client_address = listen_socket.accept()
 
         pid = os.fork()
         if pid == 0:
-            #listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
             listen_socket.close()
-            try:
-                handle_request(client_connection,client_address)
-            except Exception as e:
-                print(e)
+            handle_request(client_connection,client_address)
             client_connection.close()
             os._exit(0)
         else:
             client_connection.close()
-
 if __name__ == '__main__':
     serve_forever()

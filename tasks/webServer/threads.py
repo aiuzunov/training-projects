@@ -12,9 +12,11 @@ import sys
 from datetime import datetime
 from collections import namedtuple
 from pathlib import Path
+from threading import Lock
 
 
 
+thread_lock = Lock()
 
 SERVER_ADDRESS = (HOST, PORT) = '', 9100
 REQUEST_QUEUE_SIZE = 1024
@@ -320,7 +322,9 @@ def worker(socket):
     while True:
         client_connection, client_address = socket.accept()
         #logger.debug("{u} connected".format(u=client_address))
+        thread_lock.acquire()
         handle_request(client_connection,client_address)
+        thread_lock.release()
         #client_connection.send(b"OK")
         client_connection.close()
 

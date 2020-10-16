@@ -1,20 +1,20 @@
 import errno
 import os
-import signal
 import sys
 import socket
 import time
 import asyncio
 import subprocess
 import aiofiles
+import uvloop
 
 
 #from aiologger import Logger
+from signal import signal, SIGINT
 from datetime import datetime
 from collections import namedtuple
 from pathlib import Path
 #from Logs import LogInit
-
 
 #
 # try:
@@ -31,7 +31,6 @@ from pathlib import Path
 #     exc_type, exc_obj, exc_tb = sys.exc_info()
 #     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 #     print(e,exc_type, fname, exc_tb.tb_lineno)
-
 
 
 
@@ -109,7 +108,7 @@ def set_environment(*args, **kwargs):
 
 def parse_http_request(request):
     try:
-        assert len(request) == 2,"Bad request"
+        assert len(request) == 2
         split_response = request
         start_line_and_headers = split_response[0].split(b'\r\n')
         assert len(start_line_and_headers) > 0,"Bad length for start_line_and_headers"
@@ -178,6 +177,7 @@ async def recvall(sock):
             headers = part.split(b'\r\n\r\n', 1)[0]
             body =  part.split(b'\r\n\r\n', 1)[1]
             return [headers,body]
+
         else:
             return 1
 
@@ -264,9 +264,10 @@ async def handle_request(client_reader, client_writer):
                         if parsed_request[0].method == b'POST':
                             if parsed_request[1] != b'':
                                 process.stdin.write(parsed_request[1])
-                            if int(parsed_request[0].headers[b'Content-Length'].decode('utf-8')) - len(request[1]) >= 0:
+                            print(int(parsed_request[0].headers[b'Content-Length'].decode('utf-8')) - len(request[1]))
+                            if int(parsed_request[0].headers[b'Content-Length'].decode('utf-8')) - len(request[1]) > 0:
                                 while True:
-                                    part = client_reader.read(8192)
+                                    part = await client_reader.read(8192)
                                     if len(part) < 8192:
                                         break
                                     process.stdin.write(part)
@@ -334,14 +335,21 @@ async def handle_request(client_reader, client_writer):
                         #logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
             else:
                 try:
+                    x=0
                     client_writer.write(res)
-                    async with aiofiles.open("/dev/urandom", 'rb') as f:
-                        for x in range(4):
-                            data = await f.read(65536)
-                            #print(repr(data))
-                            if x == 2:
-                                await client_writer.drain()
-                            client_writer.write(data)
+                    await client_writer.drain()
+                    if Path("."+parsed_request[0].path).stat().st_size > 100000:
+                        with open("."+parsed_request[0].path, 'rb') as f:
+                            for chunk in chunks(f):
+                                client_writer.write(chunk)
+                                if x % 4 == 0:
+                                    await client_writer.drain()
+                                x+=1
+                    else:
+                        with open("."+parsed_request[0].path, 'rb') as f:
+                            file = f.read()
+                            client_writer.write(file)
+                            await client_writer.drain()
                     # with open("."+parsed_request[0].path, "rb") as f:
                     #     for chunk in chunks(f):
                     #         client_writer.write(chunk)
@@ -367,14 +375,19 @@ async def handle_request(client_reader, client_writer):
 
 def serve_forever():
     try:
-        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(uvloop.new_event_loop())
         socket_server = asyncio.start_server(handle_request, host=os.environ.get('SERVER_NAME', 'localhost'),
                                             port=9100, backlog=REQUEST_QUEUE_SIZE,
                                             family=socket.AF_INET, reuse_address=True
                                             )
         print('The HTTP server is listening on PORT {port}'.format(port=PORT))
-        loop.run_until_complete(socket_server)
-        loop.run_forever()
+        loop = asyncio.get_event_loop()
+        task = asyncio.ensure_future(socket_server)
+        signal(SIGINT, lambda s, f: loop.stop())
+        try:
+            loop.run_forever()
+        except:
+            loop.stop()
         #loop.add_signal_handler(signal.SIGCHLD, grim_reaper)
     except Exception as e:
         print(e)
