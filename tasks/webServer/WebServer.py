@@ -1,4 +1,4 @@
-import errno, os, signal, socket, subprocess, sys
+import errno, os, signal, socket, subprocess, sys, time
 
 from datetime import datetime
 from functools import wraps
@@ -8,7 +8,8 @@ from pathlib import Path
 
 #logging.basicConfig(filename='example.log', level=logging.DEBUG)
 
-
+MaxProcesses = 20
+Processes = []
 SERVER_ADDRESS = (HOST, PORT) = '', 9100
 REQUEST_QUEUE_SIZE = 1024
 
@@ -201,20 +202,37 @@ def recvall(sock):
 #             break
 #         process.stdin.write(part)
 
+def CheckRunning():
+   global Processes
+
+   for p in reversed(range(len(Processes))):
+      if Processes[p].poll() is not None:
+         del Processes[p]
 
 #@timeout(10, os.strerror(errno.ETIMEDOUT))
 def handle_request(client_connection,client_address):
+    global Processes
     client_connection.settimeout(5)
     request = recvall(client_connection)
+    assert isinstance(request,(list,int))
     if request == -1:
-        server_error = b"HTTP/1.0 501 Internal Server Error\r\n"+b"\r\n\r\nError 501 \r\nInternal Server Error"
-        client_connection.sendall(server_error)
+        return
+    elif request == 1:
+        big_headers = b"HTTP/1.0 413 Entity Too Large\r\n"+b"\r\n\r\nError 413 \r\nEntity Too Large"
+        client_connection.send(big_headers)
         return
     parsed_request = parse_http_request(request)
-    if request == 1 and parsed_request[0].method==b'GET':
-        big_headers = b"HTTP/1.0 413 Entity Too Large\r\n"+b"\r\n\r\nError 413 \r\nEntity Too Large"
-        client_connection.sendall(big_headers)
-        return
+    if parsed_request == None:
+        try:
+            internal_error = b"HTTP/1.0 501 Internal Server Error\r\n"+b"\r\n\r\nError 501 \r\Internal Server Error"
+            client_connection.send(internal_error)
+            #if len(client_writer.get_extra_info('peername')[0])>0:
+                #logger.warning("Client: {} Error with request".format(client_writer.get_extra_info('peername')[0]))
+            return
+        except Exception as e:
+            print(e)
+            #logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+            return
     res = gen_res(b'200',parsed_request[0].headers,parsed_request[1])
     assert isinstance(res,(bytes, bytearray))
     try:
@@ -270,22 +288,25 @@ def handle_request(client_connection,client_address):
                         # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                         # logging.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
                     script_args = [executable,str(path)]
+                    while (len(Processes) >= MaxProcesses):
+                        CheckRunning()
+
                     process = subprocess.Popen(script_args, stdin=subprocess.PIPE,
                                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    Processes.append(process)
                     try:
                         signal.signal(signal.SIGALRM, _handle_timeout)
                         signal.alarm(5)
                         if parsed_request[0].method == b'POST':
                             if parsed_request[1] != b'':
                                 process.stdin.write(parsed_request[1])
-                                process.stdin.flush()
-                                if request == 1:
-                                    while True:
-                                        part = client_connection.recv(8192)
-                                        if len(part) < 8192:
-                                            break
-                                        process.stdin.write(part)
-                                        process.stdin.flush()
+                            if int(parsed_request[0].headers[b'Content-Length'].decode('utf-8')) - len(request[1]) > 0:
+                                while True:
+                                    part = client_connection.read(8192)
+                                    if len(part) < 8192:
+                                        break
+                                    process.stdin.write(part)
+                                    process.stdin.flush()
                             line = None
                             data = 'HTTP/1.0 200 OK\rDate: {}\rConnection: keep-alive\r'.format(get_date()).encode()
                             client_connection.send(data)
@@ -373,11 +394,12 @@ def serve_forever():
 
     while True:
         client_connection, client_address = listen_socket.accept()
-
         pid = os.fork()
         if pid == 0:
             listen_socket.close()
+
             handle_request(client_connection,client_address)
+
             client_connection.close()
             os._exit(0)
         else:

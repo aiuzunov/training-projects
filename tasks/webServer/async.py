@@ -5,17 +5,28 @@ import socket
 import time
 import asyncio
 import subprocess
-import aiofiles
 import uvloop
 
 
-#from aiologger import Logger
+from aiologger import Logger
+
+logger = Logger.with_default_handlers(name='my-logger')
+
+
+
+from aiologger.utils import get_running_loop
+from aiologger.filters import StdoutFilter
+from aiologger.levels import LogLevel
+from aiologger.logger import Logger
+from aiologger.records import LogRecord
+from aiologger.handlers.files import AsyncFileHandler
+from tempfile import NamedTemporaryFile
 from signal import signal, SIGINT
 from datetime import datetime
 from collections import namedtuple
 from pathlib import Path
-#from Logs import LogInit
 
+#from Logs import LogInit
 #
 # try:
 #     logger = logging.getLogger('Web Server Logger')
@@ -42,7 +53,6 @@ async def get_date():
     curr_date = now.strftime("%c") + ' (GMT+3)'
     return curr_date
 
-lock = asyncio.Lock()
 
 # def grim_reaper(signum, frame):
 #     while True:
@@ -204,14 +214,12 @@ async def handle_request(client_reader, client_writer):
         try:
             internal_error = b"HTTP/1.0 501 Internal Server Error\r\n"+b"\r\n\r\nError 501 \r\Internal Server Error"
             client_writer.write(internal_error)
-            #if len(client_writer.get_extra_info('peername')[0])>0:
-                #logger.warning("Client: {} Error with request".format(client_writer.get_extra_info('peername')[0]))
+            if len(client_writer.get_extra_info('peername')[0])>0:
+                await logger.warning("Client: {} Error with request".format(client_writer.get_extra_info('peername')[0]))
             client_writer.close()
             return
         except Exception as e:
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            #logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+            await logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
             client_writer.close()
             return
     res = gen_res(b'200',parsed_request[0].headers,parsed_request[1])
@@ -222,25 +230,25 @@ async def handle_request(client_reader, client_writer):
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        #logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+        await logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
         return
     if path.exists():
         if path.is_dir():
             try:
+                chunk = None
                 client_writer.write(res)
                 if parsed_request[0].method==b'GET':
                     with open("./index.html", "rb") as f:
                         for chunk in chunks(f):
                             client_writer.write(chunk)
                         client_writer.close()
-
-                        #if chunk != None:
-                            #logger.debug("Client: {}, User-Agent: {}".format(client_writer.get_extra_info('peername')[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
-                            #logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}".format(client_writer.get_extra_info('peername')[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path))
+                        if chunk != None:
+                            await logger.debug("Client: {}, User-Agent: {}".format(client_writer.get_extra_info('peername')[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
+                            await logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}".format(client_writer.get_extra_info('peername')[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path))
             except Exception as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                #logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+                await logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
         if path.is_file():
             if str(path).startswith("cgi-bin") and ext == '.py':
                 executable = sys.executable
@@ -256,9 +264,9 @@ async def handle_request(client_reader, client_writer):
                     except Exception as e:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                        #logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+                        await logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
                     process =  await asyncio.create_subprocess_exec(executable,str(path), stdin=subprocess.PIPE,
-                                                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     try:
                         request_headers = b''
                         if parsed_request[0].method == b'POST':
@@ -272,7 +280,6 @@ async def handle_request(client_reader, client_writer):
                                         break
                                     process.stdin.write(part)
                                     process.stdin.flush()
-                            process.stdin.close()
                             line = None
                             data = 'HTTP/1.0 200 OK\rDate: {}\rConnection: keep-alive\r'.format(await get_date()).encode()
                             client_writer.write(data)
@@ -302,9 +309,9 @@ async def handle_request(client_reader, client_writer):
                                 client_writer.write(b"HTTP/1.0 408 Request Timeout\r\n"+b"\r\n\r\nError 408 \r\Request Timeout")
                                 client_writer.close()
                                 return
-                            #if line!=None:
-                                #logger.debug("Client: {}, User-Agent: {}".format(client_writer.get_extra_info('peername')[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
-                                #logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}, Body: {}".format(client_writer.get_extra_info('peername')[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path,parsed_request[1]))
+                            if line!=None:
+                                await logger.debug("Client: {}, User-Agent: {}".format(client_writer.get_extra_info('peername')[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
+                                await logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}, Body: {}".format(client_writer.get_extra_info('peername')[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path,parsed_request[1]))
 
                         elif parsed_request[0].method == b'GET':
                             line = None
@@ -326,13 +333,13 @@ async def handle_request(client_reader, client_writer):
                                 client_writer.write(b"HTTP/1.0 408 Request Timeout\r\n"+b"\r\n\r\nError 408 \r\Request Timeout")
                                 client_writer.close()
                                 return
-                            #if line !=None:
-                                #logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}, Query: {}".format(client_writer.get_extra_info('peername')[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path,parsed_request[0].query_string))
-                                #logger.debug("Client: {}, User-Agent: {}".format(client_writer.get_extra_info('peername')[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
+                            if line !=None:
+                                await logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}, Query: {}".format(client_writer.get_extra_info('peername')[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path,parsed_request[0].query_string))
+                                await logger.debug("Client: {}, User-Agent: {}".format(client_writer.get_extra_info('peername')[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
                     except Exception as e:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                        #logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+                        await logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
             else:
                 try:
                     x=0
@@ -361,17 +368,17 @@ async def handle_request(client_reader, client_writer):
                 except Exception as e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                    #logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+                    await logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
     else:
         try:
             doesnt_exist = b"HTTP/1.0 404 Not Found\r\n"+b"\r\n\r\nError 404 \r\nResource not found"
             client_writer.write(doesnt_exist)
-            #logger.warning("Client: {} Requested Non Existent File\Path: {}".format(client_writer.get_extra_info('peername')[0],parsed_request[0].path))
+            await logger.warning("Client: {} Requested Non Existent File\Path: {}".format(client_writer.get_extra_info('peername')[0],parsed_request[0].path))
             client_writer.close()
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            #logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+            await logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
 
 def serve_forever():
     try:
@@ -393,7 +400,7 @@ def serve_forever():
         print(e)
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        #logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+        #await logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
 
 
 if __name__ == '__main__':

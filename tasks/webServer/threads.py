@@ -8,6 +8,7 @@ import os
 import threading
 import subprocess
 import sys
+import eventlet
 
 from datetime import datetime
 from collections import namedtuple
@@ -15,8 +16,10 @@ from pathlib import Path
 from threading import Lock
 
 
+#thread_lock = Lock()
 
-thread_lock = Lock()
+MaxProcesses = 20
+Processes = []
 
 SERVER_ADDRESS = (HOST, PORT) = '', 9100
 REQUEST_QUEUE_SIZE = 1024
@@ -169,17 +172,38 @@ def recvall(sock):
     except Exception as e:
         return -1
 
+def CheckRunning():
+   global Processes
+   try:
+       for p in reversed(range(len(Processes))):
+          if Processes[p].poll() is not None:
+             del Processes[p]
+   except:
+       pass
 
 def handle_request(client_connection,client_address):
+    global Processes
     client_connection.settimeout(10)
     request = recvall(client_connection)
+    assert isinstance(request,(list,int))
     if request == -1:
         return
-    parsed_request = parse_http_request(request)
-    if request == 1 and parsed_request[0].method==b'GET':
+    elif request == 1:
         big_headers = b"HTTP/1.0 413 Entity Too Large\r\n"+b"\r\n\r\nError 413 \r\nEntity Too Large"
-        client_connection.sendall(big_headers)
+        client_connection.send(big_headers)
         return
+    parsed_request = parse_http_request(request)
+    if parsed_request == None:
+        try:
+            internal_error = b"HTTP/1.0 501 Internal Server Error\r\n"+b"\r\n\r\nError 501 \r\Internal Server Error"
+            client_connection.send(internal_error)
+            #if len(client_writer.get_extra_info('peername')[0])>0:
+                #logger.warning("Client: {} Error with request".format(client_writer.get_extra_info('peername')[0]))
+            return
+        except Exception as e:
+            print(e)
+            #logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+            return
     res = gen_res(b'200',parsed_request[0].headers,parsed_request[1])
     assert isinstance(res,(bytes, bytearray))
     try:
@@ -235,30 +259,34 @@ def handle_request(client_connection,client_address):
                         # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                         # logging.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
                     script_args = [executable,str(path)]
+                    while (len(Processes) >= MaxProcesses):
+                        CheckRunning()
+
                     process = subprocess.Popen(script_args, stdin=subprocess.PIPE,
                                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    Processes.append(process)
                     try:
                         if parsed_request[0].method == b'POST':
                             if parsed_request[1] != b'':
                                 process.stdin.write(parsed_request[1])
-                                process.stdin.flush()
-                                if request == 1:
-                                    while True:
-                                        part = client_connection.recv(8192)
-                                        if len(part) < 8192:
-                                            break
-                                        process.stdin.write(part)
-                                        process.stdin.flush()
+                            if int(parsed_request[0].headers[b'Content-Length'].decode('utf-8')) - len(request[1]) > 0:
+                                while True:
+                                    part = client_connection.read(8192)
+                                    if len(part) < 8192:
+                                        break
+                                    process.stdin.write(part)
+                                    process.stdin.flush()
                             line = None
                             data = 'HTTP/1.0 200 OK\rDate: {}\rConnection: keep-alive\r'.format(get_date()).encode()
                             client_connection.send(data)
                             try:
                                 stdout, stderr = process.communicate(timeout = 15)
-                            except TimeoutExpired:
+                                client_connection.send(stdout)
+                                client_connection.close()
+                            except Exception as e:
+                                print(e)
                                 process.kill()
-                                outs, errs = process.communicate()
-                            client_connection.send(stdout)
-                            client_connection.close()
+
                             # for line in process.stdout:
                             #     client_connection.send(line)
                             # if line == None:
@@ -318,16 +346,6 @@ def handle_request(client_connection,client_address):
             # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             # logging.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
 
-def worker(socket):
-    while True:
-        client_connection, client_address = socket.accept()
-        #logger.debug("{u} connected".format(u=client_address))
-        thread_lock.acquire()
-        handle_request(client_connection,client_address)
-        thread_lock.release()
-        #client_connection.send(b"OK")
-        client_connection.close()
-
 
 
 def serve_forever():
@@ -337,14 +355,23 @@ def serve_forever():
     serversocket.listen(REQUEST_QUEUE_SIZE)
 
     signal.signal(signal.SIGCHLD, grim_reaper)
-    workers_cnt = 5
 
-    workers = [threading.Thread(target=worker, args=(serversocket,)) for i in
-            range(workers_cnt)]
+    while True:
+        client_connection, client_address = serversocket.accept()
+        #logger.debug("{u} connected".format(u=client_address))
+        #thread_lock.acquire()
+        eventlet.greenthread.spawn(handle_request(client_connection,client_address))
+        #thread_lock.release()
+        #client_connection.send(b"OK")
+        client_connection.close()
+    #workers_cnt = 20
 
-    for p in workers:
-        p.daemon = True
-        p.start()
+    # workers = [threading.Thread(target=worker, args=(serversocket,)) for i in
+    #         range(workers_cnt)]
+    #
+    # for p in workers:
+    #     p.daemon = True
+    #     p.start()
 
     while True:
         try:
