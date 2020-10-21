@@ -300,7 +300,7 @@ def handle_request(client_connection,client_address):
                         if parsed_request[0].method == b'POST':
                             if parsed_request[1] != b'':
                                 process.stdin.write(parsed_request[1])
-                            if int(parsed_request[0].headers[b'Content-Length'].decode('utf-8')) - len(request[1]) > 0:
+                            if int(parsed_request[0].headers[b'Content-length'].decode('utf-8')) - len(request[1]) > 0:
                                 while True:
                                     part = client_connection.read(8192)
                                     if len(part) < 8192:
@@ -386,23 +386,27 @@ def handle_request(client_connection,client_address):
 def serve_forever():
     listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    #listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
     listen_socket.bind(SERVER_ADDRESS)
     listen_socket.listen(REQUEST_QUEUE_SIZE)
-    print('Serving HTTP on port {port} ...'.format(port=PORT))
-    signal.signal(signal.SIGCHLD, grim_reaper)
 
-    while True:
-        client_connection, client_address = listen_socket.accept()
+    for i in range(5):
         pid = os.fork()
+
         if pid == 0:
-            listen_socket.close()
+            childpid = os.getpid()
+            print("Child {} listening on localhost:{}".format(childpid,PORT))
+            try:
+                while 1:
+                    conn, addr = listen_socket.accept()
+                    handle_request(conn, addr)
+                    conn.close()
+            except KeyboardInterrupt as e:
+                sys.exit()
+    try:
+        os.waitpid(-1, 0)
+    except KeyboardInterrupt:
+        print("\nbailing")
+        sys.exit()
 
-            handle_request(client_connection,client_address)
-
-            client_connection.close()
-            os._exit(0)
-        else:
-            client_connection.close()
 if __name__ == '__main__':
     serve_forever()
