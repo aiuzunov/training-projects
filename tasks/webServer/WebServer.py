@@ -1,4 +1,10 @@
-import errno, os, signal, socket, subprocess, sys, time
+import errno
+import os
+import signal
+import socket
+import subprocess
+import sys
+import time
 
 from datetime import datetime
 from functools import wraps
@@ -10,9 +16,8 @@ from pathlib import Path
 
 MaxProcesses = 20
 Processes = []
-SERVER_ADDRESS = (HOST, PORT) = '', 9100
+SERVER_ADDRESS = (HOST, PORT) = '', 9101
 REQUEST_QUEUE_SIZE = 1024
-
 #
 # class TimeoutError(Exception):
 #     def __init__(self, value = "Timed Out"):
@@ -45,18 +50,18 @@ def get_date():
     return curr_date
 
 
-def grim_reaper(signum, frame):
-    while True:
-        try:
-            pid, status = os.waitpid(
-                -1,
-                 os.WNOHANG
-            )
-        except OSError as e:
-            return
-
-        if pid == 0:
-            return
+# def grim_reaper(signum, frame):
+#     while True:
+#         try:
+#             pid, status = os.waitpid(
+#                 -1,
+#                  os.WNOHANG
+#             )
+#         except OSError as e:
+#             return
+#
+#         if pid == 0:
+#             return
 
 
 META = namedtuple('META', [
@@ -88,6 +93,7 @@ class RESP_METH:
         b'500': b'Internal Server Error',
         b'502': b'Bad Gateway',
         b'503': b'Service Unavailable',
+        b'413': b'Request Entity Too Large',
     }
 
 def set_environment(*args, **kwargs):
@@ -218,14 +224,12 @@ def handle_request(client_connection,client_address):
     if request == -1:
         return
     elif request == 1:
-        big_headers = b"HTTP/1.0 413 Entity Too Large\r\n"+b"\r\n\r\nError 413 \r\nEntity Too Large"
-        client_connection.send(big_headers)
+        code_response(b'413',client_connection)
         return
     parsed_request = parse_http_request(request)
     if parsed_request == None:
         try:
-            internal_error = b"HTTP/1.0 501 Internal Server Error\r\n"+b"\r\n\r\nError 501 \r\Internal Server Error"
-            client_connection.send(internal_error)
+            code_response(b'501',client_connection)
             #if len(client_writer.get_extra_info('peername')[0])>0:
                 #logger.warning("Client: {} Error with request".format(client_writer.get_extra_info('peername')[0]))
             return
@@ -249,15 +253,12 @@ def handle_request(client_connection,client_address):
     if path.exists():
         if path.is_dir():
             try:
-                chunk = None
-                client_connection.send(res)
                 if parsed_request[0].method==b'GET':
-                    with open("./index.html", "rb") as f:
-                        for chunk in chunks(f):
-                            client_connection.send(chunk)
-                        if chunk == None:
-                            server_error = b"HTTP/1.0 501 Internal Server Error\r\n"+b"\r\n\r\nError 501 \r\nInternal Server Error"
-                            client_connection.sendall(server_error)
+                    try:
+                        send_file(res,"/index.html",client_connection)
+                    except Exception as e:
+                        print(e)
+                        code_response(b'501',client_connection)
                         #else:
                             #logging.debug("Client: {}, User-Agent: {}".format(client_address[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
                             #logging.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}".format(client_address[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path))
@@ -300,7 +301,7 @@ def handle_request(client_connection,client_address):
                         if parsed_request[0].method == b'POST':
                             if parsed_request[1] != b'':
                                 process.stdin.write(parsed_request[1])
-                            if int(parsed_request[0].headers[b'Content-length'].decode('utf-8')) - len(request[1]) > 0:
+                            if int(parsed_request[0].headers[b'Content-Length'].decode('utf-8')) - len(request[1]) > 0:
                                 while True:
                                     part = client_connection.read(8192)
                                     if len(part) < 8192:
@@ -345,22 +346,13 @@ def handle_request(client_connection,client_address):
                         else:
                             return
                     except TimeoutError:
-                            timed_out = b"HTTP/1.0 408 Timed Out\r\n"+b"\r\n\r\nError 408 \r\nTimed Out"
-                            client_connection.sendall(timed_out)
+                            code_response(b'408',client_connection)
                             return
                     finally:
                         signal.alarm(0)
-
-                        # exc_type, exc_obj, exc_tb = sys.exc_info()
-                        # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                        # logging.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
             else:
-                chunk = None
                 try:
-                    client_connection.send(res)
-                    with open("."+parsed_request[0].path, "rb") as f:
-                        for chunk in chunks(f):
-                            client_connection.send(chunk)
+                    send_file(res,parsed_request[0].path,client_connection)
                         #if chunk != None:
                             #logging.debug("Client: {}, User-Agent: {}".format(client_address[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
                             #logging.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}".format(client_address[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path))
@@ -372,8 +364,7 @@ def handle_request(client_connection,client_address):
                     # logging.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
     else:
         try:
-            doesnt_exist = b"HTTP/1.0 404 Not Found\r\n"+b"\r\n\r\nError 404 \r\nResource not found"
-            client_connection.sendall(doesnt_exist)
+            code_response(b'404',client_connection)
             #logging.warning("Client: {} Requested Non Existent File\Path: {}".format(client_address[0],parsed_request[0].path))
         except Exception as e:
             print(e)
@@ -381,6 +372,18 @@ def handle_request(client_connection,client_address):
             # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             # logging.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
 
+def code_response(status_code,client_connection):
+    response = "HTTP/1.0 {0} {1}\r\n".format(status_code.decode('utf-8'),RESP_METH.response_phrases[status_code].decode())+"\r\n\r\nError {0} \r\n{1}".format(status_code.decode('utf-8'),RESP_METH.response_phrases[status_code].decode())
+    client_connection.sendall(response.encode())
+    client_connection.close()
+
+
+def send_file(res,path,client_connection):
+    client_connection.send(res)
+    with open("."+path, "rb") as f:
+        for chunk in chunks(f):
+            client_connection.send(chunk)
+    client_connection.close()
 
 
 def serve_forever():
