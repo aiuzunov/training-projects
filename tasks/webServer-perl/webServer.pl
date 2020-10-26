@@ -1,0 +1,157 @@
+#!/usr/bin/perl
+use Error ':try';
+use IPC::System::Simple qw(system capture);
+
+use strict;
+use IO::Handle;
+
+use threads;
+
+use IO::Socket;
+
+
+$SIG{PIPE} = sub {};
+
+
+sub parse_form {
+    my $data = $_[0];
+    my %data;
+    foreach (split /&/, $data) {
+        my ($key, $val) = split /=/;
+        $val =~ s/\+/ /g;
+        $val =~ s/%(..)/chr(hex($1))/eg;
+        $data{$key} = $val;}
+    return %data; }
+
+
+
+sub process_connection {
+    my ($client, $addr) = @_;
+    my %request = ();
+    my %data;
+    {
+        local $/ = Socket::CRLF;
+        while (<$client>) {
+            chomp;
+            if (/\s*(\w+)\s*([^\s]+)\s*HTTP\/(\d.\d)/) {
+                $request{METHOD} = uc $1;
+                $request{URL} = $2;
+                $request{HTTP_VERSION} = $3;
+            }
+            elsif (/:/) {
+                (my $type, my $val) = split /:/, $_, 2;
+                $type =~ s/^\s+//;
+                foreach ($type, $val) {
+                        s/^\s+//;
+                        s/\s+$//;
+                }
+                $request{lc $type} = $val;
+            }
+            elsif (/^$/) {
+                read($client, $request{CONTENT}, $request{'content-length'})
+                    if defined $request{'content-length'};
+                last;
+            }
+        }
+    }
+    if ($request{METHOD} eq 'GET') {
+        if ($request{URL} =~ /(.*)\?(.*)/) {
+                $request{URL} = $1;
+                $request{CONTENT} = $2;
+                %data = parse_form($request{CONTENT});
+        } else {
+                %data = ();
+        }
+        $data{"_method"} = "GET";
+    } elsif ($request{METHOD} eq 'POST') {
+                %data = parse_form($request{CONTENT});
+                $data{"_method"} = "POST";
+    } else {
+        $data{"_method"} = "ERROR";
+    }
+
+        my $DOCUMENT_ROOT = ".";
+
+        my $localfile = $DOCUMENT_ROOT.$request{URL};
+        if (-e $localfile and -d $localfile) {
+           # if(index($request{URL},"/cgi-bin/") >= 0){
+           #   system($^X, "./cgi-bin/hello.pl",my @ARGS);
+           #   my $results = capture($^X, "./cgi-bin/hello.pl", @ARGS);
+           #
+          if (open(FILE, "<$localfile/index.html")) {
+                   print $client "HTTP/1.0 200 OK", Socket::CRLF;
+                   print $client Socket::CRLF;
+                   my $buffer;
+                   while (read(FILE, $buffer, 65536)) {
+                       print $client $buffer;
+                   }
+                   $data{"_status"} = "200";
+               }
+               else {
+                   print $client "HTTP/1.0 404 Not Found", Socket::CRLF;
+                   print $client Socket::CRLF;
+                   print $client "<html><body>404 Not Found</body></html>";
+                   $data{"_status"} = "404";
+               }
+               close(FILE);
+        } else {
+          if(index($request{URL},"/cgi-bin/") >= 0){
+            system($^X, $localfile,my @ARGS);
+            my $results = capture($^X, $localfile, @ARGS);
+            print $client "HTTP/1.0 200 OK", Socket::CRLF;
+            print $client Socket::CRLF;
+            print $client $results;
+          }
+          else{
+        try{
+          if (open(FILE, "<$localfile")) {
+                print $client "HTTP/1.0 200 OK", Socket::CRLF;
+                print $client Socket::CRLF;
+                my $buffer;
+                while (read(FILE, $buffer, 65536)) {
+                    print $client $buffer;
+                }
+                $data{"_status"} = "200";
+            }
+            else {
+                print $client "HTTP/1.0 404 Not Found", Socket::CRLF;
+                print $client Socket::CRLF;
+                print $client "<html><body>404 Not Found</body></html>";
+                $data{"_status"} = "404";
+            }
+            close(FILE);
+
+        } catch Error::Simple with {
+             my $err = shift;
+             print "ERROR: $err";
+        };
+      }
+}
+
+    close $client;
+
+}
+
+my $server = IO::Socket::INET->new( LocalPort => 9100,
+                                    Type => SOCK_STREAM,
+                                    Reuse => 1,
+                                    Listen => SOMAXCONN )
+                                    or die ("bind: $!\n");
+
+warn $server;
+
+sub worker {
+    my ($n, $server) = @_;
+    while(my $client = $server->accept) {
+        my $addr = $client->peerhost;
+        process_connection($client, $addr);
+    }
+}
+
+for my $n (1..20) {
+    my $thr = threads->create(\&worker, $n, $server);
+}
+
+foreach my $thr (threads->list) {
+    $thr->join;
+}
