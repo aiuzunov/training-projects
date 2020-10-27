@@ -1,16 +1,22 @@
 #!/usr/bin/perl
 use Error ':try';
 use IPC::System::Simple qw(system capture);
-
+use Log::Log4perl;
 use strict;
 use IO::Handle;
-
 use threads;
-
 use IO::Socket;
 
+Log::Log4perl->init("log.conf");
 
 $SIG{PIPE} = sub {};
+
+my $log = Log::Log4perl->get_logger("Server::Logger");
+
+sub get_date {
+  my $datestring = localtime();
+  return $datestring;
+}
 
 
 sub parse_form {
@@ -67,17 +73,14 @@ sub process_connection {
                 %data = parse_form($request{CONTENT});
                 $data{"_method"} = "POST";
     } else {
+        $log->error(get_date()." ERROR: Unsupported Request Method, please try again using GET or POST");
         $data{"_method"} = "ERROR";
     }
-
+        $log->trace(get_date()." AGENT: Client ".$addr." made a request using ".$request{'user-agent'});
         my $DOCUMENT_ROOT = ".";
-
         my $localfile = $DOCUMENT_ROOT.$request{URL};
         if (-e $localfile and -d $localfile) {
-           # if(index($request{URL},"/cgi-bin/") >= 0){
-           #   system($^X, "./cgi-bin/hello.pl",my @ARGS);
-           #   my $results = capture($^X, "./cgi-bin/hello.pl", @ARGS);
-           #
+           $log->info(get_date()." ACCESS: A Client with IP: ".$addr." requested the index file of the following dir ".$localfile);
           if (open(FILE, "<$localfile/index.html")) {
                    print $client "HTTP/1.0 200 OK", Socket::CRLF;
                    print $client Socket::CRLF;
@@ -96,15 +99,19 @@ sub process_connection {
                close(FILE);
         } else {
           if(index($request{URL},"/cgi-bin/") >= 0){
-            system($^X, $localfile,my @ARGS);
+            $log->info(get_date()." ACCESS: A Client with IP: ".$addr." requested the following cgi script: ".$localfile);
+
+            my @ARGS = ($request{CONTENT});
             my $results = capture($^X, $localfile, @ARGS);
             print $client "HTTP/1.0 200 OK", Socket::CRLF;
+            print $client "Content-type:text/html",Socket::CRLF;
             print $client Socket::CRLF;
             print $client $results;
           }
           else{
         try{
           if (open(FILE, "<$localfile")) {
+                $log->info(get_date()." ACCESS: A Client with IP: ".$addr." requested the following file: ".$localfile);
                 print $client "HTTP/1.0 200 OK", Socket::CRLF;
                 print $client Socket::CRLF;
                 my $buffer;
@@ -122,7 +129,9 @@ sub process_connection {
             close(FILE);
 
         } catch Error::Simple with {
+
              my $err = shift;
+             $log->error(get_date()." ERROR: The following error occured".$err);
              print "ERROR: $err";
         };
       }
@@ -137,11 +146,13 @@ my $server = IO::Socket::INET->new( LocalPort => 9100,
                                     Reuse => 1,
                                     Listen => SOMAXCONN )
                                     or die ("bind: $!\n");
+$log->info(get_date()." INFO: The server has stared listening on the following address: localhost:9100");
 
 warn $server;
 
 sub worker {
     my ($n, $server) = @_;
+    $log->info(get_date()." INFO: Worker ".$n." is now accepting new connections");
     while(my $client = $server->accept) {
         my $addr = $client->peerhost;
         process_connection($client, $addr);
