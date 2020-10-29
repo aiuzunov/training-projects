@@ -14,9 +14,9 @@ function handleConnection(socket){
 
       let marker = reqBuffer.indexOf('\r\n\r\n')
       if (marker !== -1) {
-        let remaining = reqBuffer.slice(marker + 4);
+        let post_data = reqBuffer.slice(marker + 4).toString();
         reqHeader = reqBuffer.slice(0, marker).toString();
-        socket.unshift(remaining);
+        socket.unshift(post_data);
         break;
       }
     }
@@ -67,6 +67,9 @@ function handleConnection(socket){
             var extname = path.extname(request.url);
             var contentType;
             switch (extname) {
+                case '.pl':
+                    contentType = 'text/html';
+                    break;
                 case '.html':
                     contentType = 'text/html';
                     break;

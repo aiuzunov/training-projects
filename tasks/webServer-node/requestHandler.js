@@ -5,28 +5,47 @@ const ROOT_DIR = "/home/aiuzunov/github/training-projects/tasks/webServer-node";
 
 function requestHandler(req, res){
   try{
+    console.log(ROOT_DIR+req.url)
   if(fs.lstatSync(ROOT_DIR+req.url).isDirectory()){
     if(fs.existsSync(ROOT_DIR+req.url+"index.html")) {
       fileHandler(res,"."+req.url+"index.html");
     }else{
-      res.write("Error 404 File Not Found");
+      res.write("Error 404 Resource Not Found");
       res.end()
     }
     }
   else{
     if(req.url.includes("cgi")){
-      const child = spawn('perl', ['hello.pl'], {shell: true});
-      child.stdout.on('data', (data) => {
-        res.write(`${data}`);
-        res.end()
-      });
 
-      child.stderr.on('data', (data) => {
-        console.error(`stderr: ${data}`);
-      });
+      if(req.method=='POST'){
+        let post_data = req.socket.read();
+        const child = spawn('perl', [ROOT_DIR+req.url+" "+post_data], {shell: true});
+        child.stdout.on('data', (data) => {
+          res.write(`${data}`);
+          res.end()
+        });
 
-      child.on('close', (code) => {
-      });
+        child.stderr.on('data', (data) => {
+          console.error(`stderr: ${data}`);
+        });
+
+        child.on('close', (code) => {
+        });
+      }else{
+        const child = spawn('perl', [ROOT_DIR+req.url], {shell: true});
+        child.stdout.on('data', (data) => {
+          res.write(`${data}`);
+          res.end()
+        });
+
+        child.stderr.on('data', (data) => {
+          console.error(`stderr: ${data}`);
+        });
+
+        child.on('close', (code) => {
+        });
+      }
+
 
     }
     else{
@@ -36,7 +55,7 @@ function requestHandler(req, res){
 
 }catch (error) {
   if(error.code=='ENOENT'){
-    res.write("Error 404 FILE NOT FOUND");
+    res.write("Error 404 Resource Not Found");
     res.end()
   }
 }
