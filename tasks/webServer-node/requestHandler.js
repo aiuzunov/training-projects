@@ -3,18 +3,15 @@ const { spawn } = require('child_process');
 const ROOT_DIR = "/home/aiuzunov/github/training-projects/tasks/webServer-node";
 
 
-function requestHandler(req, res){
+function requestHandler(req, res, accessLogger, errorLogger){
+
   try{
-    console.log(ROOT_DIR+req.url)
-  if(fs.lstatSync(ROOT_DIR+req.url).isDirectory()){
-    if(fs.existsSync(ROOT_DIR+req.url+"index.html")) {
+  if(req.url.endsWith("/")){
+    accessLogger.info("The client with IP:"+req.socket.remoteAddress+":"+req.socket.remotePort+" requested the following file"+ROOT_DIR+req.url+"/index.html")
       fileHandler(res,"."+req.url+"index.html");
-    }else{
-      res.write("Error 404 Resource Not Found");
-      res.end()
-    }
     }
   else{
+    accessLogger.info("The client with IP:"+req.socket.remoteAddress+req.socket.remotePort+"requested the following file"+ROOT_DIR+req.url)
     if(req.url.includes("cgi")){
 
       if(req.method=='POST'){
@@ -55,6 +52,7 @@ function requestHandler(req, res){
 
 }catch (error) {
   if(error.code=='ENOENT'){
+    errorLogger.error("The file "+ROOT_DIR+req.url+" requested by: "+req.socket.remoteAddress+req.socket.remotePort+" was not found!")
     res.write("Error 404 Resource Not Found");
     res.end()
   }
@@ -79,10 +77,12 @@ function fileHandler(res,path){
   });
 }catch (error){
   if(error.code == 'ENOENT'){
+    errorLogger.error("The file "+ROOT_DIR+req.url+" requested by: "+req.socket.remoteAddress+req.socket.remotePort+" was not found!")
     res.write("Error 404 Resource Not Found");
     res.end();
     }
   else {
+    errorLogger.error("A request for the following file: "+ROOT_DIR+req.url+" requested by: "+req.socket.remoteAddress+req.socket.remotePort+" has caused the following internal server error :"+error.message)
     res.write("Error 501 Internal Server Error");
     res.end();
   }

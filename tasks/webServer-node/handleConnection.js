@@ -1,7 +1,7 @@
 const requestHandler = require("./requestHandler.js");
 var path = require('path');
 
-function handleConnection(socket){
+function handleConnection(socket,accessLogger,errorLogger,agentLogger){
   socket.once('readable', function() {
     let reqBuffer = new Buffer('');
     let buf;
@@ -28,6 +28,9 @@ function handleConnection(socket){
     const reqLine = reqHeaders.shift().split(' ');
     const headers = reqHeaders.reduce((acc, currentHeader) => {
       const [key, value] = currentHeader.split(':');
+      if(key=='User-Agent'){
+        agentLogger.trace("User with IP: "+socket.remoteAddress+":"+socket.remotePort+" has sent a request using the following agent: "+value)
+      }
       return {
         ...acc,
         [key.trim().toLowerCase()]: value.trim()
@@ -137,7 +140,7 @@ function handleConnection(socket){
       setHeader,
       setStatus(newStatus, newStatusText) { status = newStatus, statusText = newStatusText }
     };
-    requestHandler.requestHandler(request, response);
+    requestHandler.requestHandler(request, response, accessLogger,errorLogger);
   });
 }
 
