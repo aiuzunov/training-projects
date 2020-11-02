@@ -217,7 +217,7 @@ async def handle_request(client_reader, client_writer):
         except Exception as e:
             #await logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
             return
-        if str(path).startswith("cgi-bin") and ext == '.py':
+        if str(path).startswith("/cgi-bin") and ext == 'py':
             executable = sys.executable
             if executable:
                 try:
