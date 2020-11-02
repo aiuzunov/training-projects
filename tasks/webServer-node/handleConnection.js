@@ -67,7 +67,7 @@ function handleConnection(socket,accessLogger,errorLogger,agentLogger){
         if (!headersSent) {
           if (!responseHeaders['content-length']) {
             isChunked = true;
-            var extname = path.extname(request.url);
+            var extname = path.extname(request.url.split("?")[0]);
             var contentType;
             switch (extname) {
                 case '.pl':

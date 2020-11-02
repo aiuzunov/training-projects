@@ -6,6 +6,7 @@ import time
 import asyncio
 import subprocess
 import uvloop
+import aiofiles
 
 
 from aiologger import Logger
@@ -44,28 +45,17 @@ from pathlib import Path
 #     print(e,exc_type, fname, exc_tb.tb_lineno)
 
 
-
 SERVER_ADDRESS = (HOST, PORT) = '', 9100
 REQUEST_QUEUE_SIZE = 2048
+
+
+
 
 async def get_date():
     now = datetime.now()
     curr_date = now.strftime("%c") + ' (GMT+3)'
     return curr_date
 
-
-# def grim_reaper(signum, frame):
-#     while True:
-#         try:
-#             pid, status = os.waitpid(
-#                 -1,
-#                  os.WNOHANG
-#             )
-#         except OSError as e:
-#             return
-#
-#         if pid == 0:
-#             return
 
 
 META = namedtuple('META', [
@@ -164,9 +154,6 @@ def parse_http_request(request):
         return [result,body]
     except Exception as e:
         print(e)
-    # exc_type, exc_obj, exc_tb = sys.exc_info()
-    # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-    # print(e, fname, exc_tb.tb_lineno)
         return None
 
 
@@ -200,20 +187,17 @@ async def recvall(sock):
 
 
 async def handle_request(client_reader, client_writer):
-
-    # request = await recvall(client_reader)
-    # parsed_request = parse_http_request(request)
     request = await recvall(client_reader)
     assert isinstance(request,(list,int))
     if request == -1:
         return
     elif request == 1:
-        code_response(b'413',client_connection)
+        code_response(b'413',client_writer)
         return
     parsed_request = parse_http_request(request)
     if parsed_request == None:
         try:
-            code_response(b'501',client_connection)
+            code_response(b'501',client_writer)
             #if len(client_writer.get_extra_info('peername')[0])>0:
                 #await logger.warning("Client: {} Error with request".format(client_writer.get_extra_info('peername')[0]))
             return
@@ -223,129 +207,92 @@ async def handle_request(client_reader, client_writer):
             return
     res = gen_res(b'200',parsed_request[0].headers,parsed_request[1])
     assert isinstance(res,(bytes, bytearray))
-    try:
-        path =  Path("./{path}".format(path=parsed_request[0].path))
-        ext = Path("./{path}".format(path=parsed_request[0].path)).suffix
-    except Exception as e:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        #await logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
-        return
-    if path.exists():
-        if path.is_dir():
-            try:
-                send_file(res,"/index.html",client_writer)
-            except Exception as e:
-                print(e)
-                code_response(b'501',client_writer)
-                        #if chunk != None:
-                            #await logger.debug("Client: {}, User-Agent: {}".format(client_writer.get_extra_info('peername')[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
-                        #    await logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}".format(client_writer.get_extra_info('peername')[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path))
-            except Exception as e:
-                exc_type, exc_obj, exc_tb = sys.exc_info()
-                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                #await logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
-        if path.is_file():
-            if str(path).startswith("cgi-bin") and ext == '.py':
-                executable = sys.executable
-                if executable:
-                    try:
-                        set_environment(headers = parsed_request[0].headers,
-                        arguments = parsed_request[0].query_string,
-                        path=str(path),
-                        protocol=parsed_request[0].http_version.decode('utf-8'),
-                        client_address=client_writer.get_extra_info('peername')[0],
-                        server_port='9100'
-                        )
-                    except Exception as e:
-                        exc_type, exc_obj, exc_tb = sys.exc_info()
-                        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                    #    await logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
-                    process =  await asyncio.create_subprocess_exec(executable,str(path), stdin=subprocess.PIPE,
-                                                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    try:
-                        request_headers = b''
-                        if parsed_request[0].method == b'POST':
-                            if parsed_request[1] != b'':
-                                process.stdin.write(parsed_request[1])
-                            if int(parsed_request[0].headers[b'Content-Length'].decode('utf-8')) - len(request[1]) > 0:
-                                while True:
-                                    part = await client_reader.read(8192)
-                                    if len(part) < 8192:
-                                        break
-                                    process.stdin.write(part)
-                                    process.stdin.flush()
-                            line = None
-                            data = 'HTTP/1.0 200 OK\rDate: {}\rConnection: keep-alive\r'.format(await get_date()).encode()
-                            client_writer.write(data)
-                            try:
-                                future = asyncio.ensure_future(process.communicate())
-                                done, pending = await asyncio.wait([future], timeout=5)
-                                if pending:
-                                    if process.returncode is None:
-                                        try:
-                                            process.kill()
-                                            code_response(b'408',client_connection)
-                                            return
-                                        except ProcessLookupError:
-                                            pass
-                                output, err = await future
-                                client_writer.write(output)
-                                client_writer.close()
-                                # while True:
-                                # #chunk = await process.stdout.read(4096)
-                                #     chunk = await asyncio.wait_for(process.stdout.read(4096),timeout = 0.1)
-                                #     if not chunk:
-                                #         break
-                                #     client_writer.write(chunk)
-                                # client_writer.close()
-                            except asyncio.TimeoutError as e:
-                                code_response(b'408',client_connection)
-                                return
-                            #if line!=None:
-                                #await logger.debug("Client: {}, User-Agent: {}".format(client_writer.get_extra_info('peername')[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
-                            #    await logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}, Body: {}".format(client_writer.get_extra_info('peername')[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path,parsed_request[1]))
+    path = parsed_request[0].path
 
-                        elif parsed_request[0].method == b'GET':
-                            line = None
-                            data = 'HTTP/1.0 200 OK\rDate: {}\rConnection: keep-alive\r'.format(await get_date()).encode()
-                            client_writer.write(data)
-                            try:
-                                future = asyncio.ensure_future(process.communicate())
-                                done, pending = await asyncio.wait([future], timeout=2)
-                                if pending:
-                                    if process.returncode is None:
-                                        try:
-                                            process.kill()
-                                        except ProcessLookupError:
-                                            pass
-                                output, err = await future
-                                client_writer.write(output)
-                                client_writer.close()
-                            except asyncio.TimeoutError as e:
-                                code_response(b'408',client_connection)
-                                return
-                            #if line !=None:
-                            #    await logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}, Query: {}".format(client_writer.get_extra_info('peername')[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path,parsed_request[0].query_string))
-                            #    await logger.debug("Client: {}, User-Agent: {}".format(client_writer.get_extra_info('peername')[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
-                    except Exception as e:
-                        exc_type, exc_obj, exc_tb = sys.exc_info()
-                        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                        #await logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
-            else:
+    if path.endswith("/"):
+        send_file(res,"/index.html",client_writer)
+    else:
+        try:
+            ext = parsed_request[0].path.split(".",1)[1]
+        except Exception as e:
+            #await logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+            return
+        if str(path).startswith("cgi-bin") and ext == '.py':
+            executable = sys.executable
+            if executable:
                 try:
-                    send_file(res,parsed_request[0].path,client_writer)
+                    set_environment(headers = parsed_request[0].headers,
+                    arguments = parsed_request[0].query_string,
+                    path=str(path),
+                    protocol=parsed_request[0].http_version.decode('utf-8'),
+                    client_address=client_writer.get_extra_info('peername')[0],
+                    server_port='9100'
+                    )
+                except Exception as e:
+                    print(e)
+                #    await logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+                process =  await asyncio.create_subprocess_exec(executable,str(path), stdin=subprocess.PIPE,
+                                                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                try:
+                    request_headers = b''
+                    if parsed_request[0].method == b'POST':
+                        if parsed_request[1] != b'':
+                            process.stdin.write(parsed_request[1])
+                        if int(parsed_request[0].headers[b'Content-Length'].decode('utf-8')) - len(request[1]) > 0:
+                            while True:
+                                part = await client_reader.read(8192)
+                                if len(part) < 8192:
+                                    break
+                                process.stdin.write(part)
+                                process.stdin.flush()
+                        line = None
+                        data = 'HTTP/1.0 200 OK\rDate: {}\rConnection: keep-alive\r'.format(await get_date()).encode()
+                        client_writer.write(data)
+                        try:
+                            future = asyncio.ensure_future(process.communicate())
+                            done, pending = await asyncio.wait([future], timeout=5)
+                            if pending:
+                                if process.returncode is None:
+                                    try:
+                                        process.kill()
+                                        code_response(b'408',client_writer)
+                                        return
+                                    except ProcessLookupError:
+                                        pass
+                            output, err = await future
+                            client_writer.write(output)
+                            client_writer.close()
+                        except asyncio.TimeoutError as e:
+                            code_response(b'408',client_writer)
+                            return
+                    elif parsed_request[0].method == b'GET':
+                        line = None
+                        data = 'HTTP/1.0 200 OK\rDate: {}\rConnection: keep-alive\r'.format(await get_date()).encode()
+                        client_writer.write(data)
+                        try:
+                            future = asyncio.ensure_future(process.communicate())
+                            done, pending = await asyncio.wait([future], timeout=2)
+                            if pending:
+                                if process.returncode is None:
+                                    try:
+                                        process.kill()
+                                    except ProcessLookupError:
+                                        pass
+                            output, err = await future
+                            client_writer.write(output)
+                            client_writer.close()
+                        except asyncio.TimeoutError as e:
+                            code_response(b'408',client_writer)
+                            return
+                        #if line !=None:
+                        #    await logger.info("Client IP Address: {}, File Extension: {}, Method: {}, Path: {}, Query: {}".format(client_writer.get_extra_info('peername')[0],ext,parsed_request[0].method.decode('utf-8'),parsed_request[0].path,parsed_request[0].query_string))
+                        #    await logger.debug("Client: {}, User-Agent: {}".format(client_writer.get_extra_info('peername')[0],parsed_request[0].headers[b'User-Agent'].decode('utf-8')))
                 except Exception as e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                     #await logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
-    else:
-        try:
-            code_response(b'404',client_connection)
-        except Exception as e:
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            #await logger.error("{} {} {} ".format(e, fname, exc_tb.tb_lineno))
+        else:
+            send_file(res,parsed_request[0].path,client_writer)
 
 def code_response(status_code,client_writer):
     response = "HTTP/1.0 {0} {1}\r\n".format(status_code.decode('utf-8'),RESP_METH.response_phrases[status_code].decode())+"\r\n\r\nError {0} \r\n{1}".format(status_code.decode('utf-8'),RESP_METH.response_phrases[status_code].decode())
@@ -353,11 +300,16 @@ def code_response(status_code,client_writer):
     client_writer.close()
 
 def send_file(res,path,client_writer):
-    client_writer.write(res)
-    with open("."+path, "rb") as f:
-        for chunk in chunks(f):
-            client_writer.write(chunk)
-    client_writer.close()
+    try:
+        client_writer.write(res)
+        with open("."+path, "rb") as f:
+            for chunk in chunks(f):
+                client_writer.write(chunk)
+        client_writer.close()
+    except FileNotFoundError:
+        code_response(b'404', client_writer)
+    except Exception as e:
+        code_response(b'501', client_writer)
 
 
 
@@ -371,7 +323,6 @@ def serve_forever():
         print('The HTTP server is listening on PORT {port}'.format(port=PORT))
         loop = asyncio.get_event_loop()
         task = asyncio.ensure_future(socket_server)
-        signal(SIGINT, lambda s, f: loop.stop())
         try:
             loop.run_forever()
         except:
