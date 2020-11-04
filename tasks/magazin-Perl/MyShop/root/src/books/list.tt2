@@ -1,0 +1,13 @@
+[% META title = 'Списък с Продукти' -%]
+
+<table>
+<tr><th>Изображение</th><th>Име</th><th>Цена</th></tr>
+[% FOREACH book IN books -%]
+  <tr>
+    <td><img src="a.png"></td>
+    <td>[% book.name %]</td>
+    <td>[% book.price %]</td>
+
+  </tr>
+[% END -%]
+</table>
