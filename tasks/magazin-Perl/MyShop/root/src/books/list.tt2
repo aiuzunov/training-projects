@@ -1,13 +1,29 @@
 [% META title = 'Списък с Продукти' -%]
 
 <table>
-<tr><th>Изображение</th><th>Име</th><th>Цена</th></tr>
+<tr><th>Изображение</th><th>Име</th><th>Цена</th><th>Категории</th></tr>
 [% FOREACH book IN books -%]
   <tr>
-    <td><img src="a.png"></td>
+    <td align = center><a href="/books/details?id=[% book.id %]"><img src="/static/images/[% book.name %].png"></a></td>
     <td>[% book.name %]</td>
-    <td>[% book.price %]</td>
+    <td align = right>[% book.price %] [% book.currency_id %]</td>
+    <td>
+    [% FOREACH book IN book.tags_products -%]
+    [% book.tag.name %]
+    [% END -%]
+    </td>
 
   </tr>
 [% END -%]
 </table>
+[% IF pager %]
+<ul>
+    <li><a href="?page=[% pager.first_page %]">First page</a></li>
+</ul>
+[% END %]
+<footer>
+[% IF page - 1 > 0 %]
+   <a href="/books/list?page=[%page - 1%]">Previous Page</a>
+[% END %]
+   <a href="/books/list?page=[%page + 1%]">Next Page</a>
+</footer>

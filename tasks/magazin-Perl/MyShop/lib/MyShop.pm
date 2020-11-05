@@ -2,6 +2,8 @@ package MyShop;
 use Moose;
 use namespace::autoclean;
 use utf8;
+use Catalyst qw/ Static::Simple /;
+
 
 use Catalyst::Runtime 5.80;
 
@@ -22,7 +24,9 @@ use Catalyst qw/
     -Debug
     ConfigLoader
     Static::Simple
-
+    Session
+    Session::State::Cookie
+    Session::Store::File
     StackTrace
 /;
 
@@ -39,7 +43,10 @@ our $VERSION = '0.01';
 # with an external configuration file acting as an override for
 # local deployment.
 use Catalyst::Plugin::Unicode::Encoding;
-
+__PACKAGE__->config( 'Plugin::Session' => {
+    cookie_name => "my_fabulous_cookie",
+    storage     => "/",
+});
 __PACKAGE__->config(
     'Plugin::Static::Simple' => {
         dirs => [

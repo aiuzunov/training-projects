@@ -1,0 +1,57 @@
+[% META title = 'Количка с Продукти' -%]
+[% total = 0 %]
+[% subtotal = 0 %]
+<table>
+
+    <thead>
+        <tr>
+            <th>Продукт</th>
+            <th>Количество</th>
+            <th>Цена</th>
+            <th>премахни</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    [% FOREACH item_id = cart.items.keys %]
+
+
+        [% item = cart.items.$item_id %]
+        [% quantity = cart.quantity.$item_id %]
+        <tr>
+            <td>
+                [% item.name %]
+            </td>
+
+            <td>
+            <form method="POST" action="[% c.uri_for('/cart/update') %]/[% item.id %]">
+                <input type="text" name="quantity" value="[% quantity %]" />
+            </form>
+            </td>
+
+            <td align=right> [% item.price * quantity %] EUR</td>
+
+            [% total = total + item.price*quantity %]
+            <td align=center>
+                <a href="[% c.uri_for('/cart/remove') %]/[% item_id %]">
+                    <input type="button" name="RemoveItem" value="премахни"/>
+                </a>
+            </td>
+    [% END %]
+    <tbody>
+
+    <tfoot>
+        <tr>
+            <td colspan="2"> Total: </td>
+            <td>
+              [% total %] EUR
+            </td>
+            <td>
+            <a href="[% c.uri_for('/cart/empty_cart') %]">
+            <input type="button" name="ClearCart" value="Изпразни количката"/>
+            </a>
+            </td>
+        </tr>
+    </tfoot>
+
+</table>

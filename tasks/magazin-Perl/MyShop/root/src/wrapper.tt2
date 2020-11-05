@@ -16,10 +16,14 @@
 <div id="bodyblock">
 <div id="menu">
     <ul>
-        <h4>Навигация:</h4>
+        <h5>Навигация:</h5>
         <li><a href="[% c.uri_for('/')
             %]" title="Catalyst Welcome Page">Начална страница</a></li>
         <li><a href="[% c.uri_for('/books/list') %]">Книги</a></li>
+        <li><a href="[% c.uri_for('/cart/list') %]">Количка</a></li>
+
+
+
 
     </ul>
 </div><!-- end menu -->

@@ -13,8 +13,7 @@ __PACKAGE__->config(
         user => 'shopadmin',
         password => '1234',
         AutoCommit => q{1},
-        mysql_enable_utf8 => 1,
-    }
+      }
 );
 
 =head1 NAME

@@ -1,0 +1,21 @@
+[% META title = 'Детайли за Продукта' -%]
+
+<table>
+<tr><th>Изображение</th><th>Име</th><th>Цена</th><th>Описание</th><th>Категории</th></tr>
+  <tr>
+    <td align = center><img src="/static/images/[% book.first.name %].png"></td>
+    <td>[%  book.first.name %]</td>
+    <td align = right>[%  book.first.price %] [% book.first.currency_id %]</td>
+    <td>[% book.first.description %]</td>
+    <td>
+    [% FOREACH book IN book.first.tags_products -%]
+    [% book.tag.name %]
+    [% END -%]
+    </td>
+    <td>
+    <a href="[% c.uri_for('/cart/add') %]/[% book.first.product.id %]">
+    <input type="button" name="AddToCart" value="добави в количката"/>
+    </a>
+    </td>
+  </tr>
+</table>

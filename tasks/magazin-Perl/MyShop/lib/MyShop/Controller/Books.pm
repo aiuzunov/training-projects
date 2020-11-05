@@ -2,6 +2,9 @@ package MyShop::Controller::Books;
 use Moose;
 use namespace::autoclean;
 use utf8;
+use Scalar::Util qw(looks_like_number);
+use Data::Paginator;
+#use open qw(:utf8 :std);
 
 BEGIN { extends 'Catalyst::Controller'; }
 __PACKAGE__->config(
@@ -67,18 +70,60 @@ __PACKAGE__->meta->make_immutable;
 =cut
 sub list :Local {
     my ($self, $c) = @_;
+    my $page = $c->req->param('page');
+    if(looks_like_number($page)){
+    $c->stash(books => [$c->model('DB::Product')->search(undef, {
+           page => $page,
+           rows => 10,
+           join      => {'tags_products'=>'tag'},
+           order_by => {-asc => 'id'},
+           group_by => 'id',
 
-    $c->stash(tset => [$c->model('DB::Product')->all]);
-    $c->stash(books => [$c->model('DB::Product')->search({
-  name => 'Книга1'
-})]);
-    $c->stash(books2 => [$c->model('DB::Product')->search(undef, {
-         page => 1,
-         rows => 100,
-         order_by => {-asc => 'id'},
 
-    })]);
-    $c->stash(template => 'books/list.tt2');
+      })]);
+
+
+  }else{
+    $page = 1;
+    $c->stash(books => [$c->model('DB::Product')->search(undef, {
+           page => $page,
+           rows => 10,
+           join      => {'tags_products'=>'tag'},
+           order_by => {-asc => 'id'},
+           group_by => 'id',
+
+
+      })]);
+  }
+  $c->stash(template => 'books/list.tt2',page => $page);
 }
+
+=head2 details
+
+
+=cut
+sub details :Local {
+
+   my ($self, $c) = @_;
+   my $id = $c->req->params->{id};
+
+
+   $c->stash(book => [$c->model('DB::Product')->search(
+  { 'me.id' => $id,
+  },
+  { join      => {'tags_products'=>'tag'},
+  }
+)]);
+
+
+   $c->stash(template => 'books/details.tt2');
+}
+    #my $page = $c->req->params->{page};
+
+#     $c->stash(tset => [$c->model('DB::Product')->all]);
+#     $c->stash(books => [$c->model('DB::Product')->search({
+#   name => 'Книга18'
+# })]);
+
 
 1;
