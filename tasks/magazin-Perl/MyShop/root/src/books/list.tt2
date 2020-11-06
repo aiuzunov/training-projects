@@ -7,7 +7,7 @@
     <td align = center><a href="/books/details?id=[% book.id %]"><img src="/static/images/[% book.name %].png"></a></td>
     <td>[% book.name %]</td>
     <td align = right>[% book.price %] [% book.currency_id %]</td>
-    <td>
+    <td align = center>
     [% FOREACH book IN book.tags_products -%]
     [% book.tag.name %]
     [% END -%]

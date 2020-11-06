@@ -1,0 +1,71 @@
+---
+
+indicator: submit
+elements:
+    - type: Text
+      name: name
+      label: Име
+      attributes:
+        title: Въведете името на продукта тук
+      constraints:
+        - type: Length
+          min: 5
+          max: 40
+          message: Дължината на името трябва да бъде между 5 и 40 символа
+
+    - type: Text
+      name: price
+      label: Цена
+      attributes:
+        title: Въведето цената на продукта тук
+      constraints:
+        - type: Number
+          message: Дължината на името трябва да бъде между 5 и 40 символа
+        - type: Range
+          min: 0.01
+          message: Минималната цена е 0.01 евро.
+
+    - type: Text
+      name: image
+      label: Изображение
+      attributes:
+        title: Въведете пътя към изображението на продукта тук
+      constraints:
+        - type: Length
+          min: 5
+
+    - type: Text
+      name: description
+      label: Описание
+      attributes:
+        title: Въведете кратко описание на продукта тук
+      constraints:
+        - type: Length
+          min: 5
+          max: 100
+          message: Дължината на името трябва да бъде между 5 и 100 символа
+
+    - type: Number
+      name: count_in_stock
+      label: Количество
+      attributes:
+        title: Въведете количеството в наличност на продукта тук
+      constraints:
+        - type: Integer
+        - type: Range
+          min: 1
+          message: "Количеството трябва да бъде по-голямо от 0."
+
+    - type: Select
+      name: tag_name
+      label: Жанр
+
+    - type: Submit
+      name: submit
+      value: Добави/Обнови
+
+constraints:
+  - Required
+filter:
+  - TrimEdges
+  - HTMLEscape

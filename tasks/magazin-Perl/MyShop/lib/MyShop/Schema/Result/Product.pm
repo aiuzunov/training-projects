@@ -1,5 +1,4 @@
 use utf8;
-#use open qw(:utf8 :std);
 package MyShop::Schema::Result::Product;
 
 # Created by DBIx::Class::Schema::Loader
@@ -211,7 +210,7 @@ __PACKAGE__->has_many(
   "order_items",
   "MyShop::Schema::Result::OrderItem",
   { "foreign.product_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+  { cascade_copy => 0, cascade_delete => 0},
 );
 
 =head2 products_details

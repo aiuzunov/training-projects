@@ -6,10 +6,7 @@ use utf8;
 
 BEGIN { extends 'Catalyst::Controller' }
 
-#
-# Sets the actions in this controller to be registered with no prefix
-# so they function identically to actions created in MyApp.pm
-#
+
 __PACKAGE__->config(namespace => '');
 
 =encoding utf-8
@@ -20,7 +17,6 @@ MyShop::Controller::Root - Root Controller for MyShop
 
 =head1 DESCRIPTION
 
-[enter your description here]
 
 =head1 METHODS
 
@@ -29,6 +25,28 @@ MyShop::Controller::Root - Root Controller for MyShop
 The root page (/)
 
 =cut
+=head2 auto
+
+Check if there is a user and, if not, forward to login page
+
+=cut
+
+sub auto :Private {
+    my ($self, $c) = @_;
+
+
+    if ($c->controller eq $c->controller('Login')) {
+        return 1;
+    }
+
+    if (!$c->user_exists) {
+        $c->log->debug('***Root::auto User not found, forwarding to /login');
+        $c->response->redirect($c->uri_for('/login'));
+        return 0;
+    }
+
+    return 1;
+}
 
 sub index :Path :Args(0) {
     my ( $self, $c ) = @_;

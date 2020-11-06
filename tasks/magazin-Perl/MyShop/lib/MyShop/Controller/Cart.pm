@@ -35,6 +35,9 @@ sub add : Local {
     if ( $c->stash(book => $c->model('DB::Product')->find($item_id))) {
         $c->session->{cart}{$item_id} += $quantity;
         $c->stash(quantity => $quantity);
+        $c->stash(status_msg => "Книгата беше успешно добавена във вашата количка с продукти!");
+
+
     } else {
         die "No such item";
     }
@@ -44,13 +47,15 @@ sub remove : Local {
     my ( $self, $c, $item_id) = @_;
 
     delete @{ $c->session->{cart} }{$item_id};
-    $c->response->redirect( $c->uri_for("/cart/list") );
+    $c->response->redirect($c->uri_for($self->action_for('list'),
+     {mid => $c->set_status_msg("Продукта с ID:$item_id беше успешно премахнат от вашата количка с продукти!")}));
 }
 
 sub empty_cart : Local {
     my ( $self, $c) = @_;
     %{ $c->session->{cart} } = ();
-    $c->response->redirect( $c->uri_for("/cart/list") );
+    $c->response->redirect($c->uri_for($self->action_for('list'),
+     {mid => $c->set_status_msg("Успешно изпразнихте вашата количка с продукти!")}));
 }
 
 sub update :Local {
@@ -58,8 +63,9 @@ sub update :Local {
     my $quantity = $c->request->params->{quantity} || '1';
 
     $c->session->{cart}{$item_id} = (quantity => $quantity);
+    $c->response->redirect($c->uri_for($self->action_for('list'),
+     {mid => $c->set_status_msg("Количеството на продукта с ID:$item_id беше успешно сменено на $quantity!")}));
 
-    $c->response->redirect( $c->uri_for("/cart/list") );
 
 }
 
@@ -74,6 +80,7 @@ sub list : Local {
 
     $c->stash->{cart}{items} = \%items;
     $c->stash->{cart}{quantity} = $cart;
+    $c->load_status_msgs;
 }
 
 =encoding utf8

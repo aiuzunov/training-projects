@@ -1,0 +1,42 @@
+[% META title = 'CRUD за Продукти' -%]
+<table>
+<tr><th>Изображение</th><th>Дата на създаване</th><th>Последно обновен</th><th>Име</th><th>Цена</th><th>Брой в наличност</th><th>Категории</th><th>Действия</th></tr>
+[% FOREACH book IN books -%]
+  <tr>
+    <td align = center><a href="/books/details?id=[% book.id %]"><img src="/static/images/[% book.name %].png"></a></td>
+    <td>[% book.create_date %]</td>
+    <td>[% book.edit_time %]</td>
+    <td>[% book.name %]</td>
+    <td align = right>[% book.price %] [% book.currency_id %]</td>
+    <td align=right>
+    [% book.count_in_stock %]
+    </td>
+    <td align = center>
+    [% FOREACH book IN book.tags_products -%]
+    [% book.tag.name %]
+    [% END -%]
+    </td>
+    <td>
+    <a href="[% c.uri_for('/admin/update') %]/[% book.product.id %]">Edit</a>
+    </td>
+
+
+
+  </tr>
+[% END -%]
+</table>
+[% IF pager %]
+<ul>
+    <li><a href="?page=[% pager.first_page %]">First page</a></li>
+</ul>
+[% END %]
+<p>
+  <a href="[% c.uri_for(c.controller.action_for('create')) %]">Create</a>
+</p>
+
+<footer>
+[% IF page - 1 > 0 %]
+   <a href="/admin/products?page=[%page - 1%]">Previous Page</a>
+[% END %]
+   <a href="/admin/products?page=[%page + 1%]">Next Page</a>
+</footer>

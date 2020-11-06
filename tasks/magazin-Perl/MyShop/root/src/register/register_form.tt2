@@ -1,0 +1,13 @@
+[% META title = 'Register' %]
+
+
+<h1>Моля попълнете формичката за да се регистрирате :)</h1>
+<form method="post" action="[% c.uri_for('/register/send_mail') %]">
+    <fieldset><legend>Формичката за регистрация :))</legend>
+        <label>Вашият email:<input type="text" name="email"/></label>
+        <label>Вашето име:<input type="text" name="name"/></label>
+        <label>Вашето потребителско име:<input type="text" name="username"/></label>
+        <label>Вашата парола:<input type="password" name="password"/></label>
+        <input type="submit" name="submit" value="Регистирай ме!"/>
+    </fieldset>
+</form>

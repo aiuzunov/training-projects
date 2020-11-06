@@ -22,12 +22,15 @@ use Catalyst::Runtime 5.80;
 
 use Catalyst qw/
     -Debug
+    StatusMessage
     ConfigLoader
     Static::Simple
     Session
     Session::State::Cookie
     Session::Store::File
+    Authentication
     StackTrace
+
 /;
 
 extends 'Catalyst';
@@ -57,6 +60,7 @@ __PACKAGE__->config(
     name => 'MyShop',
     disable_component_resolution_regex_fallback => 1,
     enable_catalyst_header => 1,
+    default_view => 'HTML',
     encoding => 'UTF-8',
 );
 __PACKAGE__->config(
@@ -66,6 +70,38 @@ __PACKAGE__->config(
         ],
     },
     encoding => 'UTF-8',
+);
+
+__PACKAGE__->config(
+    'Plugin::Authentication' => {
+        default => {
+            class           => 'SimpleDB',
+            user_model      => 'DB::User',
+            password_type   => 'self_check',
+        },
+    },
+);
+
+__PACKAGE__->config(
+    'View::Email' => {
+        stash_key => 'email',
+        default => {
+            content_type => 'text/plain',
+
+            charset => 'utf-8'
+        },
+
+        sender => {
+
+            mailer => 'SMTP',
+            mailer_args => {
+                host     => 'smtp.gmail.com',
+                ssl      => 1,
+                sasl_username => 'aleksandar.i.uzunov@gmail.com',
+                sasl_password => 'hidden',
+        }
+      }
+    }
 );
 # Start the application
 __PACKAGE__->setup();

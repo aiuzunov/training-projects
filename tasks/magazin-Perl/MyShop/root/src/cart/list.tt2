@@ -34,7 +34,7 @@
             [% total = total + item.price*quantity %]
             <td align=center>
                 <a href="[% c.uri_for('/cart/remove') %]/[% item_id %]">
-                    <input type="button" name="RemoveItem" value="премахни"/>
+                  <input type="button" name="RemoveItem" value="премахни"/>
                 </a>
             </td>
     [% END %]
