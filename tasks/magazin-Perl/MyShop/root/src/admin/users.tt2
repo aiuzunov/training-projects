@@ -1,0 +1,38 @@
+[% META title = 'CRUD за Потребители' -%]
+<table>
+<tr><th>Дата на регистрация</th><th>Потребителско име</th><th>Име</th><th>Имейл</th><th>Адрес</th><th>Действия</th></tr>
+[% FOREACH user IN users -%]
+  <tr>
+    <td>[% user.create_date %]</td>
+    <td>[% user.username %]</td>
+    <td>[% user.name %]</td>
+    <td>[% user.email %]</td>
+    <td align = center>
+    [% FOREACH user IN user.addresses -%]
+    [% user.address %]
+    [% END -%]
+    </td>
+    <td>
+    <a href="[% c.uri_for('/admin/update_user') %]/[% user.user.id || user.id %]">Edit</a>
+    </td>
+
+
+
+  </tr>
+[% END -%]
+</table>
+[% IF pager %]
+<ul>
+    <li><a href="?page=[% pager.first_page %]">First page</a></li>
+</ul>
+[% END %]
+<p>
+  <a href="[% c.uri_for(c.controller.action_for('create_user')) %]">Create</a>
+</p>
+
+<footer>
+[% IF page - 1 > 0 %]
+   <a href="/admin/users?page=[%page - 1%]">Previous Page</a>
+[% END %]
+   <a href="/admin/users?page=[%page + 1%]">Next Page</a>
+</footer>

@@ -90,6 +90,7 @@ __PACKAGE__->table("products");
 =head2 create_date
 
   data_type: 'timestamp'
+  default_value: current_timestamp
   is_nullable: 0
 
 =head2 edit_time
@@ -133,7 +134,11 @@ __PACKAGE__->add_columns(
     is_nullable    => 0,
   },
   "create_date",
-  { data_type => "timestamp", is_nullable => 0 },
+  {
+    data_type     => "timestamp",
+    default_value => \"current_timestamp",
+    is_nullable   => 0,
+  },
   "edit_time",
   { data_type => "text", is_nullable => 1 },
   "brand",
@@ -210,7 +215,7 @@ __PACKAGE__->has_many(
   "order_items",
   "MyShop::Schema::Result::OrderItem",
   { "foreign.product_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0},
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
 =head2 products_details
@@ -243,9 +248,19 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 tags
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-11-04 13:29:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:VqUeuim0dpLD8DlmWytYfQ
+Type: many_to_many
+
+Composing rels: L</tags_products> -> tag
+
+=cut
+
+__PACKAGE__->many_to_many("tags", "tags_products", "tag");
+
+
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-11-09 11:40:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+qljcTeB6ERSafL7O2QNow
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -77,6 +77,7 @@ __PACKAGE__->table("users");
 =head2 create_date
 
   data_type: 'timestamp'
+  default_value: current_timestamp
   is_nullable: 0
 
 =head2 locked
@@ -106,7 +107,11 @@ __PACKAGE__->add_columns(
   "password",
   { data_type => "text", is_nullable => 0 },
   "create_date",
-  { data_type => "timestamp", is_nullable => 0 },
+  {
+    data_type     => "timestamp",
+    default_value => \"current_timestamp",
+    is_nullable   => 0,
+  },
   "locked",
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
 );
@@ -199,8 +204,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-11-04 13:29:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mebtGbgFXU72RyYNF1xnmA
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-11-09 11:40:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SCDXThHjnimBsvRlRGY9pQ
 
 __PACKAGE__->add_columns(
     'password' => {

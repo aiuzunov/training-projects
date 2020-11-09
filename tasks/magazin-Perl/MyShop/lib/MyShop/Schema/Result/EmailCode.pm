@@ -68,9 +68,21 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 0 },
 );
 
+=head1 PRIMARY KEY
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-11-04 13:29:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2m1ZBph3LJag5Xdn7LArNQ
+=over 4
+
+=item * L</ver_code>
+
+=back
+
+=cut
+
+__PACKAGE__->set_primary_key("ver_code");
+
+
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-11-09 13:37:22
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UfJ+E7+PbmystwErT1Cx6g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -35,7 +35,8 @@ sub index :Path :Args(0) {
 
     if ($username && $password) {
         if ($c->authenticate({ username => $username,
-                               password => $password  } )) {
+                               password => $password,
+                               verified => 'true',} )) {
             $c->response->redirect($c->uri_for(
                 $c->controller('Books')->action_for('list')));
             return;

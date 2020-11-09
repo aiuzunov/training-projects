@@ -138,6 +138,78 @@ $c->stash(template => 'admin/products.tt2',page => $page);
 
 }
 
+
+sub users :Local{
+  my ($self, $c) = @_;
+  my $page = $c->req->param('page');
+  if(looks_like_number($page)){
+  $c->stash(users => [$c->model('DB::User')->search(undef, {
+         page => $page,
+         rows => 10,
+         join      => 'addresses',
+         order_by => {-asc => 'id'},
+         group_by => 'id',
+    })]);
+
+
+}else{
+  $page = 1;
+  $c->stash(users => [$c->model('DB::User')->search(undef, {
+         page => $page,
+         rows => 10,
+         join      => 'addresses',
+         order_by => {-asc => 'id'},
+         group_by => 'id',
+
+
+    })]);
+}
+$c->stash(template => 'admin/users.tt2',page => $page);
+
+}
+
+
+sub create_user :Local :FormConfig('admin/create_update_users.yml') {
+   my ($self, $c) = @_;
+
+   my $form = $c->stash->{form};
+
+   if ($form->submitted_and_valid) {
+       my $user = $c->model('DB::User')->new_result({});
+       $form->model->update($user);
+       $c->flash->{status_msg} = 'User created';
+       $c->response->redirect($c->uri_for($self->action_for('users')));
+       $c->detach;
+   }
+
+   $c->stash->{template} = 'admin/create_update_user.tt2';
+}
+
+sub update_user :Local :FormConfig('admin/create_update_users.yml') {
+    my ($self, $c, $id) = @_;
+    my $user = $c->model('DB::User')->find($id);
+    $c->log->debug("Value of \$id is: ".$id);
+    $c->log->debug($user->name);
+    unless ($user) {
+        $c->flash->{error_msg} = "Invalid User -- Cannot edit";
+        $c->response->redirect($c->uri_for($self->action_for('users')));
+        $c->detach;
+    }
+
+    my $form = $c->stash->{form};
+
+    if ($form->submitted_and_valid) {
+        $form->model->update($user);
+        $c->flash->{status_msg} = 'User edited';
+        $c->response->redirect($c->uri_for($self->action_for('users')));
+        $c->detach;
+    }else{
+      $form->model->default_values($user)
+    }
+
+    $c->stash->{template} = 'admin/create_update_user.tt2';
+}
+
 =encoding utf8
 
 =head1 AUTHOR

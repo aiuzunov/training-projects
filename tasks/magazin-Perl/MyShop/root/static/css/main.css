@@ -44,3 +44,11 @@ select {
     padding-top: .5em;
     display: block;
 }
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 50px;
+}

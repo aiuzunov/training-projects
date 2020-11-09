@@ -42,13 +42,6 @@ __PACKAGE__->table("tags_products");
 
 =head1 ACCESSORS
 
-=head2 id
-
-  data_type: 'bigint'
-  is_auto_increment: 1
-  is_nullable: 0
-  sequence: 'tags_products_id_seq'
-
 =head2 product_id
 
   data_type: 'bigint'
@@ -64,13 +57,6 @@ __PACKAGE__->table("tags_products");
 =cut
 
 __PACKAGE__->add_columns(
-  "id",
-  {
-    data_type         => "bigint",
-    is_auto_increment => 1,
-    is_nullable       => 0,
-    sequence          => "tags_products_id_seq",
-  },
   "product_id",
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
   "tag_id",
@@ -105,7 +91,7 @@ __PACKAGE__->belongs_to(
   "product",
   "MyShop::Schema::Result::Product",
   { id => "product_id" },
-  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
+  { is_deferrable => 0, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
 
 =head2 tag
@@ -124,8 +110,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-11-04 13:29:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NGyL5fh4xFTx4cGTsO7qdg
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-11-09 11:40:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZtNP8ARaqHOIuEuEsuRBrQ
 
 __PACKAGE__->many_to_many(products => 'products', 'product');
 

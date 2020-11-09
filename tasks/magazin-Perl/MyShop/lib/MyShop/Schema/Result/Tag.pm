@@ -111,9 +111,19 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 products
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-11-04 13:29:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sbS6nR2gvLE9tk+kWMujvQ
+Type: many_to_many
+
+Composing rels: L</tags_products> -> product
+
+=cut
+
+__PACKAGE__->many_to_many("products", "tags_products", "product");
+
+
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-11-09 11:40:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ACy9xKLneSZLfe7mlArzIg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

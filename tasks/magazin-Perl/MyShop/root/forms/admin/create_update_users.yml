@@ -1,0 +1,42 @@
+---
+
+indicator: submit
+elements:
+    - type: Text
+      name: name
+      label: Име
+      attributes:
+        title: Въведете името на потребителя тук
+      
+
+    - type: Text
+      name: username
+      label: Потребителско име
+      attributes:
+        title: Въведето потребителското име тук
+
+
+    - type: Email
+      name: email
+      label: Имейл
+      attributes:
+        title: Въведете имейлът на потребителя
+
+
+    - type: Password
+      name: password
+      label: Парола
+      attributes:
+        title: Въведете паролата на потребителя тук
+
+
+
+    - type: Submit
+      name: submit
+      value: Добави/Обнови
+
+constraints:
+  - Required
+filter:
+  - TrimEdges
+  - HTMLEscape

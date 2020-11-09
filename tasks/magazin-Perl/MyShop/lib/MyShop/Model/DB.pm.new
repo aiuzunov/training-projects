@@ -7,10 +7,10 @@ __PACKAGE__->config(
     schema_class => 'MyShop::Schema',
     
     connect_info => {
-        dsn => 'dbi:SQLite:myapp.db',
-        user => '',
-        password => '',
-        on_connect_do => q{PRAGMA foreign_keys = ON},
+        dsn => 'dbi:Pg:dbname=onlineshop',
+        user => 'shopadmin',
+        password => '1234',
+        AutoCommit => q{1},
     }
 );
 

@@ -25,6 +25,7 @@ use Catalyst qw/
     StatusMessage
     ConfigLoader
     Static::Simple
+    Redirect
     Session
     Session::State::Cookie
     Session::Store::File
@@ -98,7 +99,7 @@ __PACKAGE__->config(
                 host     => 'smtp.gmail.com',
                 ssl      => 1,
                 sasl_username => 'aleksandar.i.uzunov@gmail.com',
-                sasl_password => 'hidden',
+                sasl_password => '',
         }
       }
     }

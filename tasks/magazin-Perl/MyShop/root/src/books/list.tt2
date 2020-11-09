@@ -21,7 +21,7 @@
     <li><a href="?page=[% pager.first_page %]">First page</a></li>
 </ul>
 [% END %]
-<footer>
+<footer >
 [% IF page - 1 > 0 %]
    <a href="/books/list?page=[%page - 1%]">Previous Page</a>
 [% END %]
