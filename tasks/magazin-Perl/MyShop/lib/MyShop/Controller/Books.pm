@@ -71,15 +71,26 @@ __PACKAGE__->meta->make_immutable;
 sub list :Local {
     my ($self, $c) = @_;
     my $page = $c->req->param('page');
+    my $name = $c->request->param('name') || 'Книга';
+    my $price1 = $c->request->param('price1') || 0;
+    my $price2 = $c->request->param('price2') || 100;
+
+
+    if($c->req->param('submit') eq 'Submit'){
+      $page = 1;
+      $c->stash(search_name => $name, price1 => $price1, price2 => $price2);
+    }else{
+      $c->stash(search_name => $name, price1 => $price1, price2 => $price2);
+    }
+
     if(looks_like_number($page)){
-    $c->stash(books => [$c->model('DB::Product')->search(undef, {
+
+    $c->stash(books => [$c->model('DB::Product')->search({name => { like => '%'.$name.'%' }, price => { '>=', $price1,'<=', $price2 }}, {
            page => $page,
            rows => 10,
            join      => {'tags_products'=>'tag'},
            order_by => {-asc => 'id'},
            group_by => 'id',
-
-
       })]);
 
 
@@ -91,8 +102,6 @@ sub list :Local {
            join      => {'tags_products'=>'tag'},
            order_by => {-asc => 'id'},
            group_by => 'id',
-
-
       })]);
   }
   $c->stash(template => 'books/list.tt2',page => $page);
