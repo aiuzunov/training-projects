@@ -26,10 +26,12 @@ use Catalyst qw/
     ConfigLoader
     Static::Simple
     Redirect
+    Authorization::ACL
     Session
     Session::State::Cookie
     Session::Store::File
     Authentication
+    Authorization::Roles
     StackTrace
 
 /;
@@ -75,10 +77,19 @@ __PACKAGE__->config(
 
 __PACKAGE__->config(
     'Plugin::Authentication' => {
+
         default => {
             class           => 'SimpleDB',
             user_model      => 'DB::User',
             password_type   => 'self_check',
+
+        },
+        employees => {
+            class           => 'SimpleDB',
+            user_model      => 'DB::Employee',
+            password_type   => 'self_check',
+            role_relation => 'roles',
+            role_field => 'name',
         },
     },
 );
@@ -106,6 +117,35 @@ __PACKAGE__->config(
 );
 # Start the application
 __PACKAGE__->setup();
+
+__PACKAGE__->deny_access_unless(
+        "/admin/create",
+        ['Create Products'],
+    );
+__PACKAGE__->deny_access_unless(
+        "/admin/update",
+        ['Update Products'],
+    );
+__PACKAGE__->deny_access_unless(
+        "/admin/create_user",
+        ['Create User'],
+    );
+
+__PACKAGE__->deny_access_unless(
+        "/admin/update_user",
+        ['Update User'],
+    );
+
+__PACKAGE__->deny_access_unless(
+        "/admin/products",
+        ['View Products'],
+    );
+__PACKAGE__->deny_access_unless(
+        "/admin/users",
+        ['View Users'],
+  );
+
+
 
 =encoding utf8
 

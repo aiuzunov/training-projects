@@ -1,0 +1,34 @@
+[% META title = 'CRUD за Служители' -%]
+<p>
+  <a href="[% c.uri_for(c.controller.action_for('create_employee')) %]">Създай нов служител</a>
+</p>
+<table>
+<tr><th>ID</th><th>Име</th><th>Потребителско Име</th><th>Имейл</th><th>Права</th><th>Действия</th></tr>
+[% FOREACH employee IN employees -%]
+  <tr>
+    <td align="right">[% employee.id %]</td>
+    <td align="left">[% employee.name %]</td>
+    <td align="left">[% employee.username %]</td>
+    <td align="left">[% employee.email %]</td>
+    <td align = center>
+    [% FOREACH employee IN employee.employee_roles -%]
+    [% employee.role.name %]
+    [% END -%]
+    </td>
+    <td>
+    <a href="[% c.uri_for('/admin/update_employee') %]/[% employee.employee.id %]">Обнови Служителя</a>
+    </td>
+
+
+
+  </tr>
+[% END -%]
+</table>
+
+
+<footer>
+[% IF page - 1 > 0 %]
+   <a href="/admin/employees?page=[%page - 1%]">Previous Page</a>
+[% END %]
+   <a href="/admin/employees?page=[%page + 1%]">Next Page</a>
+</footer>

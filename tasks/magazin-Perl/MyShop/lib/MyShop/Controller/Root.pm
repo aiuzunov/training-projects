@@ -39,7 +39,7 @@ sub auto :Private {
         return 1;
     }
 
-    if (!$c->user_exists) {
+    if (!$c->user_exists and $c->controller ne $c->controller('Admin')) {
         $c->log->debug('***Root::auto User not found, forwarding to /login');
         $c->response->redirect($c->uri_for('/login'));
         return 0;

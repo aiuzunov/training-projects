@@ -1,4 +1,9 @@
 [% META title = 'CRUD за Продукти' -%]
+[% IF c.check_user_roles('Create Products') %]
+<p>
+  <a href="[% c.uri_for(c.controller.action_for('create')) %]">Създай нов продукт</a>
+</p>
+[% END %]
 <table>
 <tr><th>Изображение</th><th>Дата на създаване</th><th>Последно обновен</th><th>Име</th><th>Цена</th><th>Брой в наличност</th><th>Категории</th><th>Действия</th></tr>
 [% FOREACH book IN books -%]
@@ -16,9 +21,11 @@
     [% book.tag.name %]
     [% END -%]
     </td>
+    [% IF c.check_user_roles('Edit Products') %]
     <td>
-    <a href="[% c.uri_for('/admin/update') %]/[% book.product.id %]">Edit</a>
+    <a href="[% c.uri_for('/admin/update') %]/[% book.product.id %]">Обнови Продукта</a>
     </td>
+    [% END %]
 
 
 
@@ -30,9 +37,6 @@
     <li><a href="?page=[% pager.first_page %]">First page</a></li>
 </ul>
 [% END %]
-<p>
-  <a href="[% c.uri_for(c.controller.action_for('create')) %]">Create</a>
-</p>
 
 <footer>
 [% IF page - 1 > 0 %]

@@ -29,9 +29,10 @@ Login logic
 
 sub index :Path :Args(0) {
     my ($self, $c) = @_;
-
     my $username = $c->request->params->{username};
     my $password = $c->request->params->{password};
+
+    $c->logout();
 
     if ($username && $password) {
         if ($c->authenticate({ username => $username,

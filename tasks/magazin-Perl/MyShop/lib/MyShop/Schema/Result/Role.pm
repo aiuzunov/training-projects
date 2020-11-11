@@ -82,7 +82,22 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
-=head2 employees
+=head2 employee_roles
+
+Type: has_many
+
+Related object: L<MyShop::Schema::Result::EmployeeRole>
+
+=cut
+
+__PACKAGE__->has_many(
+  "employee_roles",
+  "MyShop::Schema::Result::EmployeeRole",
+  { "foreign.role_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 employees_2s
 
 Type: has_many
 
@@ -91,7 +106,7 @@ Related object: L<MyShop::Schema::Result::Employee>
 =cut
 
 __PACKAGE__->has_many(
-  "employees",
+  "employees_2s",
   "MyShop::Schema::Result::Employee",
   { "foreign.role_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
@@ -112,9 +127,19 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 employees
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-11-04 13:29:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:g4K9CFrGltIgvr/XmRFEbw
+Type: many_to_many
+
+Composing rels: L</employee_roles> -> employee
+
+=cut
+
+__PACKAGE__->many_to_many("employees", "employee_roles", "employee");
+
+
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-11-11 12:07:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v6JhXqKIagT8gh346YmDiA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

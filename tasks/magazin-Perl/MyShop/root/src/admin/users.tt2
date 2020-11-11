@@ -1,4 +1,9 @@
 [% META title = 'CRUD за Потребители' -%]
+[% IF c.check_user_roles('Create Users') %]
+<p>
+  <a href="[% c.uri_for(c.controller.action_for('create_user')) %]">Create</a>
+</p>
+[% END %]
 <table>
 <tr><th>Дата на регистрация</th><th>Потребителско име</th><th>Име</th><th>Имейл</th><th>Адрес</th><th>Действия</th></tr>
 [% FOREACH user IN users -%]
@@ -12,9 +17,11 @@
     [% user.address %]
     [% END -%]
     </td>
+    [% IF c.check_user_roles('Edit Users') %]
     <td>
     <a href="[% c.uri_for('/admin/update_user') %]/[% user.user.id || user.id %]">Edit</a>
     </td>
+    [% END %]
 
 
 
@@ -26,9 +33,6 @@
     <li><a href="?page=[% pager.first_page %]">First page</a></li>
 </ul>
 [% END %]
-<p>
-  <a href="[% c.uri_for(c.controller.action_for('create_user')) %]">Create</a>
-</p>
 
 <footer>
 [% IF page - 1 > 0 %]

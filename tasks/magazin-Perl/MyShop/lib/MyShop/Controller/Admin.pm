@@ -28,6 +28,65 @@ sub index :Path :Args(0) {
 
     $c->response->body('Matched MyShop::Controller::Admin in Admin.');
 }
+sub access_denied : Private {
+    my ($self, $c) = @_;
+
+    $c->stash->{error_msg} = 'Unauthorized!';
+
+    $c->forward('denied');
+}
+
+sub auto :Private {
+    my ($self, $c) = @_;
+
+    if ( $c->request->path =~ /login/ ) {
+        return 1;
+      }
+
+      if (!$c->user_in_realm('employees')) {
+        $c->redirect('/admin/login');
+      }
+
+      return 1;
+}
+
+sub denied :Local{
+  my ($self, $c) = @_;
+
+  $c->stash(template => 'admin/denied.tt2');
+}
+
+sub login :Local {
+  my ($self, $c) = @_;
+  my $username = $c->request->params->{username};
+  my $password = $c->request->params->{password};
+  $c->logout();
+  if ($username && $password) {
+    if ( $c->authenticate( { username => $username,
+                       password => $password }, 'employees') ) {
+          $c->response->redirect($c->uri_for(
+              $c->controller('Admin')->action_for('products')));
+          return;
+      } else {
+          $c->stash(error_msg => "Bad username or password.");
+      }
+  } else {
+      $c->stash(error_msg => "Empty username or password.")
+          unless ($c->user_exists);
+  }
+
+  $c->stash(template => 'admin/login.tt2');
+}
+
+sub logout :Local {
+    my ($self, $c) = @_;
+    # warn $c->user_in_realm('employees')
+    # warn $c->user()->name;
+    # warn $c->employee()
+    $c->logout();
+
+    # $c->response->redirect($c->uri_for('/'));
+}
 
 
 sub create :Local :FormConfig('admin/create_update.yml') {
@@ -138,6 +197,38 @@ $c->stash(template => 'admin/products.tt2',page => $page);
 
 }
 
+sub employees :Local{
+  my ($self, $c) = @_;
+  my $page = $c->req->param('page');
+  if(looks_like_number($page)){
+  $c->stash(employees => [$c->model('DB::Employee')->search(undef, {
+         page => $page,
+         rows => 10,
+         join      => {'employee_roles'=>'role'},
+         order_by => {-asc => 'id'},
+         group_by => 'id',
+
+
+    })]);
+
+
+}else{
+  $page = 1;
+  $c->stash(employees => [$c->model('DB::Employee')->search(undef, {
+         page => $page,
+         rows => 10,
+         join      => {'employee_roles'=>'role'},
+         order_by => {-asc => 'id'},
+         group_by => 'id',
+
+
+    })]);
+}
+$c->stash(template => 'admin/employees.tt2',page => $page);
+
+}
+
+
 
 sub users :Local{
   my ($self, $c) = @_;
@@ -182,7 +273,7 @@ sub create_user :Local :FormConfig('admin/create_update_users.yml') {
        $c->detach;
    }
 
-   $c->stash->{template} = 'admin/create_update_user.tt2';
+   $c->stash->{template} = 'admin/create_update.tt2';
 }
 
 sub update_user :Local :FormConfig('admin/create_update_users.yml') {
@@ -207,7 +298,65 @@ sub update_user :Local :FormConfig('admin/create_update_users.yml') {
       $form->model->default_values($user)
     }
 
-    $c->stash->{template} = 'admin/create_update_user.tt2';
+    $c->stash->{template} = 'admin/create_update.tt2';
+}
+
+sub create_employee :Local :FormConfig('admin/create_update_employees.yml') {
+   my ($self, $c) = @_;
+
+   my $form = $c->stash->{form};
+
+   if ($form->submitted_and_valid) {
+       my $employee = $c->model('DB::Employee')->new_result({});
+       $form->model->update($employee);
+       $c->flash->{status_msg} = 'Employee created';
+       $c->response->redirect($c->uri_for($self->action_for('employees')));
+       $c->detach;
+   } else {
+       my @roleObjs = $c->model("DB::Role")->all();
+       my @roles;
+
+
+       foreach (@roleObjs) {
+           push(@roles, [$_->id, $_->name]);
+       }
+
+
+       my $select = $form->get_element({type => 'Select'});
+       $select->options(\@roles);
+   }
+
+   $c->stash->{template} = 'admin/create_update.tt2';
+}
+
+sub update_employee :Local :FormConfig('admin/create_update_employees.yml') {
+    my ($self, $c, $id) = @_;
+    my $employee = $c->model('DB::Employee')->find($id);
+    unless ($employee) {
+        $c->flash->{error_msg} = "Invalid employee -- Cannot edit";
+        $c->response->redirect($c->uri_for($self->action_for('employees')));
+        $c->detach;
+    }
+
+    my $form = $c->stash->{form};
+
+    if ($form->submitted_and_valid) {
+        $form->model->update($employee);
+        $c->flash->{status_msg} = 'Employee edited';
+        $c->response->redirect($c->uri_for($self->action_for('employees')));
+        $c->detach;
+    } else {
+        my @roleObjs = $c->model("DB::Role")->all();
+        my @roles;
+        foreach (@roleObjs) {
+            push(@roles, [$_->id, $_->name]);
+        }
+        my $select = $form->get_element({type => 'Select'});
+        $select->options(\@roles);
+        $form->model->default_values($employee)
+    }
+
+    $c->stash->{template} = 'admin/create_update.tt2';
 }
 
 =encoding utf8
