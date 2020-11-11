@@ -1,7 +1,9 @@
 [% META title = 'CRUD за Служители' -%]
+[% IF c.check_user_roles('Create Employee') %]
 <p>
   <a href="[% c.uri_for(c.controller.action_for('create_employee')) %]">Създай нов служител</a>
 </p>
+[% END %]
 <table>
 <tr><th>ID</th><th>Име</th><th>Потребителско Име</th><th>Имейл</th><th>Права</th><th>Действия</th></tr>
 [% FOREACH employee IN employees -%]
@@ -15,9 +17,11 @@
     [% employee.role.name %]
     [% END -%]
     </td>
+    [% IF c.check_user_roles('Update Employee') %]
     <td>
     <a href="[% c.uri_for('/admin/update_employee') %]/[% employee.employee.id || employee.id %]">Обнови Служителя</a>
     </td>
+    [% END %]
 
 
 

@@ -144,6 +144,19 @@ __PACKAGE__->deny_access_unless(
         "/admin/users",
         ['View Users'],
   );
+__PACKAGE__->deny_access_unless(
+        "/admin/employees",
+        ['View Employees'],
+  );
+__PACKAGE__->deny_access_unless(
+        "/admin/create_employee",
+        ['Create Employees'],
+  );
+__PACKAGE__->deny_access_unless(
+        "/admin/update_employee",
+        ['Update Employees'],
+  );
+
 
 
 

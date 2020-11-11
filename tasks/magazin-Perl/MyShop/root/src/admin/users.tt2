@@ -17,7 +17,7 @@
     [% user.address %]
     [% END -%]
     </td>
-    [% IF c.check_user_roles('Edit Users') %]
+    [% IF c.check_user_roles('Update Users') %]
     <td>
     <a href="[% c.uri_for('/admin/update_user') %]/[% user.user.id || user.id %]">Edit</a>
     </td>

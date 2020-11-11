@@ -21,7 +21,7 @@
     [% book.tag.name %]
     [% END -%]
     </td>
-    [% IF c.check_user_roles('Edit Products') %]
+    [% IF c.check_user_roles('Update Products') %]
     <td>
     <a href="[% c.uri_for('/admin/update') %]/[% book.product.id || book.id %]">Обнови Продукта</a>
     </td>

@@ -1,10 +1,11 @@
-package main 
+package main
 
 import "fmt"
 import "net"
 import "log"
 import "bufio"
 import "os"
+import "strings"
 
 
 func main(){
@@ -38,14 +39,14 @@ func handler(conn net.Conn) {
 
 	go readWrapper(conn, dataChan, errorChan)
 	data := <-dataChan
-	_ = data
-	//fmt.Println(string(data))
+	res1 := strings.Split(string(data), "\n")
+	_ = res1
 	// b := []byte("HTTP/1.1 200 OK Hello, World!")
 	conn.Write([]byte("HTTP/1.0 200 OK\r\nContent-Type:image/png\r\n\r\n"))
 	go ReadFile(conn)
-	
 
-   
+
+
 
 }
 
@@ -66,8 +67,8 @@ func readWrapper(conn net.Conn, dataChan chan []byte, errorChan chan error) {
 func ReadFile(conn net.Conn) {
 	defer removeClient(conn)
 
-   
-    f, err := os.Open("peng.png")
+
+    f, err := os.Open("discord-0.0.12.deb")
 
     if err != nil {
         log.Fatal(err)
@@ -75,7 +76,7 @@ func ReadFile(conn net.Conn) {
 
 
     reader := bufio.NewReader(f)
-    buf := make([]byte, 555)
+    buf := make([]byte, 65538)
 
     for {
 
