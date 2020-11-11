@@ -23,7 +23,7 @@
     </td>
     [% IF c.check_user_roles('Edit Products') %]
     <td>
-    <a href="[% c.uri_for('/admin/update') %]/[% book.product.id %]">Обнови Продукта</a>
+    <a href="[% c.uri_for('/admin/update') %]/[% book.product.id || book.id %]">Обнови Продукта</a>
     </td>
     [% END %]
 

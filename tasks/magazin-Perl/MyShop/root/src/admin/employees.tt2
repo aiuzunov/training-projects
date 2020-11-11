@@ -16,7 +16,7 @@
     [% END -%]
     </td>
     <td>
-    <a href="[% c.uri_for('/admin/update_employee') %]/[% employee.employee.id %]">Обнови Служителя</a>
+    <a href="[% c.uri_for('/admin/update_employee') %]/[% employee.employee.id || employee.id %]">Обнови Служителя</a>
     </td>
 
 
