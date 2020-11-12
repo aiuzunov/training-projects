@@ -79,6 +79,7 @@ sub complete_checkout :Local{
   my $payerID = $c->request->param('PayerID');
 
   my %details = $pp->GetExpressCheckoutDetails($token);
+  warn map { "$_ => $details{$_}\n" } keys %details;
 
 
   my %payinfo = $pp->DoExpressCheckoutPayment( Token => $details{Token},
@@ -87,7 +88,43 @@ sub complete_checkout :Local{
                                            OrderTotal => $total );
   warn map { "$_ => $payinfo{$_}\n" } keys %payinfo;
 
-  $c->stash(template => 'checkout/complete_checkout.tt2', details => %payinfo);
+  my $order_info =
+  {
+   user_id => $c->user->get('id'),
+   address_id => 2,
+   order_status => "Платена",
+   payment_id => $payinfo{TransactionID},
+   created => $payinfo{PaymentDate},
+   price => $payinfo{GrossAmount}
+  };
+
+  my $payment_info =
+  {
+   cancelled=>'false',
+   paid=>'true',
+   time_of_payment => $payinfo{PaymentDate},
+   recipient_name => $details{Name},
+   recipient_email => $details{Payer},
+   payerid => $details{PayerID},
+   paymentid => $payinfo{TransactionID},
+   paymenttoken => $payinfo{Token},
+   payment_sum => $payinfo{GrossAmount},
+   currency => 'EUR'
+ };
+  if($payinfo{Ack} eq 'Success'){
+  warn "KEKW";
+  warn "KEKW";
+
+  warn "KEKW";
+  warn "KEKW";
+  warn "KEKW";
+
+  $c->model('DB::Payment')->create($payment_info);
+
+  $c->model('DB::Order')->create($order_info);
+
+  }
+  $c->stash(template => 'checkout/order_finished.tt2', details => %payinfo);
 
 }
 

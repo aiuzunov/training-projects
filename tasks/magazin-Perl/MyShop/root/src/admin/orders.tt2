@@ -1,0 +1,53 @@
+[% META title = 'CRUD за Поръчки' -%]
+
+[% IF c.check_user_roles('Create Orders') %]
+<p>
+  <a href="[% c.uri_for(c.controller.action_for('create_order')) %]">Създай нова поръчка</a>
+</p>
+[% END %]
+
+<table>
+<tr>
+<th>ID</th>
+<th>Направена на</th>
+<th>ID на поръчителя</th>
+<th>Име на поръчителя</th>
+<th>E-mail на поръчителя</th>
+<th>PayPal ID на поръчката</th>
+<th>Статус на поръчката</th>
+<th>Обща сума на поръчката</th>
+<th>Продукти</th>
+</tr>
+[% FOREACH order IN orders -%]
+  <tr>
+    <td align="right">[% order.id %]</td>
+    <td align="right">[% order.created %]</td>
+    <td align="right">[% order.user_id %]</td>
+    <td align="right">[% order.user.name %]</td>
+    <td align="right">[% order.user.email %]</td>
+    <td align="right">[% order.payment_id %]</td>
+    <td align="right">[% order.order_status %]</td>
+    <td align = right>[% order.price %] [% order.currency %].</td>
+    <td align = center>
+    [% FOREACH order IN order.order_items -%]
+    [% order.product.name %]x[% order.quantity %]
+    [% END -%]
+    </td>
+    [% IF c.check_user_roles('Update Orders') %]
+    <td>
+    <a href="[% c.uri_for('/admin/update_order') %]/[% order.order.id || order.id %]">Обнови Поръчката</a>
+    </td>
+    [% END %]
+
+
+
+  </tr>
+[% END -%]
+</table>
+
+<footer>
+[% IF page - 1 > 0 %]
+   <a href="/admin/orders?page=[%page - 1%]">Previous Page</a>
+[% END %]
+   <a href="/admin/orders?page=[%page + 1%]">Next Page</a>
+</footer>

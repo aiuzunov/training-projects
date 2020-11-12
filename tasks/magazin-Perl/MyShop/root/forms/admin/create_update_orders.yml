@@ -1,0 +1,45 @@
+---
+
+indicator: submit
+elements:
+    - type: Number
+      name: user_id
+      label: Потребител
+      attributes:
+        title: Въведете id-то на потребителя тук
+
+    - type: Number
+      name: address_id
+      label: Адрес
+      attributes:
+        title: Въведете id-то на адреса тук
+
+    - type: Text
+      name: payment_id
+      label: ID на плащането
+      attributes:
+        title: Въведете ID на плащането тук
+
+    - type: Text
+      name: order_status
+      label: Статус на поръчката
+      attributes:
+        title: Въведете статуса на поръчката тук
+
+
+    - type: Number
+      name: price
+      label: Цена
+      attributes:
+        title: Въведете общата сума на поръчката тук
+
+
+    - type: Submit
+      name: submit
+      value: Добави/Обнови
+
+constraints:
+  - Required
+filter:
+  - TrimEdges
+  - HTMLEscape

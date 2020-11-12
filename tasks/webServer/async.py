@@ -77,8 +77,6 @@ def chunks(f):
 
 
 class RESP_METH:
-    request_methods = [b'GET', b'HEAD', b'POST', b'PUT', b'DELETE',
-                      b'CONNECT', b'OPTIONS', b'TRACE']
     response_phrases = {
         b'200': b'OK',
         b'400': b'Bad Request',

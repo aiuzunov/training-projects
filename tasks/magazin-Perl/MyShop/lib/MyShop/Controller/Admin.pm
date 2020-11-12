@@ -169,20 +169,11 @@ sub delete :Local{
 sub products :Local{
   my ($self, $c) = @_;
   my $page = $c->req->param('page');
-  if(looks_like_number($page)){
-  $c->stash(books => [$c->model('DB::Product')->search(undef, {
-         page => $page,
-         rows => 10,
-         join      => {'tags_products'=>'tag'},
-         order_by => {-asc => 'id'},
-         group_by => 'id',
 
-
-    })]);
-
-
-}else{
+  if(!looks_like_number($page)){
   $page = 1;
+  }
+
   $c->stash(books => [$c->model('DB::Product')->search(undef, {
          page => $page,
          rows => 10,
@@ -192,28 +183,42 @@ sub products :Local{
 
 
     })]);
-}
-$c->stash(template => 'admin/products.tt2',page => $page);
+
+  $c->stash(template => 'admin/products.tt2',page => $page);
 
 }
+
+sub orders :Local{
+  my ($self, $c) = @_;
+  my $page = $c->req->param('page');
+
+  if(!looks_like_number($page)){
+  $page = 1;
+  }
+
+  $c->stash(orders => [$c->model('DB::Order')->search(undef, {
+         page => $page,
+         rows => 10,
+         join      => {'order_items'=>'product','user'},
+         order_by => {-asc => 'id'},
+         group_by => 'id',
+
+
+    })]);
+
+
+  $c->stash(template => 'admin/orders.tt2',page => $page);
+
+  }
 
 sub employees :Local{
   my ($self, $c) = @_;
   my $page = $c->req->param('page');
-  if(looks_like_number($page)){
-  $c->stash(employees => [$c->model('DB::Employee')->search(undef, {
-         page => $page,
-         rows => 10,
-         join      => {'employee_roles'=>'role'},
-         order_by => {-asc => 'id'},
-         group_by => 'id',
 
-
-    })]);
-
-
-}else{
+  if(!looks_like_number($page)){
   $page = 1;
+  }
+
   $c->stash(employees => [$c->model('DB::Employee')->search(undef, {
          page => $page,
          rows => 10,
@@ -223,9 +228,8 @@ sub employees :Local{
 
 
     })]);
-}
-$c->stash(template => 'admin/employees.tt2',page => $page);
 
+  $c->stash(template => 'admin/employees.tt2',page => $page);
 }
 
 
@@ -233,30 +237,22 @@ $c->stash(template => 'admin/employees.tt2',page => $page);
 sub users :Local{
   my ($self, $c) = @_;
   my $page = $c->req->param('page');
-  if(looks_like_number($page)){
-  $c->stash(users => [$c->model('DB::User')->search(undef, {
-         page => $page,
-         rows => 10,
-         join      => 'addresses',
-         order_by => {-asc => 'id'},
-         group_by => 'id',
-    })]);
 
-
-}else{
+  if(!looks_like_number($page)){
   $page = 1;
+  }
+
   $c->stash(users => [$c->model('DB::User')->search(undef, {
          page => $page,
          rows => 10,
          join      => 'addresses',
          order_by => {-asc => 'id'},
          group_by => 'id',
-
-
     })]);
-}
-$c->stash(template => 'admin/users.tt2',page => $page);
 
+
+
+  $c->stash(template => 'admin/users.tt2',page => $page);
 }
 
 
@@ -300,6 +296,48 @@ sub update_user :Local :FormConfig('admin/create_update_users.yml') {
 
     $c->stash->{template} = 'admin/create_update.tt2';
 }
+
+sub create_order :Local :FormConfig('admin/create_update_orders.yml') {
+   my ($self, $c) = @_;
+
+   my $form = $c->stash->{form};
+
+   if ($form->submitted_and_valid) {
+       my $order = $c->model('DB::Order')->new_result({});
+       $form->model->update($order);
+       $c->flash->{status_msg} = 'Order created';
+       $c->response->redirect($c->uri_for($self->action_for('orders')));
+       $c->detach;
+   }
+
+   $c->stash->{template} = 'admin/create_update.tt2';
+}
+
+
+sub update_order :Local :FormConfig('admin/create_update_orders.yml') {
+    my ($self, $c, $id) = @_;
+    my $order = $c->model('DB::Order')->find($id);
+
+    unless ($order) {
+        $c->flash->{error_msg} = "Invalid Order -- Cannot edit";
+        $c->response->redirect($c->uri_for($self->action_for('orders')));
+        $c->detach;
+    }
+
+    my $form = $c->stash->{form};
+
+    if ($form->submitted_and_valid) {
+        $form->model->update($order);
+        $c->flash->{status_msg} = 'User edited';
+        $c->response->redirect($c->uri_for($self->action_for('orders')));
+        $c->detach;
+    }else{
+      $form->model->default_values($order)
+    }
+
+    $c->stash->{template} = 'admin/create_update.tt2';
+}
+
 
 sub create_employee :Local :FormConfig('admin/create_update_employees.yml') {
    my ($self, $c) = @_;
