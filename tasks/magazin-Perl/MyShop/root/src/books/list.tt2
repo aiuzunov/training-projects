@@ -13,10 +13,21 @@
             <td>Цена[До]:</td>
             <td><input type="Number" name="price2" size="13" min="0" step="any" /></td>
         </tc>
+        <tc>
+        <td>Жанрове:</td>
+        <td>
+        <select multiple name="tags" id="tags">
+        [% FOREACH tag IN select_tags -%]
+          <option value="[% tag.id %]">[% tag.name %]</option>
+        [% END %]
+        </select>
+        </td>
+        </tc>
             <input id="page" name="page" type="hidden" value="[% page %]">
         <tc>
             <td colspan="2"><input type="submit" name="submit" value="Submit" /></td>
         </tc>
+
     </table>
 </form>
 <table>
@@ -42,7 +53,7 @@
 [% END %]
 <footer >
 [% IF page - 1 > 0 %]
-<a href="/books/list?page=[%page - 1%]&name=[% search_name %]&price1=[% price1 %]&price2=[% price2 %]&submit=Prev">Previous Page</a>
+<a href="/books/list?page=[%page - 1%]&name=[% search_name %]&price1=[% price1 %]&price2=[% price2 %][% FOREACH tag IN tags -%]&tags=[% tag %][% END %]&submit=Prev">Previous Page</a>
 [% END %]
-   <a href="/books/list?page=[%page + 1%]&name=[% search_name %]&price1=[% price1 %]&price2=[% price2 %]&submit=Next">Next Page</a>
+<a href="/books/list?page=[%page + 1%]&name=[% search_name %]&price1=[% price1 %]&price2=[% price2 %][% FOREACH tag IN tags -%]&tags=[% tag %][% END %]&submit=Next">Next Page</a>
 </footer>

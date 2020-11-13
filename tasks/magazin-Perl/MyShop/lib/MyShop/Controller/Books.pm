@@ -74,21 +74,25 @@ sub list :Local {
     my $name = $c->request->param('name');
     my $price1 = $c->request->param('price1') || 0;
     my $price2 = $c->request->param('price2') || 100;
-
+    my @tags = $c->request->param('tags');
     my %filter;
-
+    
     if($name ne undef){
       $filter{name} = { like => '%'.$name.'%' };
     }
 
+    if(@tags != 0){
+      $filter{tag_id} = { in => [@tags] };
+    }
+
     $filter{price} = { '>=', $price1,'<=', $price2 };
 
-
+    warn @tags;
     if($c->req->param('submit') eq 'Submit'){
       $page = 1;
-      $c->stash(search_name => $name, price => $price1, price2 => $price2);
+      $c->stash(search_name => $name, price => $price1, price2 => $price2, tags => [@tags]);
     }else{
-      $c->stash(search_name => $name, price1 => $price1, price2 => $price2);
+      $c->stash(search_name => $name, price1 => $price1, price2 => $price2, tags => [@tags]);
     }
 
     if(!looks_like_number($page)){
@@ -102,6 +106,7 @@ sub list :Local {
            order_by => {-asc => 'id'},
            group_by => 'id',
       })]);
+    $c->stash(select_tags => [$c->model('DB::Tag')->all()]);
 
     $c->stash(template => 'books/list.tt2',page => $page);
 }
