@@ -1,4 +1,35 @@
 [% META title = 'CRUD за Продукти' -%]
+<form method="get" action="[% c.uri_for('/admin/products/') %]">
+    <table>
+        <tc>
+            <td>Име:</td>
+            <td><input type="text" name="name" size="13" /></td>
+        </tc>
+        <tc>
+            <td>Цена[От]:</td>
+            <td><input type="Number" name="price1" size="13" min="0" step="any" /></td>
+        </tc>
+        <tc>
+            <td>Цена[До]:</td>
+            <td><input type="Number" name="price2" size="13" min="0" step="any" /></td>
+        </tc>
+        <tc>
+        <td>Жанрове:</td>
+        <td>
+        <select multiple size="2" name="tags" id="tags">
+        [% FOREACH tag IN select_tags -%]
+          <option value="[% tag.id %]">[% tag.name %]</option>
+        [% END %]
+        </select>
+        </td>
+        </tc>
+            <input id="page" name="page" type="hidden" value="[% page %]">
+        <tc>
+            <td colspan="2"><input type="submit" name="submit" value="Submit" /></td>
+        </tc>
+
+    </table>
+</form>
 [% IF c.check_user_roles('Create Products') %]
 <p>
   <a href="[% c.uri_for(c.controller.action_for('create')) %]">Създай нов продукт</a>
@@ -38,9 +69,9 @@
 </ul>
 [% END %]
 
-<footer>
+<footer >
 [% IF page - 1 > 0 %]
-   <a href="/admin/products?page=[%page - 1%]">Previous Page</a>
+<a href="/admin/products?page=[%page - 1%]&name=[% search_name %]&price1=[% price1 %]&price2=[% price2 %][% FOREACH tag IN tags -%]&tags=[% tag %][% END %]&submit=Prev">Previous Page</a>
 [% END %]
-   <a href="/admin/products?page=[%page + 1%]">Next Page</a>
+<a href="/admin/products?page=[%page + 1%]&name=[% search_name %]&price1=[% price1 %]&price2=[% price2 %][% FOREACH tag IN tags -%]&tags=[% tag %][% END %]&submit=Next">Next Page</a>
 </footer>

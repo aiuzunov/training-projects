@@ -16,7 +16,7 @@
         <tc>
         <td>Жанрове:</td>
         <td>
-        <select multiple name="tags" id="tags">
+        <select multiple size="2" name="tags" id="tags">
         [% FOREACH tag IN select_tags -%]
           <option value="[% tag.id %]">[% tag.name %]</option>
         [% END %]

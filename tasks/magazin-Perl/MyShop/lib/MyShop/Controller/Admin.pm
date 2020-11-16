@@ -68,10 +68,10 @@ sub login :Local {
               $c->controller('Admin')->action_for('products')));
           return;
       } else {
-          $c->stash(error_msg => "Bad username or password.");
+          $c->stash(error_msg => "Грешно име или парола.");
       }
   } else {
-      $c->stash(error_msg => "Empty username or password.")
+      $c->stash(error_msg => "Невъведено име или парола.")
           unless ($c->user_exists);
   }
 
@@ -97,7 +97,7 @@ sub create :Local :FormConfig('admin/create_update.yml') {
    if ($form->submitted_and_valid) {
        my $book = $c->model('DB::Product')->new_result({});
        $form->model->update($book);
-       $c->flash->{status_msg} = 'Book created';
+       $c->flash->{status_msg} = 'Успешно създадохте нова книга';
        $c->response->redirect($c->uri_for($self->action_for('products')));
        $c->detach;
    } else {
@@ -122,7 +122,7 @@ sub update :Local :FormConfig('admin/create_update.yml') {
     my $book = $c->model('DB::Product')->find($id);
     $c->log->debug("Value of \$id is: ".$id);
     unless ($book) {
-        $c->flash->{error_msg} = "Invalid book -- Cannot edit";
+        $c->flash->{error_msg} = "Несъществуваща книга -- не може да се обнови";
         $c->response->redirect($c->uri_for($self->action_for('products')));
         $c->detach;
     }
@@ -131,7 +131,7 @@ sub update :Local :FormConfig('admin/create_update.yml') {
 
     if ($form->submitted_and_valid) {
         $form->model->update($book);
-        $c->flash->{status_msg} = 'Book edited';
+        $c->flash->{status_msg} = 'Книгата беше успешно обновена';
         $c->response->redirect($c->uri_for($self->action_for('products')));
         $c->detach;
     } else {
@@ -169,20 +169,41 @@ sub delete :Local{
 sub products :Local{
   my ($self, $c) = @_;
   my $page = $c->req->param('page');
+  my $name = $c->request->param('name');
+  my $price1 = $c->request->param('price1') || 0;
+  my $price2 = $c->request->param('price2') || 100;
+  my @tags = $c->request->param('tags');
+  my %filter;
+
+  if($name ne undef){
+    $filter{name} = { like => '%'.$name.'%' };
+  }
+
+  if(@tags != 0){
+    $filter{tag_id} = { in => [@tags] };
+  }
+
+  $filter{price} = { '>=', $price1,'<=', $price2 };
+
+  if($c->req->param('submit') eq 'Submit'){
+    $page = 1;
+    $c->stash(search_name => $name, price => $price1, price2 => $price2, tags => [@tags]);
+  }else{
+    $c->stash(search_name => $name, price1 => $price1, price2 => $price2, tags => [@tags]);
+  }
 
   if(!looks_like_number($page)){
   $page = 1;
   }
 
-  $c->stash(books => [$c->model('DB::Product')->search(undef, {
+  $c->stash(books => [$c->model('DB::Product')->search({%filter}, {
          page => $page,
          rows => 10,
          join      => {'tags_products'=>'tag'},
          order_by => {-asc => 'id'},
          group_by => 'id',
-
-
     })]);
+  $c->stash(select_tags => [$c->model('DB::Tag')->all()]);
 
   $c->stash(template => 'admin/products.tt2',page => $page);
 
@@ -202,8 +223,6 @@ sub orders :Local{
          join      => {'order_items'=>'product','user'},
          order_by => {-asc => 'id'},
          group_by => 'id',
-
-
     })]);
 
 
@@ -225,8 +244,6 @@ sub employees :Local{
          join      => {'employee_roles'=>'role'},
          order_by => {-asc => 'id'},
          group_by => 'id',
-
-
     })]);
 
   $c->stash(template => 'admin/employees.tt2',page => $page);
@@ -264,7 +281,7 @@ sub create_user :Local :FormConfig('admin/create_update_users.yml') {
    if ($form->submitted_and_valid) {
        my $user = $c->model('DB::User')->new_result({});
        $form->model->update($user);
-       $c->flash->{status_msg} = 'User created';
+       $c->flash->{status_msg} = 'Успешно създадохте нов потребител';
        $c->response->redirect($c->uri_for($self->action_for('users')));
        $c->detach;
    }
@@ -278,7 +295,7 @@ sub update_user :Local :FormConfig('admin/create_update_users.yml') {
     $c->log->debug("Value of \$id is: ".$id);
     $c->log->debug($user->name);
     unless ($user) {
-        $c->flash->{error_msg} = "Invalid User -- Cannot edit";
+        $c->flash->{error_msg} = "Несъществуващ потребител -- не може да се обнови";
         $c->response->redirect($c->uri_for($self->action_for('users')));
         $c->detach;
     }
@@ -287,7 +304,7 @@ sub update_user :Local :FormConfig('admin/create_update_users.yml') {
 
     if ($form->submitted_and_valid) {
         $form->model->update($user);
-        $c->flash->{status_msg} = 'User edited';
+        $c->flash->{status_msg} = 'Потребителят беше успешно обновен';
         $c->response->redirect($c->uri_for($self->action_for('users')));
         $c->detach;
     }else{
@@ -305,7 +322,7 @@ sub create_order :Local :FormConfig('admin/create_update_orders.yml') {
    if ($form->submitted_and_valid) {
        my $order = $c->model('DB::Order')->new_result({});
        $form->model->update($order);
-       $c->flash->{status_msg} = 'Order created';
+       $c->flash->{status_msg} = 'Успешно създадохте нова поръчка';
        $c->response->redirect($c->uri_for($self->action_for('orders')));
        $c->detach;
    }
@@ -319,7 +336,7 @@ sub update_order :Local :FormConfig('admin/create_update_orders.yml') {
     my $order = $c->model('DB::Order')->find($id);
 
     unless ($order) {
-        $c->flash->{error_msg} = "Invalid Order -- Cannot edit";
+        $c->flash->{error_msg} = "Несъществуваща поръчка -- не може да се обнови";
         $c->response->redirect($c->uri_for($self->action_for('orders')));
         $c->detach;
     }
@@ -328,7 +345,7 @@ sub update_order :Local :FormConfig('admin/create_update_orders.yml') {
 
     if ($form->submitted_and_valid) {
         $form->model->update($order);
-        $c->flash->{status_msg} = 'User edited';
+        $c->flash->{status_msg} = 'Поръчката беше успешно обновена';
         $c->response->redirect($c->uri_for($self->action_for('orders')));
         $c->detach;
     }else{
@@ -347,7 +364,7 @@ sub create_employee :Local :FormConfig('admin/create_update_employees.yml') {
    if ($form->submitted_and_valid) {
        my $employee = $c->model('DB::Employee')->new_result({});
        $form->model->update($employee);
-       $c->flash->{status_msg} = 'Employee created';
+       $c->flash->{status_msg} = 'Успешно създадохте нов служител';
        $c->response->redirect($c->uri_for($self->action_for('employees')));
        $c->detach;
    } else {
@@ -371,7 +388,7 @@ sub update_employee :Local :FormConfig('admin/create_update_employees.yml') {
     my ($self, $c, $id) = @_;
     my $employee = $c->model('DB::Employee')->find($id);
     unless ($employee) {
-        $c->flash->{error_msg} = "Invalid employee -- Cannot edit";
+        $c->flash->{error_msg} = "Несъществуващ служител -- не може да се обнови";
         $c->response->redirect($c->uri_for($self->action_for('employees')));
         $c->detach;
     }
@@ -380,7 +397,7 @@ sub update_employee :Local :FormConfig('admin/create_update_employees.yml') {
 
     if ($form->submitted_and_valid) {
         $form->model->update($employee);
-        $c->flash->{status_msg} = 'Employee edited';
+        $c->flash->{status_msg} = 'Служителят беше успешно обновен';
         $c->response->redirect($c->uri_for($self->action_for('employees')));
         $c->detach;
     } else {

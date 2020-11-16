@@ -315,8 +315,7 @@ CREATE TABLE public.orders (
     id bigint NOT NULL,
     user_id bigint,
     address_id bigint NOT NULL,
-    payment_id text NOT NULL,
-    created timestamp without time zone NOT NULL,
+    created timestamp without time zone DEFAULT now() NOT NULL,
     order_status text NOT NULL,
     price numeric NOT NULL,
     currency text DEFAULT 'EUR'::text
@@ -361,7 +360,8 @@ CREATE TABLE public.payments (
     paymentid text NOT NULL,
     paymenttoken text NOT NULL,
     payment_sum numeric NOT NULL,
-    currency text NOT NULL
+    currency text NOT NULL,
+    order_id bigint
 );
 
 
@@ -771,6 +771,7 @@ COPY public.addresses (id, user_id, address, city, postalcode, country) FROM std
 2	2	adasd	asdasd	12123	asdasdasd
 3	2	Младост 2	София	1799	България
 4	3	ж.к. Младост 2, бл.205Б, вх.1,ет.1,ап.1	София	1799	България
+12	4	TESTOV ADRES	Sofia	1788	Bulgaria
 \.
 
 
@@ -875,13 +876,7 @@ COPY public.lock_settings (firstlock, secondlock, timeafterfirstlock, timeafters
 --
 
 COPY public.order_items (id, order_id, product_id, quantity, product_price) FROM stdin;
-1	5	13	1	\N
-2	5	11	1	\N
-3	6	13	5	\N
-4	6	14	6	\N
-5	7	10	5	\N
-6	7	9	10	\N
-7	7	8	15	\N
+14	35	5	3	87.32
 \.
 
 
@@ -889,10 +884,8 @@ COPY public.order_items (id, order_id, product_id, quantity, product_price) FROM
 -- Data for Name: orders; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.orders (id, user_id, address_id, payment_id, created, order_status, price, currency) FROM stdin;
-5	2	1	PAYID-L5D6DHI7E719888BU614693D	2020-08-27 19:39:09	В процес на обработка	158.14	EUR
-7	2	3	PAYID-L5JF2FI71K79866F0312854H	2020-09-04 18:28:46	В процес на обработка	1392.50	EUR
-6	2	4	PAYID-L5IPW2I94C39783EF201414L	2020-09-03 17:20:47	В процес на обработка	737.04	EUR
+COPY public.orders (id, user_id, address_id, created, order_status, price, currency) FROM stdin;
+35	4	12	2020-11-16 16:46:32.222026	Платена	261.96	EUR
 \.
 
 
@@ -900,11 +893,19 @@ COPY public.orders (id, user_id, address_id, payment_id, created, order_status, 
 -- Data for Name: payments; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.payments (id, cancelled, paid, time_of_payment, recipient_name, recipient_email, payerid, paymentid, paymenttoken, payment_sum, currency) FROM stdin;
-5	false	true	27/8/2020 @ 19:39:9	John Doe	sb-hjt47z2813620@personal.example.com	39ZMUUFAQAUGQ	PAYID-L5D6DHI7E719888BU614693D	EC-5CT15377MK617330K	158.14	EUR
-6	false	true	3/9/2020 @ 17:20:47	John Doe	sb-hjt47z2813620@personal.example.com	39ZMUUFAQAUGQ	PAYID-L5IPW2I94C39783EF201414L	EC-8HR95537AY289825B	737.04	EUR
-7	false	true	4/9/2020 @ 18:28:46	John Doe	sb-hjt47z2813620@personal.example.com	39ZMUUFAQAUGQ	PAYID-L5JF2FI71K79866F0312854H	EC-2WH19394DW722115H	1392.50	EUR
-8	false	true	9/9/2020 @ 15:31:19	John Doe	sb-hjt47z2813620@personal.example.com	39ZMUUFAQAUGQ	PAYID-L5MMV7I0PS11758CN378021C	EC-76889553VU6062317	167.14	EUR
+COPY public.payments (id, cancelled, paid, time_of_payment, recipient_name, recipient_email, payerid, paymentid, paymenttoken, payment_sum, currency, order_id) FROM stdin;
+5	false	true	27/8/2020 @ 19:39:9	John Doe	sb-hjt47z2813620@personal.example.com	39ZMUUFAQAUGQ	PAYID-L5D6DHI7E719888BU614693D	EC-5CT15377MK617330K	158.14	EUR	\N
+6	false	true	3/9/2020 @ 17:20:47	John Doe	sb-hjt47z2813620@personal.example.com	39ZMUUFAQAUGQ	PAYID-L5IPW2I94C39783EF201414L	EC-8HR95537AY289825B	737.04	EUR	\N
+7	false	true	4/9/2020 @ 18:28:46	John Doe	sb-hjt47z2813620@personal.example.com	39ZMUUFAQAUGQ	PAYID-L5JF2FI71K79866F0312854H	EC-2WH19394DW722115H	1392.50	EUR	\N
+8	false	true	9/9/2020 @ 15:31:19	John Doe	sb-hjt47z2813620@personal.example.com	39ZMUUFAQAUGQ	PAYID-L5MMV7I0PS11758CN378021C	EC-76889553VU6062317	167.14	EUR	\N
+9	false	true	2020-11-16T10:28:45Z	John Doe	sb-hjt47z2813620@personal.example.com	39ZMUUFAQAUGQ	9XG10526JV0516125	EC-9A90623998359474J	87.32	EUR	\N
+10	false	true	2020-11-16T10:30:51Z	John Doe	sb-hjt47z2813620@personal.example.com	39ZMUUFAQAUGQ	1JU83047AF119744B	EC-58G21439WV504950U	87.32	EUR	\N
+11	false	true	2020-11-16T10:33:47Z	John Doe	sb-hjt47z2813620@personal.example.com	39ZMUUFAQAUGQ	0BA49804PB349372A	EC-2BK7271904455104J	87.32	EUR	\N
+12	false	true	2020-11-16T10:38:22Z	John Doe	sb-hjt47z2813620@personal.example.com	39ZMUUFAQAUGQ	7P8358508T5795222	EC-8WF99989E76845115	87.32	EUR	\N
+13	false	true	2020-11-16T11:07:06Z	John Doe	sb-hjt47z2813620@personal.example.com	39ZMUUFAQAUGQ	4YE63152AE2392352	EC-2GW61469R09475047	87.32	EUR	\N
+14	false	true	2020-11-16T11:21:37Z	John Doe	sb-hjt47z2813620@personal.example.com	39ZMUUFAQAUGQ	7HS167547N377392D	EC-0RF39973YY698953X	87.32	EUR	\N
+15	false	true	2020-11-16T11:59:07Z	John Doe	sb-hjt47z2813620@personal.example.com	39ZMUUFAQAUGQ	605031102N2981342	EC-17H86698WE3146748	87.32	EUR	\N
+16	false	true	2020-11-16T15:03:45Z	John Doe	sb-hjt47z2813620@personal.example.com	39ZMUUFAQAUGQ	4FR163690Y453642H	EC-7R907922NR6356414	261.96	EUR	\N
 \.
 
 
@@ -15933,10 +15934,10 @@ COPY public.products (id, name, image, price, count_in_stock, has_image, descrip
 15001	Книга14996	./public/Книга14996.png	36.52	8	t	Рандом описание14996	EUR	2020-08-27 15:35:15	\N	No brand
 15002	Книга14997	./public/Книга14997.png	6.13	13	t	Рандом описание14997	EUR	2020-08-27 15:35:15	\N	No brand
 15003	Книга14998	./public/Книга14998.png	74.32	15	t	Рандом описание14998	EUR	2020-08-27 15:35:15	\N	No brand
-5	Книга0	./public/Книга0.png	87.32	212	t	Рандом описание0	EUR	2020-08-27 15:29:11	\N	No brand
 6	Книга1	./public/Книга1.png	11.45	123	t	Рандом описание1	EUR	2020-08-27 15:29:11	\N	No brand
 15006	albaal	asdasd	12.12	12	f	dadada	EUR	2020-11-06 18:08:37.273153	\N	No brand
 15007	Изображение696969	xDXXDXDX	23.50	23	f	Kratko opisanie	EUR	2020-11-09 11:57:44.001627	\N	No brand
+5	Книга0	./public/Книга0.png	87.32	97	t	Рандом описание0	EUR	2020-08-27 15:29:11	\N	No brand
 \.
 
 
@@ -61020,7 +61021,7 @@ COPY public.users (id, name, username, email, verified, password, create_date, l
 -- Name: addresses_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.addresses_id_seq', 4, true);
+SELECT pg_catalog.setval('public.addresses_id_seq', 14, true);
 
 
 --
@@ -61062,21 +61063,21 @@ SELECT pg_catalog.setval('public.lock_settings_id_seq', 1, true);
 -- Name: order_items_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.order_items_id_seq', 9, true);
+SELECT pg_catalog.setval('public.order_items_id_seq', 14, true);
 
 
 --
 -- Name: orders_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.orders_id_seq', 8, true);
+SELECT pg_catalog.setval('public.orders_id_seq', 35, true);
 
 
 --
 -- Name: payments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.payments_id_seq', 8, true);
+SELECT pg_catalog.setval('public.payments_id_seq', 16, true);
 
 
 --
@@ -61392,6 +61393,14 @@ ALTER TABLE ONLY public.employees
 
 
 --
+-- Name: payments fk_orderpayments; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.payments
+    ADD CONSTRAINT fk_orderpayments FOREIGN KEY (order_id) REFERENCES public.orders(id);
+
+
+--
 -- Name: order_items order_items_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -61413,14 +61422,6 @@ ALTER TABLE ONLY public.order_items
 
 ALTER TABLE ONLY public.orders
     ADD CONSTRAINT orders_address_id_fkey FOREIGN KEY (address_id) REFERENCES public.addresses(id);
-
-
---
--- Name: orders orders_payment_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.orders
-    ADD CONSTRAINT orders_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES public.payments(paymentid);
 
 
 --

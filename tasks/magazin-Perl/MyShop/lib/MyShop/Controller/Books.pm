@@ -76,7 +76,7 @@ sub list :Local {
     my $price2 = $c->request->param('price2') || 100;
     my @tags = $c->request->param('tags');
     my %filter;
-    
+
     if($name ne undef){
       $filter{name} = { like => '%'.$name.'%' };
     }
@@ -87,7 +87,6 @@ sub list :Local {
 
     $filter{price} = { '>=', $price1,'<=', $price2 };
 
-    warn @tags;
     if($c->req->param('submit') eq 'Submit'){
       $page = 1;
       $c->stash(search_name => $name, price => $price1, price2 => $price2, tags => [@tags]);
