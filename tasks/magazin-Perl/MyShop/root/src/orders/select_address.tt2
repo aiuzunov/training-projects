@@ -1,0 +1,22 @@
+[% META title = 'Адрес за Доставка' -%]
+
+<p> Моля, изберете адрес за доставка </p>
+</form>
+<form method="post" action="[% c.uri_for('/orders/create_order') %]">
+    <table>
+        <tr>
+            <td colspan="2">
+              <select name="address" id="address">
+              [% FOREACH address IN addresses -%]
+              <option value="[% address.id %]">[% address.address %]</option>
+              [% END -%]
+              </select>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2"><input type="submit" name="submit" value="Създай поръчка" /></td>
+        </tr>
+    </table>
+</form>
+
+<p> Ако полето за избор е празно, моля кликнете <a href="/profile/address_form">ТУК</a> за да добавите адрес </p>

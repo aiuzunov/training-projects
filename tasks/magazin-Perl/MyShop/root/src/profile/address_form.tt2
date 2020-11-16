@@ -1,0 +1,23 @@
+<form method="post" action="[% c.uri_for('/profile/add_address') %]">
+    <table>
+        <tr>
+            <td>Адрес:</td>
+            <td><input type="text" name="address" size="40" /></td>
+        </tr>
+        <tr>
+            <td>Град:</td>
+            <td><input type="text" name="city" size="40" /></td>
+        </tr>
+        <tr>
+            <td>Пощенски код:</td>
+            <td><input type="number" name="postal_code" size="40" /></td>
+        </tr>
+        <tr>
+            <td>Държава:</td>
+            <td><input type="text" name="country" size="40" /></td>
+        </tr>
+        <tr>
+            <td colspan="2"><input type="submit" name="submit" value="Добави адрес" /></td>
+        </tr>
+    </table>
+</form>

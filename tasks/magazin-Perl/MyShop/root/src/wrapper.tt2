@@ -21,6 +21,7 @@
             %]" title="Catalyst Welcome Page">Начална страница</a></li>
         <li><a href="[% c.uri_for('/books/list') %]">Книги</a></li>
         <li><a href="[% c.uri_for('/cart/list') %]">Количка</a></li>
+        <li><a href="[% c.uri_for('/profile') %]">Профил</a></li>
 
 
 

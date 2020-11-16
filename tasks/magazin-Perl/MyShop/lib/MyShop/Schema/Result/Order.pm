@@ -61,16 +61,12 @@ __PACKAGE__->table("orders");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 payment_id
-
-  data_type: 'text'
-  is_foreign_key: 1
-  is_nullable: 0
-
 =head2 created
 
   data_type: 'timestamp'
+  default_value: current_timestamp
   is_nullable: 0
+  original: {default_value => \"now()"}
 
 =head2 order_status
 
@@ -102,10 +98,13 @@ __PACKAGE__->add_columns(
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
   "address_id",
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
-  "payment_id",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "created",
-  { data_type => "timestamp", is_nullable => 0 },
+  {
+    data_type     => "timestamp",
+    default_value => \"current_timestamp",
+    is_nullable   => 0,
+    original      => { default_value => \"now()" },
+  },
   "order_status",
   { data_type => "text", is_nullable => 0 },
   "price",
@@ -158,19 +157,19 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 payment
+=head2 payments
 
-Type: belongs_to
+Type: has_many
 
 Related object: L<MyShop::Schema::Result::Payment>
 
 =cut
 
-__PACKAGE__->belongs_to(
-  "payment",
+__PACKAGE__->has_many(
+  "payments",
   "MyShop::Schema::Result::Payment",
-  { paymentid => "payment_id" },
-  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
+  { "foreign.order_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
 =head2 user
@@ -194,8 +193,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-11-04 13:29:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+i+nd0L5jDNwLfj+L5iwqA
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-11-16 16:07:16
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nJYrE12IAjyOAdkeS2C//Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

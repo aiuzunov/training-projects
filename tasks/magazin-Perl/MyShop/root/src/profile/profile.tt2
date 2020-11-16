@@ -1,0 +1,4 @@
+[% META title = 'Профил на потребителя' -%]
+
+<h3> <a href="[% c.uri_for('/profile/orders') %]">Към вашите поръчки</a></h3>
+<h3> <a href="[% c.uri_for('/profile/address_form') %]">Добави адрес</a></h3>

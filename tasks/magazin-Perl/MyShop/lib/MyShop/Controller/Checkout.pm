@@ -1,4 +1,6 @@
 use Business::PayPal::API::ExpressCheckout;
+use Business::PayPal::API qw(GetTransactionDetails);
+use Net::Ping;
 package MyShop::Controller::Checkout;
 use Moose;
 use namespace::autoclean;
@@ -30,29 +32,15 @@ sandbox => 1);
 sub index :Path :Args(0) {
   my ( $self, $c, @args ) = @_;
 
-  my $cart = $c->session->{cart} || {};
+  my $order_id = $c->req->param('order_id');
 
-  my $total = 0;
-  my $storage = $c->model("DB::Product");
+  my $order = $c->model('DB::Order')->find($order_id);
 
-  my %items = map { $_ => $storage->find($_) } keys %$cart;
-
-  $c->stash->{cart}{items} = \%items;
-  $c->stash->{cart}{quantity} = $cart;
-
-  foreach my $key (keys %items) {
-      $total = $total + $c->stash->{cart}{quantity}{$key}*$c->stash->{cart}{items}{$key}->price;
-  }
-
-  # my $pp = Business::PayPal::API::ExpressCheckout->new(Username => 'sb-2aq3v2815957_api1.business.example.com',
-  # Password => 'BK55YE8KXTJHSYA5',
-  # Signature =>'AHi5kCWjEq.udzx2AIUWZXBohPSqAud1MiHnF0Kj8FxZ8Ytc7MAqNdHz',
-  # sandbox => 1);
-
+  my $total = $order->get_column('price');
 
   my %resp = $pp->SetExpressCheckout(
                   OrderTotal => $total,
-                  ReturnURL  => "http://localhost:3000/checkout/complete_checkout/$total",
+                  ReturnURL  => "http://localhost:3000/checkout/complete_checkout/$total/$order_id",
                   CancelURL  => 'http://localhost:3000/checkout/cancel'
                   );
   if( $resp{Ack} ne 'Success' ) {
@@ -74,29 +62,24 @@ sub index :Path :Args(0) {
 }
 
 sub complete_checkout :Local{
-  my ( $self, $c, $total ) = @_;
+  my ( $self, $c, $total, $order_id ) = @_;
   my $token = $c->request->param('token');
   my $payerID = $c->request->param('PayerID');
 
+
+  warn $order_id, $total;
+
+
   my %details = $pp->GetExpressCheckoutDetails($token);
-  warn map { "$_ => $details{$_}\n" } keys %details;
 
 
   my %payinfo = $pp->DoExpressCheckoutPayment( Token => $details{Token},
                                            PaymentAction => 'Sale',
                                            PayerID => $details{PayerID},
                                            OrderTotal => $total );
+
   warn map { "$_ => $payinfo{$_}\n" } keys %payinfo;
 
-  my $order_info =
-  {
-   user_id => $c->user->get('id'),
-   address_id => 2,
-   order_status => "Платена",
-   payment_id => $payinfo{TransactionID},
-   created => $payinfo{PaymentDate},
-   price => $payinfo{GrossAmount}
-  };
 
   my $payment_info =
   {
@@ -112,24 +95,41 @@ sub complete_checkout :Local{
    currency => 'EUR'
  };
   if($payinfo{Ack} eq 'Success'){
-  warn "KEKW";
-  warn "KEKW";
-
-  warn "KEKW";
-  warn "KEKW";
-  warn "KEKW";
-
-  $c->model('DB::Payment')->create($payment_info);
-
-  $c->model('DB::Order')->create($order_info);
-
+    $c->model('DB::Order')->find($order_id)->update({order_status => 'Платена'});
+    $c->model('DB::Payment')->create($payment_info);
   }
+  warn map { "$_ => $payinfo{$_}\n" } keys %payinfo;
+
+  # else{
+  #   my %transaction = $pp->GetTransactionDetails( TransactionID => $payinfo{TransactionID} );
+  #   if($transaction{PaymentStatus} eq 'Completed'){
+  #     $c->model('DB::Payment')->create($payment_info);
+  #
+  #     $c->model('DB::Order')->create($order_info);
+  #   }else{
+  #     my $p = Net::Ping->new("icmp");
+  #     while (!$p->ping("8.8.4.4", 3)) {};
+  #       my %transaction = $pp->GetTransactionDetails( TransactionID => 'EC-8WF99989E76845115' );
+  #   }
+  #
+  # }
+
   $c->stash(template => 'checkout/order_finished.tt2', details => %payinfo);
 
 }
 
 
+sub test_details :Local{
+  my ( $self, $c, $total ) = @_;
+  my $p = Net::Ping->new("icmp");
+  if ($p->ping("8.8.4.4", 10)) {
+    my %transaction = $pp->GetTransactionDetails( TransactionID => 'EC-8WF99989E76845115' );
+    warn map { "$_ => $transaction{$_}\n" } keys %transaction;
+  }else{
+    warn "NO INTERNET CONNECTION";
+  }
 
+}
 
 
 
