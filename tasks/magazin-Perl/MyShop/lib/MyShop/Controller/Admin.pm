@@ -453,6 +453,13 @@ sub order_stats :Local{
   my $page = $c->req->param('page');
   my %filter;
 
+  if($c->req->param('submit') eq 'Submit'){
+    $page = 1;
+    $c->stash(sort_by => $sort_by, order_status=>$order_status);
+  }else{
+    $c->stash(sort_by => $sort_by, order_status=>$order_status);
+  }
+
   if($order_status ne undef){
     $filter{order_status} = { '=', $order_status };
   }
@@ -460,21 +467,33 @@ sub order_stats :Local{
   if(!looks_like_number($page)){
   $page = 1;
   }
-
+  if($sort_by eq 'me.user_id'){
   $c->stash(orders => [$c->model('DB::Order')->search({%filter},{
-    # columns  => [
-    #     { id  => \"MAX(id)" },
-    #     { user_id      => \"MAX(user_id)" },
-    #     { created => \"MAX(created)" },
-    #     { price => \"SUM(price)"},
-    #     ],
+        columns  => [
+            { id  => \"COUNT(id)" },
+            { user_id      => \"user_id" },
+            { price => \"SUM(price)"},
+            { currency => \'MAX(currency)'}
+            ],
          page => $page,
          rows => 10,
          join => {'order_items'=>'product','user'},
          group_by => 'user_id'
     })]);
-
-
+  }else{
+    $c->stash(orders => [$c->model('DB::Order')->search({%filter},{
+          columns  => [
+              { id  => \"COUNT(me.id)" },
+              { price => \"SUM(me.price)"},
+              { currency => \'MAX(currency)'},
+              { user_id => \'EXTRACT(MONTH from created)'},
+              ],
+           page => $page,
+           rows => 10,
+           join => {'order_items'=>'product','user'},
+           group_by => \'EXTRACT(MONTH from created)'
+      })]);
+  }
   $c->stash->{template} = 'admin/order_stats.tt2';
 }
 
@@ -483,19 +502,50 @@ sub order_stats :Local{
 sub user_stats :Local{
   my ($self, $c) = @_;
 
+  my $sort_by = $c->request->param('sort_by') || 'me.id';
+
+  my $verified = $c->request->param('verified');
+
   my $page = $c->req->param('page');
+  my %filter;
+  if($c->req->param('submit') eq 'Submit'){
+    $page = 1;
+    $c->stash(sort_by => $sort_by, verified=>$verified);
+  }else{
+    $c->stash(sort_by => $sort_by, verified=>$verified);
+  }
+
+  if($verified ne undef){
+    $filter{verified} = { '=', $verified };
+  }
 
   if(!looks_like_number($page)){
   $page = 1;
   }
 
-  $c->stash(users => [$c->model('DB::User')->search(undef, {
+  if($sort_by eq 'me.create_date'){
+  $c->stash(users => [$c->model('DB::User')->search({%filter}, {
+        columns  => [
+            { id  => \"COUNT(me.id)" },
+            { email => \'EXTRACT(MONTH from create_date)'},
+            ],
          page => $page,
          rows => 10,
          join      => 'addresses',
-         order_by => {-asc => 'id'},
-         group_by => 'id',
+         group_by => \'EXTRACT(MONTH from create_date)'
     })]);
+  }else{
+    $c->stash(users => [$c->model('DB::User')->search({%filter}, {
+          columns  => [
+              { id  => \"COUNT(me.id)" },
+              { verified  => \"verified" },
+              ],
+           page => $page,
+           rows => 10,
+           join      => 'addresses',
+           group_by => 'verified',
+      })]);
+  }
 
 
 

@@ -5,7 +5,7 @@
 </p>
 [% END %]
 <table>
-<tr><th>Дата на регистрация</th><th>Потребителско име</th><th>Име</th><th>Имейл</th><th>Адрес</th><th>Действия</th></tr>
+<tr><th>Дата на регистрация</th><th>Потребителско име</th><th>Име</th><th>Имейл</th><th>Адрес</th><th>Потвърден</th><th>Действия</th></tr>
 [% FOREACH user IN users -%]
   <tr>
     <td>[% user.create_date %]</td>
@@ -16,6 +16,13 @@
     [% FOREACH user IN user.addresses -%]
     [% user.address %]
     [% END -%]
+    </td>
+    <td>
+    [% IF user.verified || user.user.verified %]
+    Дa
+    [% ELSE %]
+    Не
+    [% END %]
     </td>
     [% IF c.check_user_roles('Update Users') %]
     <td>

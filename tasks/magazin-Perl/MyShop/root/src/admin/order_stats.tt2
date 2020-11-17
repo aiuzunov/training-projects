@@ -1,10 +1,10 @@
 [% META title = 'Справка за Поръчки' -%]
-<form method="get" action="[% c.uri_for('/admin/order_stats/') %]">
+<form method="get" action="[% c.uri_for('/admin/order_stats') %]">
     <table>
         <tc>
         <td>Статус:</td>
         <td>
-        <select multiple size="2" name="order_status" id="order_status">
+        <select name="order_status" id="order_status">
         <option value="Неплатена">Неплатена</option>
         <option value="Платена">Платена</option>
         </select>
@@ -28,37 +28,39 @@
 </form>
 <table>
 <tr>
-<th>ID</th>
-<th>Направена на</th>
+[% IF sort_by == 'me.user_id' %]
 <th>ID на поръчителя</th>
 <th>Име на поръчителя</th>
 <th>E-mail на поръчителя</th>
-<th>PayPal ID на поръчката</th>
-<th>Статус на поръчката</th>
-<th>Обща сума на поръчката</th>
-<th>Продукти</th>
+[% END %]
+[% IF sort_by == 'me.created' %]
+<th>МЕСЕЦ</th>
+[% END %]
+<th>Брой поръчки</th>
+<th>Обща сума на поръчките</th>
+
+
 </tr>
 [% FOREACH order IN orders -%]
   <tr>
-    <td align="right">[% order.id %]</td>
-    <td align="right">[% order.created %]</td>
+    [% IF sort_by == 'me.user_id' %]
     <td align="right">[% order.user_id %]</td>
     <td align="right">[% order.user.name %]</td>
     <td align="right">[% order.user.email %]</td>
-    <td align="right">[% order.payment_id %]</td>
-    <td align="right">[% order.order_status %]</td>
+    [% END %]
+    [% IF sort_by == 'me.created' %]
+    <td>[% order.user_id %]</td>
+    [% END %]
+    <td align="right">[% order.id %]</td>
     <td align = right>[% order.price %] [% order.currency %].</td>
-    <td align = center>
-    [% FOREACH order IN order.order_items -%]
-    [% order.product.name %]x[% order.quantity %]
-    [% END -%]
-    </td>
+
+
   </tr>
 [% END -%]
 </table>
 <footer>
 [% IF page - 1 > 0 %]
-   <a href="/admin/orders?page=[%page - 1%]&order_status=[% order_status %]&id=[% order_id %]&price1=[% price1 %]&price2=[% price2 %]">Previous Page</a>
+   <a href="/admin/orders?page=[%page - 1%]&order_status=[% order_status %]&sort_by=[% sort_by %]">Previous Page</a>
 [% END %]
-   <a href="/admin/orders?page=[%page + 1%]&order_status=[% order_status %]&id=[% order_id %]&price1=[% price1 %]&price2=[% price2 %]">Next Page</a>
+   <a href="/admin/orders?page=[%page + 1%]&order_status=[% order_status %]&sort_by=[% sort_by %]">Next Page</a>
 </footer>

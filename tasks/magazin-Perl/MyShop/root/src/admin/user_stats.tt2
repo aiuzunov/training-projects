@@ -1,0 +1,67 @@
+[% META title = 'Справка за Потребители' -%]
+<form method="get" action="[% c.uri_for('/admin/user_stats') %]">
+    <table>
+        <tc>
+        <td>Статус:</td>
+        <td>
+        <select name="verified" id="verified">
+        <option value="true">Потвърден</option>
+        <option value="false">Непотвърден</option>
+        </select>
+        </td>
+        </tc>
+        <tc>
+        <td>Сортирай по:</td>
+        <td>
+        <select name="sort_by" id="sort_by">
+        <option value="me.create_date">Дата на регистрация</option>
+        <option value="me.verified">Потвърден/Непотвърден</option>
+        </select>
+        </td>
+        </tc>
+            <input id="page" name="page" type="hidden" value="[% page %]">
+        <tc>
+            <td colspan="2"><input type="submit" name="submit" value="Submit" /></td>
+        </tc>
+
+    </table>
+</form>
+<table>
+[% IF sort_by == 'me.create_date' %]
+<tr><th>МЕСЕЦ</th><th>Брой потребители</th></tr>
+[% END %]
+[% IF sort_by == 'me.verified' %]
+<tr><th>Потвърден</th><th>Брой потребители</th></tr>
+[% END %]
+
+[% FOREACH user IN users -%]
+  <tr>
+    [% IF sort_by == 'me.create_date' %]
+    <td>[% user.email %]</td>
+    <td>[% user.id %]</td>
+    [% END %]
+    [% IF sort_by == 'me.verified' %]
+    <td>
+    [% IF user.verified || user.user.verified %]
+    Дa
+    [% ELSE %]
+    Не
+    [% END %]
+    </td>
+    <td>[% user.id %]</td>
+    [% END %]
+  </tr>
+[% END -%]
+</table>
+[% IF pager %]
+<ul>
+    <li><a href="?page=[% pager.first_page %]">First page</a></li>
+</ul>
+[% END %]
+
+<footer>
+[% IF page - 1 > 0 %]
+   <a href="/admin/users?page=[%page - 1%]">Previous Page</a>
+[% END %]
+   <a href="/admin/users?page=[%page + 1%]">Next Page</a>
+</footer>

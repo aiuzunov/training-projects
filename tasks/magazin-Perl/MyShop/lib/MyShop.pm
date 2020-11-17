@@ -156,6 +156,14 @@ __PACKAGE__->deny_access_unless(
         "/admin/update_employee",
         ['Update Employees'],
   );
+__PACKAGE__->deny_access_unless(
+        "/admin/user_stats",
+        ['View Stats'],
+  );
+__PACKAGE__->deny_access_unless(
+        "/admin/order_stats",
+        ['View Stats'],
+  );
 
 
 

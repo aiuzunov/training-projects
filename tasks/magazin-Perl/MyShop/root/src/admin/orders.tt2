@@ -1,5 +1,5 @@
 [% META title = 'CRUD за Поръчки' -%]
-<form method="get" action="[% c.uri_for('/admin/orders/') %]">
+<form method="get" action="[% c.uri_for('/admin/orders') %]">
     <table>
         <tc>
             <td>ID на поръчката:</td>
