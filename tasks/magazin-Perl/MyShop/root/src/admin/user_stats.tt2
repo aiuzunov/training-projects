@@ -53,15 +53,11 @@
   </tr>
 [% END -%]
 </table>
-[% IF pager %]
-<ul>
-    <li><a href="?page=[% pager.first_page %]">First page</a></li>
-</ul>
-[% END %]
+
 
 <footer>
 [% IF page - 1 > 0 %]
-   <a href="/admin/users?page=[%page - 1%]">Previous Page</a>
+   <a href="/admin/user_stats?page=[%page - 1%]&verified=[% verified %]&sort_by=[% sort_by %]">Previous Page</a>
 [% END %]
-   <a href="/admin/users?page=[%page + 1%]">Next Page</a>
+   <a href="/admin/user_stats?page=[%page + 1%]&verified=[% verified %]&sort_by=[% sort_by %]">Next Page</a>
 </footer>
