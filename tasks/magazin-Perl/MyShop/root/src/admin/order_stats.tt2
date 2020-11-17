@@ -1,24 +1,21 @@
-[% META title = 'CRUD за Поръчки' -%]
-<form method="get" action="[% c.uri_for('/admin/orders/') %]">
+[% META title = 'Справка за Поръчки' -%]
+<form method="get" action="[% c.uri_for('/admin/order_stats/') %]">
     <table>
-        <tc>
-            <td>ID на поръчката:</td>
-            <td><input type="text" name="id" size="13" /></td>
-        </tc>
-        <tc>
-            <td>Обща сума[От]:</td>
-            <td><input type="Number" name="price1" size="13" min="0" step="any" /></td>
-        </tc>
-        <tc>
-            <td>Обща сума[До]:</td>
-            <td><input type="Number" name="price2" size="13" min="0" step="any" /></td>
-        </tc>
         <tc>
         <td>Статус:</td>
         <td>
         <select multiple size="2" name="order_status" id="order_status">
         <option value="Неплатена">Неплатена</option>
         <option value="Платена">Платена</option>
+        </select>
+        </td>
+        </tc>
+        <tc>
+        <td>Сортирай по:</td>
+        <td>
+        <select name="sort_by" id="sort_by">
+        <option value="me.created">Дата</option>
+        <option value="me.user_id">Потребител</option>
         </select>
         </td>
         </tc>
@@ -29,12 +26,6 @@
 
     </table>
 </form>
-[% IF c.check_user_roles('Create Orders') %]
-<p>
-  <a href="[% c.uri_for(c.controller.action_for('create_order')) %]">Създай нова поръчка</a>
-</p>
-[% END %]
-
 <table>
 <tr>
 <th>ID</th>
@@ -51,7 +42,9 @@
   <tr>
     <td align="right">[% order.id %]</td>
     <td align="right">[% order.created %]</td>
+    <td align="right">[% order.user_id %]</td>
     <td align="right">[% order.user.name %]</td>
+    <td align="right">[% order.user.email %]</td>
     <td align="right">[% order.payment_id %]</td>
     <td align="right">[% order.order_status %]</td>
     <td align = right>[% order.price %] [% order.currency %].</td>
@@ -60,14 +53,6 @@
     [% order.product.name %]x[% order.quantity %]
     [% END -%]
     </td>
-    [% IF c.check_user_roles('Update Orders') %]
-    <td>
-    <a href="[% c.uri_for('/admin/update_order') %]/[% order.order.id || order.id %]">Обнови Поръчката</a>
-    </td>
-    [% END %]
-
-
-
   </tr>
 [% END -%]
 </table>

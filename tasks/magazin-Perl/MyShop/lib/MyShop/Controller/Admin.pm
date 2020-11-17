@@ -212,17 +212,46 @@ sub products :Local{
 sub orders :Local{
   my ($self, $c) = @_;
   my $page = $c->req->param('page');
+  my $id = $c->request->param('id');
+  my $price1 = $c->request->param('price1') || 0;
+  my $price2 = $c->request->param('price2') || 1000000;
+  my $order_status = $c->request->param('order_status') || undef;
+  my %filter;
+
+
+  if($id ne undef){
+    $filter{order_id} = { '=' , $id };
+  }
+
+
+  $filter{price} = { '>=', $price1,'<=', $price2 };
+
+
+  if($order_status ne undef){
+    $filter{order_status} = { '=',  $order_status };
+  }
+
+
+
+  if($c->req->param('submit') eq 'Submit'){
+    $page = 1;
+    $c->stash( price1 => $price1, price2 => $price2, order_status => $order_status, order_id => $id);
+  }else{
+    $c->stash( price1 => $price1, price2 => $price2, order_status => $order_status, order_id => $id);
+  }
+
+
 
   if(!looks_like_number($page)){
   $page = 1;
   }
 
-  $c->stash(orders => [$c->model('DB::Order')->search(undef, {
+  $c->stash(orders => [$c->model('DB::Order')->search({%filter},{
          page => $page,
          rows => 10,
-         join      => {'order_items'=>'product','user'},
-         order_by => {-asc => 'id'},
-         group_by => 'id',
+         join => {'order_items'=>'product','user'},
+         order_by => {-asc => 'me.id'},
+         group_by => 'me.id',
     })]);
 
 
@@ -412,6 +441,65 @@ sub update_employee :Local :FormConfig('admin/create_update_employees.yml') {
     }
 
     $c->stash->{template} = 'admin/create_update.tt2';
+}
+
+sub order_stats :Local{
+  my ($self, $c) = @_;
+
+  my $sort_by = $c->request->param('sort_by') || 'me.id';
+
+  my $order_status = $c->request->param('order_status');
+
+  my $page = $c->req->param('page');
+  my %filter;
+
+  if($order_status ne undef){
+    $filter{order_status} = { '=', $order_status };
+  }
+
+  if(!looks_like_number($page)){
+  $page = 1;
+  }
+
+  $c->stash(orders => [$c->model('DB::Order')->search({%filter},{
+    # columns  => [
+    #     { id  => \"MAX(id)" },
+    #     { user_id      => \"MAX(user_id)" },
+    #     { created => \"MAX(created)" },
+    #     { price => \"SUM(price)"},
+    #     ],
+         page => $page,
+         rows => 10,
+         join => {'order_items'=>'product','user'},
+         group_by => 'user_id'
+    })]);
+
+
+  $c->stash->{template} = 'admin/order_stats.tt2';
+}
+
+
+
+sub user_stats :Local{
+  my ($self, $c) = @_;
+
+  my $page = $c->req->param('page');
+
+  if(!looks_like_number($page)){
+  $page = 1;
+  }
+
+  $c->stash(users => [$c->model('DB::User')->search(undef, {
+         page => $page,
+         rows => 10,
+         join      => 'addresses',
+         order_by => {-asc => 'id'},
+         group_by => 'id',
+    })]);
+
+
+
+  $c->stash->{template} = 'admin/user_stats.tt2';
 }
 
 =encoding utf8
