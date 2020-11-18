@@ -26,7 +26,7 @@
 
     </table>
 </form>
-<table>
+<table  class="rtable">
 [% IF sort_by == 'me.create_date' %]
 <tr><th>МЕСЕЦ</th><th>Брой потребители</th></tr>
 [% END %]

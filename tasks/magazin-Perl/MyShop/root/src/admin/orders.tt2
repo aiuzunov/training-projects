@@ -35,7 +35,7 @@
 </p>
 [% END %]
 
-<table>
+<table  class="rtable">
 <tr>
 <th>ID</th>
 <th>Направена на</th>

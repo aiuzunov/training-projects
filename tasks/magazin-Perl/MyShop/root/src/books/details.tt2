@@ -1,6 +1,6 @@
 [% META title = 'Детайли за Продукта' -%]
 
-<table>
+<table class="rtable">
 <tr><th>Изображение</th><th>Име</th><th>Цена</th><th>Описание</th><th>Категории</th></tr>
   <tr>
     <td align = center><img src="/static/images/[% book.first.name %].png"></td>
@@ -14,7 +14,9 @@
     </td>
     <td>
     <a href="[% c.uri_for('/cart/add') %]/[% book.first.product.id %]">
+    [% IF book.first.product.count_in_stock >= 1 %]
     <input type="button" name="AddToCart" value="добави в количката"/>
+    [% END %]
     </a>
     </td>
   </tr>

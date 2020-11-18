@@ -162,7 +162,7 @@ __PACKAGE__->deny_access_unless(
   );
 __PACKAGE__->deny_access_unless(
         "/admin/order_stats",
-        ['View Stats'],
+        ['Справки'],
   );
 
 

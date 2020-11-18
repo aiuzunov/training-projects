@@ -1,12 +1,14 @@
 [% META title = 'Количка с Продукти' -%]
 [% total = 0 %]
 [% subtotal = 0 %]
-<table>
+<div id="content">
+</div>
+<table  class="rtable">
 
     <thead>
         <tr>
             <th>Продукт</th>
-            <th>Количество</th>
+            <th>Количество (бр.)</th>
             <th>Цена</th>
             <th>премахни</th>
         </tr>
@@ -42,8 +44,8 @@
 
     <tfoot>
         <tr>
-            <td colspan="2"> Total: </td>
-            <td>
+            <td colspan="2"> Общо: </td>
+            <td align="right">
               [% total %] EUR
             </td>
             <td>
@@ -55,6 +57,8 @@
     </tfoot>
 
 </table>
+[% IF total > 0 %]
 <a href="[% c.uri_for('/orders/select_address') %]">
 <input type="button" name="CreateOrder" value="Направи поръчка"/>
 </a>
+[% END %]

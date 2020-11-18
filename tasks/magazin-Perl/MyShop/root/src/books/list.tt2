@@ -1,4 +1,5 @@
 [% META title = 'Списък с Продукти' -%]
+
 <form method="get" action="[% c.uri_for('/books/list/') %]">
     <table>
         <tc>
@@ -30,7 +31,7 @@
 
     </table>
 </form>
-<table>
+<table class="rtable">
 <tr><th>Изображение</th><th>Име</th><th>Цена</th><th>Категории</th></tr>
 [% FOREACH book IN books -%]
   <tr>
@@ -42,7 +43,15 @@
     [% book.tag.name %]
     [% END -%]
     </td>
-
+    <td>
+    [% IF book.product.count_in_stock || book.count_in_stock > 0 %]
+    <a href="[% c.uri_for('/cart/add') %]/[% book.product_id %]">
+    <input type="button" name="AddToCart" value="добави в количката"/>
+    </a>
+    [% ELSE %]
+    Изчерпан
+    [% END %]
+    </td>
   </tr>
 [% END -%]
 </table>
