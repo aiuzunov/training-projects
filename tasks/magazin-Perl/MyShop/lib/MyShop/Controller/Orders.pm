@@ -69,6 +69,9 @@ sub create_order :Local{
       $c->model('DB::OrderItem')->create({order_id => $my_order->get_column('id'),
       product_id => $key, quantity => $c->stash->{cart}{quantity}{$key}, product_price => $c->stash->{cart}{items}{$key}->price});
   }
+
+  %{ $c->session->{cart} } = ();
+
   $c->stash(template => 'orders/order_created.tt2');
 }
 

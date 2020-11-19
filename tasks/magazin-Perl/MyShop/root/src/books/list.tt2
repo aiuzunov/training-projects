@@ -32,7 +32,7 @@
     </table>
 </form>
 <table class="rtable">
-<tr><th>Изображение</th><th>Име</th><th>Цена</th><th>Категории</th></tr>
+<tr><th>Изображение</th><th>Име</th><th>Цена</th><th>Жанрове</th></tr>
 [% FOREACH book IN books -%]
   <tr>
     <td align = center><a href="/books/details?id=[% book.id %]"><img src="/static/images/[% book.name %].png"></a></td>

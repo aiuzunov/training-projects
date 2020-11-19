@@ -1,3 +1,6 @@
+[% META title = 'Добави Адрес' -%]
+
+
 <form method="post" action="[% c.uri_for('/profile/add_address') %]">
     <table>
         <tr>

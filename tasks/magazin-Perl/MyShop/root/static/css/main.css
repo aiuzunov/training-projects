@@ -149,10 +149,9 @@ select {
     display: block;
 }
 .footer {
-    position: fixed;
-    bottom: 0;
+    position: sticky;
     left: 0;
-    right: 0;
-    top: 0;
-    height: 50px;
+    bottom: 0;
+    width: 100%;
+    overflow: hidden;
 }

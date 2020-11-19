@@ -36,7 +36,7 @@
 </p>
 [% END %]
 <table  class="rtable">
-<tr><th>Изображение</th><th>Дата на създаване</th><th>Последно обновен</th><th>Име</th><th>Цена</th><th>Брой в наличност</th><th>Категории</th><th>Действия</th></tr>
+<tr><th>Изображение</th><th>Дата на създаване</th><th>Последно обновен</th><th>Име</th><th>Цена</th><th>Брой в наличност</th><th>Жанрове</th><th>Действия</th></tr>
 [% FOREACH book IN books -%]
   <tr>
     <td align = center><a href="/books/details?id=[% book.id %]"><img src="/static/images/[% book.name %].png"></a></td>

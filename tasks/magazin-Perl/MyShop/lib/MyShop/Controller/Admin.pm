@@ -467,6 +467,7 @@ sub order_stats :Local{
   if(!looks_like_number($page)){
   $page = 1;
   }
+  
   if($sort_by eq 'me.user_id'){
   $c->stash(orders => [$c->model('DB::Order')->search({%filter},{
         columns  => [

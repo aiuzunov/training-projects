@@ -1,7 +1,7 @@
 [% META title = 'Детайли за Продукта' -%]
 
 <table class="rtable">
-<tr><th>Изображение</th><th>Име</th><th>Цена</th><th>Описание</th><th>Категории</th></tr>
+<tr><th>Изображение</th><th>Име</th><th>Цена</th><th>Описание</th><th>Жанрове</th></tr>
   <tr>
     <td align = center><img src="/static/images/[% book.first.name %].png"></td>
     <td>[%  book.first.name %]</td>

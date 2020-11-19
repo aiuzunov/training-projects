@@ -43,7 +43,7 @@
 </div><!-- end content -->
 </div><!-- end bodyblock -->
 
-<div id="footer">Copyright (c) Alexander Uzunov</div>
+<div id="footer" class="footer">Copyright (c) Alexander Uzunov</div>
 </div><!-- end outer -->
 
 </body>
