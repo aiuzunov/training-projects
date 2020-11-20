@@ -3,6 +3,8 @@ use Moose;
 use Scalar::Util qw(looks_like_number);
 use utf8;
 use namespace::autoclean;
+use warnings;
+use strict;
 
 BEGIN { extends 'Catalyst::Controller'; }
 

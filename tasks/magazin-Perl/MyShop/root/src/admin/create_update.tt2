@@ -1,5 +1,15 @@
 [% META title = 'Create/Update' %]
-
 [% form %]
-
-<p><a href="[% c.uri_for(c.controller.action_for('products')) %]">Върни се към админ панела</a></p>
+[% IF status_msg %]
+<button onclick="goBack2()">Назад</button>
+[% ELSE %]
+<button onclick="goBack1()">Назад</button>
+[% END %]
+<script>
+function goBack2() {
+ window.history.go(-2);
+ }
+function goBack1() {
+ window.history.go(-1);
+}
+</script>

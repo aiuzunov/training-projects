@@ -1,10 +1,12 @@
 use Business::PayPal::API::ExpressCheckout;
 use Business::PayPal::API qw(GetTransactionDetails);
-use Net::Ping;
 package MyShop::Controller::Checkout;
 use Moose;
 use namespace::autoclean;
 use utf8;
+use warnings;
+use strict;
+
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -43,11 +45,14 @@ sub index :Path :Args(0) {
                   ReturnURL  => "http://localhost:3000/checkout/complete_checkout/$total/$order_id",
                   CancelURL  => 'http://localhost:3000/checkout/cancel'
                   );
-  if( $resp{Ack} ne 'Success' ) {
+  if( $resp{Ack} ne 'Success' )
+  {
      for my $err ( @{$resp{Errors}} ) {
          warn "Error: " . $err->{LongMessage} . "\n";
      }
-  }else{
+  }
+  else
+  {
     my $token = $resp{Token};
     $c->response->redirect("https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token=$token");
     my %details = $pp->GetExpressCheckoutDetails($token);
@@ -94,7 +99,8 @@ sub complete_checkout :Local{
    payment_sum => $payinfo{GrossAmount},
    currency => 'EUR'
  };
-  if($payinfo{Ack} eq 'Success'){
+  if($payinfo{Ack} eq 'Success')
+  {
     $c->model('DB::Order')->find($order_id)->update({order_status => 'Платена'});
     $c->model('DB::Payment')->create($payment_info);
   }
@@ -122,10 +128,13 @@ sub complete_checkout :Local{
 sub test_details :Local{
   my ( $self, $c, $total ) = @_;
   my $p = Net::Ping->new("icmp");
-  if ($p->ping("8.8.4.4", 10)) {
+  if ($p->ping("8.8.4.4", 10))
+  {
     my %transaction = $pp->GetTransactionDetails( TransactionID => 'EC-8WF99989E76845115' );
     warn map { "$_ => $transaction{$_}\n" } keys %transaction;
-  }else{
+  }
+  else
+  {
     warn "NO INTERNET CONNECTION";
   }
 

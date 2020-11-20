@@ -15,17 +15,22 @@ elements:
         title: Въведете id-то на адреса тук
 
     - type: Text
-      name: payment_id
-      label: ID на плащането
-      attributes:
-        title: Въведете ID на плащането тук
-
-    - type: Text
       name: order_status
       label: Статус на поръчката
       attributes:
         title: Въведете статуса на поръчката тук
 
+    - type: Text
+      name: phone_number
+      label: Телефон за връзка
+      attributes:
+        title: Въведете телефона за връзка с клиента тук
+
+    - type: Text
+      name: buyer_name
+      label: Име на получателя
+      attributes:
+        title: Въведете името на получателя тук
 
     - type: Number
       name: price

@@ -33,6 +33,7 @@ elements:
       constraints:
         - type: Length
           min: 5
+      
 
     - type: Text
       name: description
@@ -56,6 +57,7 @@ elements:
           min: 1
           message: "Количеството трябва да бъде по-голямо от 0."
 
+
     - type: Select
       name: tags
       label: Tag
@@ -63,6 +65,10 @@ elements:
       size: 3
       constraints:
         - Integer
+
+    - type: Select
+      name: currency_id
+      label: Валута
 
     - type: Submit
       name: submit

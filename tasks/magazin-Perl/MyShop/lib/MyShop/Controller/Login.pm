@@ -1,6 +1,9 @@
 package MyShop::Controller::Login;
 use Moose;
 use namespace::autoclean;
+use warnings;
+use strict;
+
 
 BEGIN { extends 'Catalyst::Controller'; }
 

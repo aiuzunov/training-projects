@@ -1,4 +1,8 @@
 [% META title = 'Справка за Потребители' -%]
+[% length = users.size %]
+[% IF length==0 %]
+<h3> Няма потребители </h3>
+[% END %]
 <form method="get" action="[% c.uri_for('/admin/user_stats') %]">
     <table>
         <tc>
@@ -59,5 +63,7 @@
 [% IF page - 1 > 0 %]
    <a href="/admin/user_stats?page=[%page - 1%]&verified=[% verified %]&sort_by=[% sort_by %]">Previous Page</a>
 [% END %]
+[% page %]
+
    <a href="/admin/user_stats?page=[%page + 1%]&verified=[% verified %]&sort_by=[% sort_by %]">Next Page</a>
 </footer>

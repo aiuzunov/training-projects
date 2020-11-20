@@ -2,6 +2,8 @@ package MyShop::Controller::Root;
 use Moose;
 use namespace::autoclean;
 use utf8;
+use warnings;
+use strict;
 
 
 BEGIN { extends 'Catalyst::Controller' }
@@ -27,7 +29,6 @@ The root page (/)
 =cut
 =head2 auto
 
-Check if there is a user and, if not, forward to login page
 
 =cut
 
@@ -35,11 +36,13 @@ sub auto :Private {
     my ($self, $c) = @_;
 
 
-    if ($c->controller eq $c->controller('Login')) {
+    if ($c->controller eq $c->controller('Login'))
+    {
         return 1;
     }
 
-    if (!$c->user_exists and $c->controller ne $c->controller('Admin')) {
+    if (!$c->user_exists and $c->controller ne $c->controller('Admin'))
+    {
         $c->log->debug('***Root::auto User not found, forwarding to /login');
         $c->response->redirect($c->uri_for('/login'));
         return 0;
@@ -51,7 +54,6 @@ sub auto :Private {
 sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
 
-    # Hello World
     $c->response->body( $c->welcome_message );
 }
 

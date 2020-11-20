@@ -1,4 +1,8 @@
 [% META title = 'CRUD за Служители' -%]
+[% length = employees.size %]
+[% IF length==0 %]
+<h3> Няма служители </h3>
+[% END %]
 [% IF c.check_user_roles('Create Employees') %]
 <p>
   <a href="[% c.uri_for(c.controller.action_for('create_employee')) %]">Създай нов служител</a>
@@ -34,5 +38,6 @@
 [% IF page - 1 > 0 %]
    <a href="/admin/employees?page=[%page - 1%]">Previous Page</a>
 [% END %]
+[% page %]
    <a href="/admin/employees?page=[%page + 1%]">Next Page</a>
 </footer>

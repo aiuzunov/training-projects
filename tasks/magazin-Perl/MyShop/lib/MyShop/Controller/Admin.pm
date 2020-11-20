@@ -2,6 +2,8 @@ package MyShop::Controller::Admin;
 use Moose;
 use namespace::autoclean;
 use utf8;
+use strict;
+use warnings;
 use Scalar::Util qw(looks_like_number);
 
 BEGIN { extends 'Catalyst::Controller::HTML::FormFu'; }
@@ -39,15 +41,17 @@ sub access_denied : Private {
 sub auto :Private {
     my ($self, $c) = @_;
 
-    if ( $c->request->path =~ /login/ ) {
-        return 1;
-      }
-
-      if (!$c->user_in_realm('employees')) {
-        $c->redirect('/admin/login');
-      }
-
+    if ( $c->request->path =~ /login/ )
+    {
       return 1;
+    }
+
+    if (!$c->user_in_realm('employees'))
+    {
+      $c->redirect('/admin/login');
+    }
+
+    return 1;
 }
 
 sub denied :Local{
@@ -60,19 +64,27 @@ sub login :Local {
   my ($self, $c) = @_;
   my $username = $c->request->params->{username};
   my $password = $c->request->params->{password};
+
   $c->logout();
-  if ($username && $password) {
+
+  if ($username && $password)
+  {
     if ( $c->authenticate( { username => $username,
-                       password => $password }, 'employees') ) {
-          $c->response->redirect($c->uri_for(
-              $c->controller('Admin')->action_for('products')));
-          return;
-      } else {
-          $c->stash(error_msg => "Грешно име или парола.");
-      }
-  } else {
+                             password => $password }, 'employees') )
+    {
+      $c->response->redirect($c->uri_for(
+      $c->controller('Admin')->action_for('products')));
+      return;
+    }
+    else
+    {
+      $c->stash(error_msg => "Грешно име или парола.");
+    }
+  }
+  else
+  {
       $c->stash(error_msg => "Невъведено име или парола.")
-          unless ($c->user_exists);
+      unless ($c->user_exists);
   }
 
   $c->stash(template => 'admin/login.tt2');
@@ -94,24 +106,34 @@ sub create :Local :FormConfig('admin/create_update.yml') {
 
    my $form = $c->stash->{form};
 
-   if ($form->submitted_and_valid) {
-       my $book = $c->model('DB::Product')->new_result({});
-       $form->model->update($book);
-       $c->flash->{status_msg} = 'Успешно създадохте нова книга';
-       $c->response->redirect($c->uri_for($self->action_for('products')));
-       $c->detach;
-   } else {
+   if ($form->submitted_and_valid)
+   {
+      my $book = $c->model('DB::Product')->new_result({});
+      $form->model->update($book);
+      my $time = localtime;
+      $book->update({create_date=>$time});
+      $c->stash(status_msg => 'Успешно създадохте нова книга');
+   }
+   else
+   {
        my @tagObjs = $c->model("DB::Tag")->all();
        my @tags;
 
+       my @currObjs = $c->model("DB::Currency")->all();
+       my @currencies;
 
-       foreach (@tagObjs) {
+       foreach (@tagObjs)
+       {
            push(@tags, [$_->id, $_->name]);
        }
-
-
-       my $select = $form->get_element({type => 'Select'});
-       $select->options(\@tags);
+       foreach (@currObjs)
+       {
+           push(@currencies, [$_->currency_id, $_->currency_name]);
+       }
+    my $select = $form->get_element({type => 'Select'});
+    $select->options(\@tags);
+    my $curr_select = $form->get_element({name => 'currency_id'});
+    $curr_select->options(\@currencies);
    }
 
    $c->stash->{template} = 'admin/create_update.tt2';
@@ -121,28 +143,68 @@ sub update :Local :FormConfig('admin/create_update.yml') {
     my ($self, $c, $id) = @_;
     my $book = $c->model('DB::Product')->find($id);
     $c->log->debug("Value of \$id is: ".$id);
-    unless ($book) {
-        $c->flash->{error_msg} = "Несъществуваща книга -- не може да се обнови";
-        $c->response->redirect($c->uri_for($self->action_for('products')));
-        $c->detach;
+    unless ($book)
+    {
+      $c->flash->{error_msg} = "Несъществуваща книга -- не може да се обнови";
+      $c->response->redirect($c->uri_for($self->action_for('products')));
+      $c->detach;
     }
 
     my $form = $c->stash->{form};
 
-    if ($form->submitted_and_valid) {
-        $form->model->update($book);
-        $c->flash->{status_msg} = 'Книгата беше успешно обновена';
-        $c->response->redirect($c->uri_for($self->action_for('products')));
-        $c->detach;
-    } else {
-        my @tagObjs = $c->model("DB::Tag")->all();
-        my @tags;
-        foreach (@tagObjs) {
-            push(@tags, [$_->id, $_->name]);
-        }
-        my $select = $form->get_element({type => 'Select'});
-        $select->options(\@tags);
-        $form->model->default_values($book)
+    if ($form->submitted_and_valid)
+    {
+      $c->stash(status_msg => 'Успешно обновихте книгата!');
+      $form->model->update($book);
+
+
+      my @tagObjs = $c->model("DB::Tag")->all();
+      my @tags;
+
+      my @currObjs = $c->model("DB::Currency")->all();
+      my @currencies;
+
+      foreach (@tagObjs)
+      {
+        push(@tags, [$_->id, $_->name]);
+      }
+
+      foreach (@currObjs)
+      {
+          push(@currencies, [$_->currency_id, $_->currency_name]);
+      }
+
+      my $select = $form->get_element({type => 'Select'});
+      $select->options(\@tags);
+      my $curr_select = $form->get_element({name => 'currency_id'});
+      $curr_select->options(\@currencies);
+    }
+    else
+    {
+      my @tagObjs = $c->model("DB::Tag")->all();
+      my @tags;
+
+      my @currObjs = $c->model("DB::Currency")->all();
+      my @currencies;
+
+      foreach (@tagObjs)
+      {
+        push(@tags, [$_->id, $_->name]);
+      }
+
+      foreach (@currObjs)
+      {
+          push(@currencies, [$_->currency_id, $_->currency_name]);
+      }
+
+      my $select = $form->get_element({type => 'Select'});
+      $select->options(\@tags);
+      my $curr_select = $form->get_element({name => 'currency_id'});
+      $curr_select->options(\@currencies);
+      $form->model->default_values($book);
+      my $time = localtime;
+      $book->update({edit_time=>$time});
+
     }
 
     $c->stash->{template} = 'admin/create_update.tt2';
@@ -151,16 +213,16 @@ sub update :Local :FormConfig('admin/create_update.yml') {
 
 sub delete :Local{
   my ($self, $c, $id) = @_;
-    $c->stash(object => $c->model('DB::Product')->find($id));
-    $c->stash(relations => $c->model('DB::TagsProduct')->find({ product_id => $id })->delete);
+  $c->stash(object => $c->model('DB::Product')->find($id));
+  $c->stash(relations => $c->model('DB::TagsProduct')->find({ product_id => $id })->delete);
 
     #$c->model('DB::TagsProduct')->find({ product_id => $id })->delete;
     #$c->model('DB::Product')->find({ product_id => $id })->delete;
 
-    die "Book not found!" if !$c->stash->{object};
-    $c->stash->{object}->delete;
+  die "Book not found!" if !$c->stash->{object};
+  $c->stash->{object}->delete;
 
-    $c->response->redirect($c->uri_for($self->action_for('products'),
+  $c->response->redirect($c->uri_for($self->action_for('products'),
      {mid => $c->set_status_msg("Книгата с ID:$id беше успешно изтрита")}));
 
 }
@@ -175,24 +237,30 @@ sub products :Local{
   my @tags = $c->request->param('tags');
   my %filter;
 
-  if($name ne undef){
+  if(defined $name)
+  {
     $filter{name} = { like => '%'.$name.'%' };
   }
 
-  if(@tags != 0){
+  if(@tags != 0)
+  {
     $filter{tag_id} = { in => [@tags] };
   }
 
   $filter{price} = { '>=', $price1,'<=', $price2 };
 
-  if($c->req->param('submit') eq 'Submit'){
+  if($c->req->param('submit') eq 'Submit')
+  {
     $page = 1;
     $c->stash(search_name => $name, price => $price1, price2 => $price2, tags => [@tags]);
-  }else{
+  }
+  else
+  {
     $c->stash(search_name => $name, price1 => $price1, price2 => $price2, tags => [@tags]);
   }
 
-  if(!looks_like_number($page)){
+  if(!looks_like_number($page))
+  {
   $page = 1;
   }
 
@@ -206,7 +274,6 @@ sub products :Local{
   $c->stash(select_tags => [$c->model('DB::Tag')->all()]);
 
   $c->stash(template => 'admin/products.tt2',page => $page);
-
 }
 
 sub orders :Local{
@@ -215,11 +282,12 @@ sub orders :Local{
   my $id = $c->request->param('id');
   my $price1 = $c->request->param('price1') || 0;
   my $price2 = $c->request->param('price2') || 1000000;
-  my $order_status = $c->request->param('order_status') || undef;
+  my $order_status = $c->request->param('order_status') || !defined;
   my %filter;
 
 
-  if($id ne undef){
+  if(defined $id)
+  {
     $filter{order_id} = { '=' , $id };
   }
 
@@ -227,22 +295,27 @@ sub orders :Local{
   $filter{price} = { '>=', $price1,'<=', $price2 };
 
 
-  if($order_status ne undef){
+  if(defined $order_status)
+  {
     $filter{order_status} = { '=',  $order_status };
   }
 
 
 
-  if($c->req->param('submit') eq 'Submit'){
+  if($c->req->param('submit') eq 'Submit')
+  {
     $page = 1;
     $c->stash( price1 => $price1, price2 => $price2, order_status => $order_status, order_id => $id);
-  }else{
+  }
+  else
+  {
     $c->stash( price1 => $price1, price2 => $price2, order_status => $order_status, order_id => $id);
   }
 
 
 
-  if(!looks_like_number($page)){
+  if(!looks_like_number($page))
+  {
   $page = 1;
   }
 
@@ -256,14 +329,14 @@ sub orders :Local{
 
 
   $c->stash(template => 'admin/orders.tt2',page => $page);
-
   }
 
 sub employees :Local{
   my ($self, $c) = @_;
   my $page = $c->req->param('page');
 
-  if(!looks_like_number($page)){
+  if(!looks_like_number($page))
+  {
   $page = 1;
   }
 
@@ -284,7 +357,8 @@ sub users :Local{
   my ($self, $c) = @_;
   my $page = $c->req->param('page');
 
-  if(!looks_like_number($page)){
+  if(!looks_like_number($page))
+  {
   $page = 1;
   }
 
@@ -296,8 +370,6 @@ sub users :Local{
          group_by => 'id',
     })]);
 
-
-
   $c->stash(template => 'admin/users.tt2',page => $page);
 }
 
@@ -307,12 +379,11 @@ sub create_user :Local :FormConfig('admin/create_update_users.yml') {
 
    my $form = $c->stash->{form};
 
-   if ($form->submitted_and_valid) {
+   if ($form->submitted_and_valid)
+   {
        my $user = $c->model('DB::User')->new_result({});
        $form->model->update($user);
-       $c->flash->{status_msg} = 'Успешно създадохте нов потребител';
-       $c->response->redirect($c->uri_for($self->action_for('users')));
-       $c->detach;
+       $c->stash(status_msg => 'Успешно създадохте нов потребител!');
    }
 
    $c->stash->{template} = 'admin/create_update.tt2';
@@ -323,20 +394,20 @@ sub update_user :Local :FormConfig('admin/create_update_users.yml') {
     my $user = $c->model('DB::User')->find($id);
     $c->log->debug("Value of \$id is: ".$id);
     $c->log->debug($user->name);
-    unless ($user) {
-        $c->flash->{error_msg} = "Несъществуващ потребител -- не може да се обнови";
-        $c->response->redirect($c->uri_for($self->action_for('users')));
-        $c->detach;
+    unless ($user)
+    {
+        $c->stash(error_msg => "Несъществуващ потребител -- не може да се обнови");
     }
 
     my $form = $c->stash->{form};
 
-    if ($form->submitted_and_valid) {
+    if ($form->submitted_and_valid)
+    {
         $form->model->update($user);
-        $c->flash->{status_msg} = 'Потребителят беше успешно обновен';
-        $c->response->redirect($c->uri_for($self->action_for('users')));
-        $c->detach;
-    }else{
+        $c->stash(status_msg => 'Потребителят беше успешно обновен');
+    }
+    else
+    {
       $form->model->default_values($user)
     }
 
@@ -348,12 +419,11 @@ sub create_order :Local :FormConfig('admin/create_update_orders.yml') {
 
    my $form = $c->stash->{form};
 
-   if ($form->submitted_and_valid) {
+   if ($form->submitted_and_valid)
+   {
        my $order = $c->model('DB::Order')->new_result({});
        $form->model->update($order);
-       $c->flash->{status_msg} = 'Успешно създадохте нова поръчка';
-       $c->response->redirect($c->uri_for($self->action_for('orders')));
-       $c->detach;
+       $c->stash(status_msg => 'Успешно създадохте нова поръчка');
    }
 
    $c->stash->{template} = 'admin/create_update.tt2';
@@ -364,20 +434,20 @@ sub update_order :Local :FormConfig('admin/create_update_orders.yml') {
     my ($self, $c, $id) = @_;
     my $order = $c->model('DB::Order')->find($id);
 
-    unless ($order) {
-        $c->flash->{error_msg} = "Несъществуваща поръчка -- не може да се обнови";
-        $c->response->redirect($c->uri_for($self->action_for('orders')));
-        $c->detach;
+    unless ($order)
+    {
+        $c->stash(error_msg => "Несъществуваща поръчка -- не може да се обнови");
     }
 
     my $form = $c->stash->{form};
 
-    if ($form->submitted_and_valid) {
+    if ($form->submitted_and_valid)
+    {
         $form->model->update($order);
-        $c->flash->{status_msg} = 'Поръчката беше успешно обновена';
-        $c->response->redirect($c->uri_for($self->action_for('orders')));
-        $c->detach;
-    }else{
+        $c->stash(status_msg => 'Поръчката беше успешно обновена');
+    }
+    else
+    {
       $form->model->default_values($order)
     }
 
@@ -390,18 +460,20 @@ sub create_employee :Local :FormConfig('admin/create_update_employees.yml') {
 
    my $form = $c->stash->{form};
 
-   if ($form->submitted_and_valid) {
+   if ($form->submitted_and_valid)
+   {
        my $employee = $c->model('DB::Employee')->new_result({});
        $form->model->update($employee);
-       $c->flash->{status_msg} = 'Успешно създадохте нов служител';
-       $c->response->redirect($c->uri_for($self->action_for('employees')));
-       $c->detach;
-   } else {
+       $c->stash(status_msg => 'Успешно създадохте нов служител');
+   }
+   else
+   {
        my @roleObjs = $c->model("DB::Role")->all();
        my @roles;
 
 
-       foreach (@roleObjs) {
+       foreach (@roleObjs)
+       {
            push(@roles, [$_->id, $_->name]);
        }
 
@@ -416,7 +488,8 @@ sub create_employee :Local :FormConfig('admin/create_update_employees.yml') {
 sub update_employee :Local :FormConfig('admin/create_update_employees.yml') {
     my ($self, $c, $id) = @_;
     my $employee = $c->model('DB::Employee')->find($id);
-    unless ($employee) {
+    unless ($employee)
+    {
         $c->flash->{error_msg} = "Несъществуващ служител -- не може да се обнови";
         $c->response->redirect($c->uri_for($self->action_for('employees')));
         $c->detach;
@@ -424,15 +497,17 @@ sub update_employee :Local :FormConfig('admin/create_update_employees.yml') {
 
     my $form = $c->stash->{form};
 
-    if ($form->submitted_and_valid) {
+    if ($form->submitted_and_valid)
+    {
         $form->model->update($employee);
-        $c->flash->{status_msg} = 'Служителят беше успешно обновен';
-        $c->response->redirect($c->uri_for($self->action_for('employees')));
-        $c->detach;
-    } else {
+        $c->stash(status_msg => 'Служителят беше успешно обновен');
+    }
+    else
+    {
         my @roleObjs = $c->model("DB::Role")->all();
         my @roles;
-        foreach (@roleObjs) {
+        foreach (@roleObjs)
+        {
             push(@roles, [$_->id, $_->name]);
         }
         my $select = $form->get_element({type => 'Select'});
@@ -453,35 +528,43 @@ sub order_stats :Local{
   my $page = $c->req->param('page');
   my %filter;
 
-  if($c->req->param('submit') eq 'Submit'){
+  if($c->req->param('submit') eq 'Submit')
+  {
     $page = 1;
     $c->stash(sort_by => $sort_by, order_status=>$order_status);
-  }else{
+  }
+  else
+  {
     $c->stash(sort_by => $sort_by, order_status=>$order_status);
   }
 
-  if($order_status ne undef){
+  if(defined $order_status)
+  {
     $filter{order_status} = { '=', $order_status };
   }
 
-  if(!looks_like_number($page)){
+  if(!looks_like_number($page))
+  {
   $page = 1;
   }
-  
-  if($sort_by eq 'me.user_id'){
-  $c->stash(orders => [$c->model('DB::Order')->search({%filter},{
-        columns  => [
-            { id  => \"COUNT(id)" },
-            { user_id      => \"user_id" },
-            { price => \"SUM(price)"},
-            { currency => \'MAX(currency)'}
-            ],
-         page => $page,
-         rows => 10,
-         join => {'order_items'=>'product','user'},
-         group_by => 'user_id'
-    })]);
-  }else{
+
+  if($sort_by eq 'me.user_id')
+  {
+    $c->stash(orders => [$c->model('DB::Order')->search({%filter},{
+          columns  => [
+              { id  => \"COUNT(id)" },
+              { user_id      => \"user_id" },
+              { price => \"SUM(price)"},
+              { currency => \'MAX(currency)'}
+              ],
+           page => $page,
+           rows => 10,
+           join => {'order_items'=>'product','user'},
+           group_by => 'user_id'
+      })]);
+  }
+  else
+  {
     $c->stash(orders => [$c->model('DB::Order')->search({%filter},{
           columns  => [
               { id  => \"COUNT(me.id)" },
@@ -509,33 +592,41 @@ sub user_stats :Local{
 
   my $page = $c->req->param('page');
   my %filter;
-  if($c->req->param('submit') eq 'Submit'){
+  if($c->req->param('submit') eq 'Submit')
+  {
     $page = 1;
     $c->stash(sort_by => $sort_by, verified=>$verified);
-  }else{
+  }
+  else
+  {
     $c->stash(sort_by => $sort_by, verified=>$verified);
   }
 
-  if($verified ne undef){
+  if($verified ne undef)
+  {
     $filter{verified} = { '=', $verified };
   }
 
-  if(!looks_like_number($page)){
-  $page = 1;
+  if(!looks_like_number($page))
+  {
+    $page = 1;
   }
 
-  if($sort_by eq 'me.create_date'){
-  $c->stash(users => [$c->model('DB::User')->search({%filter}, {
-        columns  => [
-            { id  => \"COUNT(me.id)" },
-            { email => \'EXTRACT(MONTH from create_date)'},
-            ],
-         page => $page,
-         rows => 10,
-         join      => 'addresses',
-         group_by => \'EXTRACT(MONTH from create_date)'
-    })]);
-  }else{
+  if($sort_by eq 'me.create_date')
+  {
+    $c->stash(users => [$c->model('DB::User')->search({%filter}, {
+          columns  => [
+              { id  => \"COUNT(me.id)" },
+              { email => \'EXTRACT(MONTH from create_date)'},
+              ],
+           page => $page,
+           rows => 10,
+           join      => 'addresses',
+           group_by => \'EXTRACT(MONTH from create_date)'
+      })]);
+  }
+  else
+  {
     $c->stash(users => [$c->model('DB::User')->search({%filter}, {
           columns  => [
               { id  => \"COUNT(me.id)" },

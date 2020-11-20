@@ -1,11 +1,11 @@
-[% META title = 'Адрес за Доставка' -%]
+[% META title = 'Моля Въведете Данни за Доставка' -%]
 
-<p> Моля, изберете адрес за доставка </p>
 </form>
 <form method="post" action="[% c.uri_for('/orders/create_order') %]">
     <table>
         <tr>
             <td colspan="2">
+              <label for="address">Адрес за доставка*</label>
               <select name="address" id="address">
               [% FOREACH address IN addresses -%]
               <option value="[% address.id %]">[% address.address %]</option>
@@ -14,9 +14,35 @@
             </td>
         </tr>
         <tr>
+            <td colspan="2">
+              <label for="address">Вид на плащането*</label>
+              <select name="payment_type" id="payment_type">
+              <option value="Наложен">Наложен платеж</option>
+              <option value="PayPal">PayPal</option>
+              </select>
+            </td>
+        </tr>
+        <tr>
+        <td>
+          <label for="address">Телефон за връзка*</label>
+          <input required type="text" name="phone" id="phone"  />
+        </td>
+        </tr>
+        <tr>
+        <td>
+          <label for="address">Първо име на получателя*</label>
+          <input required type="text" name="first_name" id="first_name"  />
+        </td>
+        <td>
+          <label for="address">Фамилия на получателя*</label>
+          <input required type="text" name="last_name" id="last_name"  />
+        </td>
+        </tr>
+        <tr>
             <td colspan="2"><input type="submit" name="submit" value="Създай поръчка" /></td>
         </tr>
     </table>
 </form>
+<p> *-задължително поле <br></p>
 
 <p> Ако полето за избор е празно, моля кликнете <a href="/profile/address_form">ТУК</a> за да добавите адрес </p>

@@ -13,7 +13,7 @@
     [% END -%]
     </td>
     <td>
-    <a href="[% c.uri_for('/cart/add') %]/[% book.first.product.id %]">
+    <a href="[% c.uri_for('/cart/add') %]/[% book.first.product.id_hash %]">
     [% IF book.first.product.count_in_stock >= 1 %]
     <input type="button" name="AddToCart" value="добави в количката"/>
     [% END %]
@@ -21,3 +21,11 @@
     </td>
   </tr>
 </table>
+<div>
+<button onclick="goBack()">Продължи да пазаруваш</button>
+</div>
+<script>
+function goBack() {
+ window.history.back();
+}
+</script>

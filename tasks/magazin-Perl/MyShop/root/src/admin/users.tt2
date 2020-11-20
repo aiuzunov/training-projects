@@ -1,10 +1,14 @@
 [% META title = 'CRUD за Потребители' -%]
+[% length = users.size %]
+[% IF length==0 %]
+<h3> Няма потребители </h3>
+[% END %]
 [% IF c.check_user_roles('Create Users') %]
 <p>
   <a href="[% c.uri_for(c.controller.action_for('create_user')) %]">Create</a>
 </p>
 [% END %]
-<table>
+<table class="rtable">
 <tr><th>Дата на регистрация</th><th>Потребителско име</th><th>Име</th><th>Имейл</th><th>Адрес</th><th>Потвърден</th><th>Действия</th></tr>
 [% FOREACH user IN users -%]
   <tr>
@@ -45,5 +49,6 @@
 [% IF page - 1 > 0 %]
    <a href="/admin/users?page=[%page - 1%]">Previous Page</a>
 [% END %]
+[% page %]
    <a href="/admin/users?page=[%page + 1%]">Next Page</a>
 </footer>

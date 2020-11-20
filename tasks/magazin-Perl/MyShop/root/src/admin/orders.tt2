@@ -1,17 +1,21 @@
 [% META title = 'CRUD за Поръчки' -%]
-<form method="get" action="[% c.uri_for('/admin/orders') %]">
+[% length = orders.size %]
+[% IF length==0 %]
+<h3> Няма поръчки </h3>
+[% END %]
+<form method="get" id="filters" action="[% c.uri_for('/admin/orders') %]">
     <table>
         <tc>
             <td>ID на поръчката:</td>
-            <td><input type="text" name="id" size="13" /></td>
+            <td><input type="number" name="id" size="13" value="[% order_id %]"/></td>
         </tc>
         <tc>
             <td>Обща сума[От]:</td>
-            <td><input type="Number" name="price1" size="13" min="0" step="any" /></td>
+            <td><input type="Number" name="price1" size="13" min="0" step="any" value="[% price1 %]" /></td>
         </tc>
         <tc>
             <td>Обща сума[До]:</td>
-            <td><input type="Number" name="price2" size="13" min="0" step="any" /></td>
+            <td><input type="Number" name="price2" size="13" min="0" step="any" value="[% price2 %]"/></td>
         </tc>
         <tc>
         <td>Статус:</td>
@@ -26,9 +30,24 @@
         <tc>
             <td colspan="2"><input type="submit" name="submit" value="Submit" /></td>
         </tc>
+        <tc>
+        <td>
+        <button onclick="ResetFilters()">Reset</button>
+        </td>
+        </tc>
 
     </table>
 </form>
+<script>
+function ResetFilters() {
+  var inputs = document.getElementById("filters").elements;
+  for (i = 0; i < inputs.length; i++) {
+    if(inputs[i].name!='submit'){
+    inputs[i].value = '';
+    }
+  }
+}
+</script>
 [% IF c.check_user_roles('Create Orders') %]
 <p>
   <a href="[% c.uri_for(c.controller.action_for('create_order')) %]">Създай нова поръчка</a>
@@ -41,9 +60,11 @@
 <th>Направена на</th>
 <th>ID на поръчителя</th>
 <th>Име на поръчителя</th>
+<th>Име на получателя</th>
 <th>E-mail на поръчителя</th>
-<th>PayPal ID на поръчката</th>
+<th>Телефон за връзка</th>
 <th>Статус на поръчката</th>
+<th>Тип на плащането</th>
 <th>Обща сума на поръчката</th>
 <th>Продукти</th>
 </tr>
@@ -51,9 +72,13 @@
   <tr>
     <td align="right">[% order.id %]</td>
     <td align="right">[% order.created %]</td>
+    <td align="right">[% order.user_id %]</td>
     <td align="right">[% order.user.name %]</td>
-    <td align="right">[% order.payment_id %]</td>
+    <td align="right">[% order.buyer_name %]</td>
+    <td align="right">[% order.user.email %]</td>
+    <td align="right">[% order.phone_number %]</td>
     <td align="right">[% order.order_status %]</td>
+    <td align="right">[% order.payment_type %]</td>
     <td align = right>[% order.price %] [% order.currency %].</td>
     <td align = center>
     [% FOREACH order IN order.order_items -%]
@@ -75,5 +100,6 @@
 [% IF page - 1 > 0 %]
    <a href="/admin/orders?page=[%page - 1%]&order_status=[% order_status %]&id=[% order_id %]&price1=[% price1 %]&price2=[% price2 %]">Previous Page</a>
 [% END %]
+[% page %]
    <a href="/admin/orders?page=[%page + 1%]&order_status=[% order_status %]&id=[% order_id %]&price1=[% price1 %]&price2=[% price2 %]">Next Page</a>
 </footer>

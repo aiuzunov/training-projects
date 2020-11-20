@@ -2,6 +2,8 @@ package MyShop::Controller::Orders;
 use Moose;
 use namespace::autoclean;
 use utf8;
+use warnings;
+use strict;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -38,17 +40,23 @@ sub select_address :Local{
 sub create_order :Local{
   my ($self, $c) = @_;
   my $address = $c->req->param('address');
+  my $phone_number = $c->req->param('phone');
+  my $first_name = $c->req->param('first_name');
+  my $last_name = $c->req->param('last_name');
+  my $payment_type = $c->req->param('payment_type');
+  my $fullname = "$first_name $last_name";
   my $cart = $c->session->{cart} || {};
 
   my $total = 0;
   my $storage = $c->model("DB::Product");
 
-  my %items = map { $_ => $storage->find($_) } keys %$cart;
+  my %items = map { $_ => $storage->find({id_hash => $_}) } keys %$cart;
 
   $c->stash->{cart}{items} = \%items;
   $c->stash->{cart}{quantity} = $cart;
 
-  foreach my $key (keys %items) {
+  foreach my $key (keys %items)
+  {
       $total = $total + $c->stash->{cart}{quantity}{$key}*$c->stash->{cart}{items}{$key}->price;
   }
   my $order_info =
@@ -57,17 +65,20 @@ sub create_order :Local{
    address_id => $address,
    order_status => 'Неплатена',
    currency => 'EUR',
-   price => $total
+   price => $total,
+   phone_number => $phone_number,
+   buyer_name => $fullname,
+   payment_type => $payment_type,
   };
   my $my_order = $c->model('DB::Order')->create($order_info);
 
-  foreach my $key (keys %items) {
-
-      my $item = $c->model('DB::Product')->find($key);
+  foreach my $key (keys %items)
+  {
+      my $item = $c->model('DB::Product')->find({id_hash=>$key});
       my $result = $item->get_column('count_in_stock') - $c->stash->{cart}{quantity}{$key};
       $item->update({count_in_stock => $result});
       $c->model('DB::OrderItem')->create({order_id => $my_order->get_column('id'),
-      product_id => $key, quantity => $c->stash->{cart}{quantity}{$key}, product_price => $c->stash->{cart}{items}{$key}->price});
+      product_id => $c->stash->{cart}{items}{$key}->id, quantity => $c->stash->{cart}{quantity}{$key}, product_price => $c->stash->{cart}{items}{$key}->price});
   }
 
   %{ $c->session->{cart} } = ();

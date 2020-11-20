@@ -1,4 +1,14 @@
 [% META title = 'Добавяне на Продукт в Кошницата' -%]
 
 <h3> Вие успешно добавихте [% quantity %] бройка/и от следната книга [% book.name %] във вашата кошница. Обща стойност [% book.price*quantity %] [% book.currency_id %] </h2>
-<h3> <a href="[% c.uri_for('/cart/list') %]">Към количката</a></h3>
+<button onclick="goBack()">Продължи да пазаруваш</button>
+<button onclick="goToCart()">Към количката</button>
+
+<script>
+function goBack() {
+ window.history.back();
+}
+function goToCart() {
+window.location.href = "/cart/list";
+}
+</script>

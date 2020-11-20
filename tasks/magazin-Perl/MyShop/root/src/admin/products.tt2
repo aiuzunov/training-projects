@@ -1,24 +1,31 @@
 [% META title = 'CRUD за Продукти' -%]
-<form method="get" action="[% c.uri_for('/admin/products/') %]">
+[% FOREACH tagtest IN tags -%]
+[% END -%]
+
+<form method="get" id="filters" action="[% c.uri_for('/admin/products/') %]">
     <table>
         <tc>
             <td>Име:</td>
-            <td><input type="text" name="name" size="13" /></td>
+            <td><input type="text" name="name" size="13" value="[% search_name %]"/></td>
         </tc>
         <tc>
             <td>Цена[От]:</td>
-            <td><input type="Number" name="price1" size="13" min="0" step="any" /></td>
+            <td><input type="Number" name="price1" size="13" min="0" step="any" value="[% price1 %]" /></td>
         </tc>
         <tc>
             <td>Цена[До]:</td>
-            <td><input type="Number" name="price2" size="13" min="0" step="any" /></td>
+            <td><input type="Number" name="price2" size="13" min="0" step="any" value="[% price2 %]" /></td>
         </tc>
         <tc>
         <td>Жанрове:</td>
         <td>
         <select multiple size="2" name="tags" id="tags">
         [% FOREACH tag IN select_tags -%]
+          [% IF tags.includes(tag.id) %]
+          <option value="[% tag.id %]" selected>[% tag.name %]</option>
+          [% ELSE %]
           <option value="[% tag.id %]">[% tag.name %]</option>
+          [% END %]
         [% END %]
         </select>
         </td>
@@ -27,9 +34,24 @@
         <tc>
             <td colspan="2"><input type="submit" name="submit" value="Submit" /></td>
         </tc>
+        <tc>
+        <td>
+        <button onclick="ResetFilters()">Reset</button>
+        </td>
+        </tc>
 
     </table>
 </form>
+<script>
+function ResetFilters() {
+  var inputs = document.getElementById("filters").elements;
+  for (i = 0; i < inputs.length; i++) {
+    if(inputs[i].name!='submit'){
+    inputs[i].value = '';
+    }
+  }
+}
+</script>
 [% IF c.check_user_roles('Create Products') %]
 <p>
   <a href="[% c.uri_for(c.controller.action_for('create')) %]">Създай нов продукт</a>
@@ -39,7 +61,7 @@
 <tr><th>Изображение</th><th>Дата на създаване</th><th>Последно обновен</th><th>Име</th><th>Цена</th><th>Брой в наличност</th><th>Жанрове</th><th>Действия</th></tr>
 [% FOREACH book IN books -%]
   <tr>
-    <td align = center><a href="/books/details?id=[% book.id %]"><img src="/static/images/[% book.name %].png"></a></td>
+    <td align = center><a href="/books/details?id=[% book.id_hash %]"><img src="/static/images/[% book.name %].png"></a></td>
     <td>[% book.create_date %]</td>
     <td>[% book.edit_time %]</td>
     <td>[% book.name %]</td>
@@ -73,5 +95,6 @@
 [% IF page - 1 > 0 %]
 <a href="/admin/products?page=[%page - 1%]&name=[% search_name %]&price1=[% price1 %]&price2=[% price2 %][% FOREACH tag IN tags -%]&tags=[% tag %][% END %]&submit=Prev">Previous Page</a>
 [% END %]
+[% page %]
 <a href="/admin/products?page=[%page + 1%]&name=[% search_name %]&price1=[% price1 %]&price2=[% price2 %][% FOREACH tag IN tags -%]&tags=[% tag %][% END %]&submit=Next">Next Page</a>
 </footer>

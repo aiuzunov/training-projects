@@ -2,6 +2,9 @@ package MyShop::Controller::Cart;
 use Moose;
 use namespace::autoclean;
 use utf8;
+use warnings;
+use strict;
+
 
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -32,23 +35,23 @@ sub index :Path :Args(0) {
 sub add : Local {
     my ( $self, $c, $item_id, $quantity ) = @_;
     $quantity ||= 1;
-    if ( $c->stash(book => $c->model('DB::Product')->find($item_id))) {
+    if ( $c->stash(book => $c->model('DB::Product')->find({id_hash=>$item_id})))
+    {
         $c->session->{cart}{$item_id} += $quantity;
         $c->stash(quantity => $quantity);
         $c->stash(status_msg => "Книгата беше успешно добавена във вашата количка с продукти!");
-
-
-    } else {
+    }
+    else
+    {
         die "No such item";
     }
 }
 
 sub remove : Local {
     my ( $self, $c, $item_id) = @_;
-
     delete @{ $c->session->{cart} }{$item_id};
     $c->response->redirect($c->uri_for($self->action_for('list'),
-     {mid => $c->set_status_msg("Продукта с ID:$item_id беше успешно премахнат от вашата количка с продукти!")}));
+     {mid => $c->set_status_msg("Продукта :беше успешно премахнат от вашата количка с продукти!")}));
 }
 
 sub empty_cart : Local {
@@ -61,10 +64,9 @@ sub empty_cart : Local {
 sub update :Local {
     my ($self, $c, $item_id) = @_;
     my $quantity = $c->request->params->{quantity} || '1';
-
     $c->session->{cart}{$item_id} = (quantity => $quantity);
     $c->response->redirect($c->uri_for($self->action_for('list'),
-     {mid => $c->set_status_msg("Количеството на продукта с ID:$item_id беше успешно сменено на $quantity!")}));
+     {mid => $c->set_status_msg("Количеството на продукта беше успешно сменено на $quantity!")}));
 
 
 }
@@ -76,7 +78,7 @@ sub list : Local {
 
     my $storage = $c->model("DB::Product");
 
-    my %items = map { $_ => $storage->find($_) } keys %$cart;
+    my %items = map { $_ => $storage->find({id_hash => $_}) } keys %$cart;
 
     $c->stash->{cart}{items} = \%items;
     $c->stash->{cart}{quantity} = $cart;

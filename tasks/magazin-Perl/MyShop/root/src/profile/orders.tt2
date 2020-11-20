@@ -1,4 +1,8 @@
 [% META title = 'Вашите Поръчки' -%]
+[% length = orders.size %]
+[% IF length==0 %]
+<h3> Няма поръчки </h3>
+[% ELSE %]
 
 <table  class="rtable">
 <tr>
@@ -6,8 +10,11 @@
 <th>Направена на</th>
 <th>ID на поръчителя</th>
 <th>Име на поръчителя</th>
+<th>Име на получателя</th>
 <th>E-mail на поръчителя</th>
+<th>Телефон за връзка</th>
 <th>Статус на поръчката</th>
+<th>Тип на плащането</th>
 <th>Обща сума на поръчката</th>
 <th>Продукти</th>
 </tr>
@@ -17,29 +24,32 @@
     <td align="right">[% order.created %]</td>
     <td align="right">[% order.user_id %]</td>
     <td align="right">[% order.user.name %]</td>
+    <td align="right">[% order.buyer_name %]</td>
     <td align="right">[% order.user.email %]</td>
+    <td align="right">[% order.phone_number %]</td>
     <td align="right">[% order.order_status %]</td>
+    <td align="right">[% order.payment_type %]</td>
     <td align = right>[% order.price %] [% order.currency %].</td>
     <td align = center>
     [% FOREACH order IN order.order_items -%]
     [% order.product.name %]x[% order.quantity %]
     [% END -%]
     </td>
-    [% IF order.order.order_status == 'Неплатена' %]
+    [% IF order.order.order_status == 'Неплатена'&&order.order.payment_type!='Наложен' %]
     <td>
     <a href="[% c.uri_for('/checkout') %]?order_id=[% order.order.id || order.id %]">Плати</a>
     </td>
     [% END %]
-
-
-
   </tr>
 [% END -%]
 </table>
+[% END %]
+
 
 <footer>
 [% IF page - 1 > 0 %]
    <a href="/profile/orders?page=[%page - 1%]">Previous Page</a>
 [% END %]
+[% page %]
    <a href="/profile/orders?page=[%page + 1%]">Next Page</a>
 </footer>

@@ -3,6 +3,8 @@ use Moose;
 use utf8;
 use namespace::autoclean;
 use String::Random;
+use warnings;
+use strict;
 
 BEGIN { extends 'Catalyst::Controller'; }
 

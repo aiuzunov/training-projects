@@ -1,4 +1,8 @@
 [% META title = 'Справка за Поръчки' -%]
+[% length = orders.size %]
+[% IF length==0 %]
+<h3> Няма поръчки </h3>
+[% END %]
 <form method="get" action="[% c.uri_for('/admin/order_stats') %]">
     <table>
         <tc>
@@ -62,5 +66,6 @@
 [% IF page - 1 > 0 %]
    <a href="/admin/orders?page=[%page - 1%]&order_status=[% order_status %]&sort_by=[% sort_by %]">Previous Page</a>
 [% END %]
+[% page %]
    <a href="/admin/orders?page=[%page + 1%]&order_status=[% order_status %]&sort_by=[% sort_by %]">Next Page</a>
 </footer>

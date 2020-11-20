@@ -4,6 +4,8 @@ use namespace::autoclean;
 use utf8;
 use Scalar::Util qw(looks_like_number);
 use Data::Paginator;
+use strict;
+use warnings;
 #use open qw(:utf8 :std);
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -77,25 +79,33 @@ sub list :Local {
     my @tags = $c->request->param('tags');
     my %filter;
 
-    if($name ne undef){
+    if(defined $name)
+    {
       $filter{name} = { like => '%'.$name.'%' };
     }
 
-    if(@tags != 0){
+    if(@tags != 0)
+    {
       $filter{tag_id} = { in => [@tags] };
     }
 
     $filter{price} = { '>=', $price1,'<=', $price2 };
+    $filter{price}{'>='} = $price1;
 
-    if($c->req->param('submit') eq 'Submit'){
+
+    if($c->req->param('submit') eq 'Submit')
+    {
       $page = 1;
       $c->stash(search_name => $name, price => $price1, price2 => $price2, tags => [@tags]);
-    }else{
+    }
+    else
+    {
       $c->stash(search_name => $name, price1 => $price1, price2 => $price2, tags => [@tags]);
     }
 
-    if(!looks_like_number($page)){
-    $page = 1;
+    if(!looks_like_number($page))
+    {
+      $page = 1;
     }
 
     $c->stash(books => [$c->model('DB::Product')->search({%filter}, {
@@ -105,6 +115,7 @@ sub list :Local {
            order_by => {-asc => 'id'},
            group_by => 'id',
       })]);
+
     $c->stash(select_tags => [$c->model('DB::Tag')->all()]);
 
     $c->stash(template => 'books/list.tt2',page => $page);
@@ -121,11 +132,9 @@ sub details :Local {
 
 
    $c->stash(book => [$c->model('DB::Product')->search(
-  { 'me.id' => $id,
-  },
-  { join      => {'tags_products'=>'tag'},
-  }
-)]);
+  { 'me.id_hash' => $id,},
+  { join      => {'tags_products'=>'tag'},}
+  )]);
 
 
    $c->stash(template => 'books/details.tt2');
