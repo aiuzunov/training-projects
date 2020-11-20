@@ -74,12 +74,12 @@ sub list :Local {
     my ($self, $c) = @_;
     my $page = $c->req->param('page');
     my $name = $c->request->param('name');
-    my $price1 = $c->request->param('price1') || 0;
-    my $price2 = $c->request->param('price2') || 100;
+    my $price1 = $c->request->param('price1');
+    my $price2 = $c->request->param('price2');
     my @tags = $c->request->param('tags');
     my %filter;
 
-    if(defined $name)
+    if(defined $name && $name ne "")
     {
       $filter{name} = { like => '%'.$name.'%' };
     }
@@ -89,14 +89,21 @@ sub list :Local {
       $filter{tag_id} = { in => [@tags] };
     }
 
-    $filter{price} = { '>=', $price1,'<=', $price2 };
-    $filter{price}{'>='} = $price1;
+    if(defined $price1 && $price1 ne ""){
+      $filter{price}{'>='} = $price1;
+
+    }
+
+    if(defined $price2 && $price2 ne ""){
+      $filter{price}{'<='} = $price2;
+    }
+
 
 
     if($c->req->param('submit') eq 'Submit')
     {
       $page = 1;
-      $c->stash(search_name => $name, price => $price1, price2 => $price2, tags => [@tags]);
+      $c->stash(search_name => $name, price1 => $price1, price2 => $price2, tags => [@tags]);
     }
     else
     {

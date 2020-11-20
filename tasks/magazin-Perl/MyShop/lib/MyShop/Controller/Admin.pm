@@ -232,12 +232,12 @@ sub products :Local{
   my ($self, $c) = @_;
   my $page = $c->req->param('page');
   my $name = $c->request->param('name');
-  my $price1 = $c->request->param('price1') || 0;
-  my $price2 = $c->request->param('price2') || 100;
+  my $price1 = $c->request->param('price1');
+  my $price2 = $c->request->param('price2');
   my @tags = $c->request->param('tags');
   my %filter;
 
-  if(defined $name)
+  if(defined $name && $name ne "")
   {
     $filter{name} = { like => '%'.$name.'%' };
   }
@@ -247,7 +247,16 @@ sub products :Local{
     $filter{tag_id} = { in => [@tags] };
   }
 
-  $filter{price} = { '>=', $price1,'<=', $price2 };
+
+  if(defined $price1 && $price1 ne ""){
+    $filter{price}{'>='} = $price1;
+
+  }
+
+  if(defined $price2 && $price2 ne ""){
+    $filter{price}{'<='} = $price2;
+  }
+
 
   if($c->req->param('submit') eq 'Submit')
   {
@@ -261,7 +270,7 @@ sub products :Local{
 
   if(!looks_like_number($page))
   {
-  $page = 1;
+    $page = 1;
   }
 
   $c->stash(books => [$c->model('DB::Product')->search({%filter}, {
@@ -280,22 +289,30 @@ sub orders :Local{
   my ($self, $c) = @_;
   my $page = $c->req->param('page');
   my $id = $c->request->param('id');
-  my $price1 = $c->request->param('price1') || 0;
-  my $price2 = $c->request->param('price2') || 1000000;
+  my $price1 = $c->request->param('price1');
+  my $price2 = $c->request->param('price2');
   my $order_status = $c->request->param('order_status') || !defined;
   my %filter;
 
 
-  if(defined $id)
+  if(defined $id && $id ne '')
   {
     $filter{order_id} = { '=' , $id };
   }
 
 
-  $filter{price} = { '>=', $price1,'<=', $price2 };
+  if(defined $price1 && $price1 ne ""){
+    $filter{price}{'>='} = $price1;
+
+  }
+
+  if(defined $price2 && $price2 ne ""){
+    $filter{price}{'<='} = $price2;
+  }
 
 
-  if(defined $order_status)
+
+  if(defined $order_status && $order_status ne "")
   {
     $filter{order_status} = { '=',  $order_status };
   }
@@ -316,16 +333,18 @@ sub orders :Local{
 
   if(!looks_like_number($page))
   {
-  $page = 1;
+    $page = 1;
   }
 
-  $c->stash(orders => [$c->model('DB::Order')->search({%filter},{
+
+  $c->stash(orders => [$c->model('DB::Order')->search({%filter}, {
          page => $page,
          rows => 10,
-         join => {'order_items'=>'product','user'},
-         order_by => {-asc => 'me.id'},
+         join      => {'order_items'=>'product','user'},
+         order_by => $order_status ne "" ? {-asc => 'order_status'} : {-asc => 'me.id'},
          group_by => 'me.id',
     })]);
+
 
 
   $c->stash(template => 'admin/orders.tt2',page => $page);
