@@ -43,7 +43,7 @@ sub orders :Local{
          page => $page,
          rows => 10,
          join      => {'order_items'=>'product','user'},
-         order_by => {-asc => 'id'},
+         order_by => {-asc => 'order_status'},
          group_by => 'id',
 
 
