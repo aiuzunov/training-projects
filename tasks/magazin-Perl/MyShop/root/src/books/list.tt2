@@ -1,6 +1,5 @@
 [% META title = 'Списък с Продукти' -%]
-
-
+[% tags = tags.hash(tags.0) %]
 <form id="filters" method="get" action="[% c.uri_for('/books/list/') %]">
     <table>
         <tc>
@@ -20,7 +19,11 @@
         <td>
         <select multiple size="2" name="tags" id="tags" value="[% tags %]">
         [% FOREACH tag IN select_tags -%]
-            <option value="[% tag.id %]">[% tag.name %]</option>
+            [% IF tags.exists(tag.id) %]
+            <option selected value="[% tag.id %]"> [% tag.name %] </option>
+            [% ELSE %]
+            <option value="[% tag.id %]"> [% tag.name %] </option>
+            [% END %]
         [% END -%]
         </select>
         </td>
