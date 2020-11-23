@@ -3,6 +3,9 @@ use Moose;
 use namespace::autoclean;
 use warnings;
 use strict;
+use Try::Tiny;
+use utf8;
+
 
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -32,27 +35,35 @@ Login logic
 
 sub index :Path :Args(0) {
     my ($self, $c) = @_;
-    my $username = $c->request->params->{username};
-    my $password = $c->request->params->{password};
+    try
+    {
+      my $username = $c->request->params->{username};
+      my $password = $c->request->params->{password};
 
-    $c->logout();
+      $c->logout();
 
-    if ($username && $password) {
-        if ($c->authenticate({ username => $username,
-                               password => $password,
-                               verified => 'true',} )) {
-            $c->response->redirect($c->uri_for(
-                $c->controller('Books')->action_for('list')));
-            return;
-        } else {
-            $c->stash(error_msg => "Bad username or password.");
-        }
-    } else {
-        $c->stash(error_msg => "Empty username or password.")
-            unless ($c->user_exists);
+      if ($username && $password) {
+          if ($c->authenticate({ username => $username,
+                                 password => $password,
+                                 verified => 'true',} )) {
+              $c->response->redirect($c->uri_for(
+                  $c->controller('Books')->action_for('list')));
+              return;
+          } else {
+              $c->stash(error_msg => "Грешно потребителско име или парола.");
+          }
+      } else {
+          $c->stash(error_msg => "Грешно потребителско име или парола.")
+              unless ($c->user_exists);
+      }
+
+      $c->stash(template => 'login/login.tt2');
     }
-
-    $c->stash(template => 'login/login.tt2');
+    catch
+    {
+      $c->stash(error_msg =>  'Application Error!');
+      $c->log->error($_);
+    };
 }
 
 

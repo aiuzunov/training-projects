@@ -13,6 +13,7 @@
 <th>Име на получателя</th>
 <th>E-mail на поръчителя</th>
 <th>Телефон за връзка</th>
+<th>Дата на плащането</th>
 <th>Статус на поръчката</th>
 <th>Тип на плащането</th>
 <th>Обща сума на поръчката</th>
@@ -27,6 +28,7 @@
     <td align="right">[% order.buyer_name %]</td>
     <td align="right">[% order.user.email %]</td>
     <td align="right">[% order.phone_number %]</td>
+    <td align="right">[% order.payments.time_of_payment %]</td>
     <td align="right">[% order.order_status %]</td>
     <td align="right">[% order.payment_type %]</td>
     <td align = right>[% order.price %] [% order.currency %].</td>

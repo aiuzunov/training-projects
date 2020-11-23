@@ -14,25 +14,23 @@
 </div>
 
 <div id="bodyblock">
-<div id="menu">
-    <ul>
-        <h5>Навигация:</h5>
-        <li><a href="[% c.uri_for('/')
-            %]" title="Catalyst Welcome Page">Начална страница</a></li>
-        <li><a href="[% c.uri_for('/books/list') %]">Книги</a></li>
-        <li><a href="[% c.uri_for('/cart/list') %]">Количка</a></li>
-        <li><a href="[% c.uri_for('/profile') %]">Профил</a></li>
-        [% IF c.user_in_realm('employees') %]
-        <li><a href="[% c.uri_for('/admin/products') %]">CRUD Продукти</a></li>
-        <li><a href="[% c.uri_for('/admin/orders') %]">CRUD Поръчки</a></li>
-        <li><a href="[% c.uri_for('/admin/users') %]">CRUD Потребители</a></li>
-        <li><a href="[% c.uri_for('/admin/employees') %]">CRUD Служители</a></li>
-        [% END %]
+  <div id="menu">
+      <ul>
+          <h5>Навигация:</h5>
+          <li><a href="[% c.uri_for('/books/list') %]">Книги</a></li>
+          <li><a href="[% c.uri_for('/cart/list') %]">Количка</a></li>
+          <li><a href="[% c.uri_for('/profile') %]">Профил</a></li>
+          [% IF c.user_in_realm('employees') %]
+          <li><a href="[% c.uri_for('/admin/products') %]">CRUD Продукти</a></li>
+          <li><a href="[% c.uri_for('/admin/orders') %]">CRUD Поръчки</a></li>
+          <li><a href="[% c.uri_for('/admin/users') %]">CRUD Потребители</a></li>
+          <li><a href="[% c.uri_for('/admin/employees') %]">CRUD Служители</a></li>
+          [% END %]
 
 
 
-    </ul>
-</div><!-- end menu -->
+      </ul>
+  </div><!-- end menu -->
 
 <div id="content">
     [%# Status and error messages %]

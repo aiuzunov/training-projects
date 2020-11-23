@@ -57,13 +57,3 @@
   </tr>
 [% END -%]
 </table>
-
-
-<footer>
-[% IF page - 1 > 0 %]
-   <a href="/admin/user_stats?page=[%page - 1%]&verified=[% verified %]&sort_by=[% sort_by %]">Previous Page</a>
-[% END %]
-[% page %]
-
-   <a href="/admin/user_stats?page=[%page + 1%]&verified=[% verified %]&sort_by=[% sort_by %]">Next Page</a>
-</footer>

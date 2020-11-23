@@ -1,4 +1,7 @@
 [% META title = 'CRUD за Поръчки' -%]
+[% FOREACH os IN order_status -%]
+  [% os %]
+[% END -%]
 [% length = orders.size %]
 [% IF length==0 %]
 <h3> Няма поръчки </h3>
@@ -21,8 +24,16 @@
         <td>Статус:</td>
         <td>
         <select multiple size="2" name="order_status" id="order_status">
-        <option value="Неплатена">Неплатена</option>
+        [% IF order_status.0 == 'Неплатена' || order_status.1 == 'Неплатена' %]
+        <option selected value="Неплатена">Неплатена</option>
+        [% ELSE %]
+        <option  value="Неплатена">Неплатена</option>
+        [% END %]
+        [% IF order_status.0 == 'Платена' || order_status.1 == 'Платена' %]
+        <option selected value="Платена">Платена</option>
+        [% ELSE %]
         <option value="Платена">Платена</option>
+        [% END %]
         </select>
         </td>
         </tc>
@@ -98,8 +109,8 @@ function ResetFilters() {
 </table>
 <footer>
 [% IF page - 1 > 0 %]
-   <a href="/admin/orders?page=[%page - 1%]&order_status=[% order_status %]&id=[% order_id %]&price1=[% price1 %]&price2=[% price2 %]">Previous Page</a>
+   <a href="/admin/orders?page=[%page - 1%][% FOREACH os IN order_status -%]&order_status=[% os %][% END %]&id=[% order_id %]&price1=[% price1 %]&price2=[% price2 %]">Previous Page</a>
 [% END %]
 [% page %]
-   <a href="/admin/orders?page=[%page + 1%]&order_status=[% order_status %]&id=[% order_id %]&price1=[% price1 %]&price2=[% price2 %]">Next Page</a>
+   <a href="/admin/orders?page=[%page + 1%][% FOREACH os IN order_status -%]&order_status=[% os %][% END %]&id=[% order_id %]&price1=[% price1 %]&price2=[% price2 %]">Next Page</a>
 </footer>

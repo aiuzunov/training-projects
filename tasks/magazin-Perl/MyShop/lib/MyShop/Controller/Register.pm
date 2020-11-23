@@ -5,6 +5,7 @@ use namespace::autoclean;
 use String::Random;
 use warnings;
 use strict;
+use Try::Tiny;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -27,58 +28,96 @@ Catalyst Controller.
 
 sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
-    $c->response->body('Matched MyShop::Controller::Register in Register.');
+    try
+    {
+      $c->response->body('Matched MyShop::Controller::Register in Register.');
+    }
+    catch
+    {
+      $c->stash(error_msg =>  'Application Error!');
+      $c->log->error($_);
+    };
 }
 
 sub register_form :Local{
   my ( $self, $c ) = @_;
-
-  $c->stash(template => 'register/register_form.tt2');
-
+  try
+  {
+    $c->stash(template => 'register/register_form.tt2');
+  }
+  catch
+  {
+    $c->stash(error_msg =>  'Application Error!');
+    $c->log->error($_);
+  };
 }
 
 sub send_mail : Local {
     my ( $self, $c ) = @_;
-    my $string_gen = String::Random->new;
-    my $email = $c->req->param('email');
-    my $name = $c->req->param('name');
-    my $username =$c->req->param('username');
-    my $password = $c->req->param('password');
-    my $code = $string_gen->randregex('[A-Z]{2}[a-z]{2}.[a-z]{2}\d'), "\n";
+    try
+    {
+      my $string_gen = String::Random->new;
+      my $email = $c->req->param('email');
+      my $name = $c->req->param('name');
+      my $username =$c->req->param('username');
+      my $password = $c->req->param('password');
+      try
+      {
+        my $code = $string_gen->randregex('[A-Z]{2}[a-z]{2}.[a-z]{2}\d'), "\n";
 
 
 
-    $c->model('DB::EmailCode')->create({
-    username => $username,
-    email => $email,
-    ver_code => $code });
+        $c->model('DB::EmailCode')->create({
+        username => $username,
+        email => $email,
+        ver_code => $code });
 
-    $c->model('DB::User')->create({
-    name => $name,
-    username => $username,
-    email => $email,
-    password => $password });
+        $c->model('DB::User')->create({
+        name => $name,
+        username => $username,
+        email => $email,
+        password => $password });
 
-    $c->stash->{email} = {
-        to      => $email,
-        from    => 'aleksandar.i.uzunov@gmail.com',
-        subject => 'Потвърждениe на акаунта ви в gotiniqtmagazinzaknigi.com',
-        body    => 'http://localhost:3000/register/verify/'.$code,
+        $c->stash->{email} = {
+            to      => $email,
+            from    => 'aleksandar.i.uzunov@gmail.com',
+            subject => 'Потвърждениe на акаунта ви в gotiniqtmagazinzaknigi.com',
+            body    => 'http://localhost:3000/register/verify/'.$code,
+        };
+
+        $c->forward( $c->view('Email') );
+        $c->stash(template => 'register/send_mail.tt2',email => $email);
+      }
+      catch
+      {
+        $c->stash(error_msg =>  'Application Error!');
+        $c->log->error($_);
+      };
+    }
+    catch
+    {
+      $c->stash(error_msg =>  'Application Error!');
+      $c->log->error($_);
     };
-
-    $c->forward( $c->view('Email') );
-    $c->stash(template => 'register/send_mail.tt2',email => $email);
 
 }
 
 sub verify : Local {
   my ( $self, $c, $ver_code ) = @_;
-  my $ver = $c->model('DB::EmailCode')->find($ver_code);
-  my $email = $ver->email;
-  $ver->delete();
-  my $user = $c->model('DB::User')->search(email=>$email);
-  $user->update({verified => 'true'});
-  $c->stash(template => 'register/verify.tt2', email => $email);
+  try
+  {
+    my $ver = $c->model('DB::EmailCode')->find($ver_code);
+    my $email = $ver->email;
+    $ver->delete();
+    my $user = $c->model('DB::User')->search(email=>$email);
+    $user->update({verified => 'true'});
+    $c->stash(template => 'register/verify.tt2', email => $email);
+  }
+  catch
+  {
+    $c->stash(error_msg =>  'Application Error!');
+    $c->log->error($_);
+  };
 }
 
 

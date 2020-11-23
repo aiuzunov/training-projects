@@ -29,7 +29,7 @@
             <form id="cart_form" method="POST" action="[% c.uri_for('/cart/update') %]/[% item.id_hash %]">
                 <select id="quantity_field" onchange="this.form.submit()" type="select" min="1" max="[% item.count_in_stock %]" name="quantity" value="[% quantity %]">
                 [% x=1 %]
-                [% WHILE x<item.count_in_stock -%]
+                [% WHILE x<=item.count_in_stock -%]
                     [% IF x==quantity %]
                       <option selected value="[% x %]">[% x %]</option>
                     [% ELSE %]

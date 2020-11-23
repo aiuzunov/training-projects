@@ -4,6 +4,7 @@ use namespace::autoclean;
 use utf8;
 use warnings;
 use strict;
+use Try::Tiny;
 
 
 BEGIN { extends 'Catalyst::Controller' }
@@ -34,27 +35,41 @@ The root page (/)
 
 sub auto :Private {
     my ($self, $c) = @_;
-
-
-    if ($c->controller eq $c->controller('Login'))
+    try
     {
-        return 1;
-    }
 
-    if (!$c->user_exists and $c->controller ne $c->controller('Admin'))
+      if ($c->controller eq $c->controller('Login'))
+      {
+          return 1;
+      }
+
+      if (!$c->user_exists and $c->controller ne $c->controller('Admin'))
+      {
+          $c->log->debug('***Root::auto User not found, forwarding to /login');
+          $c->response->redirect($c->uri_for('/login'));
+          return 0;
+      }
+
+      return 1;
+    }
+    catch
     {
-        $c->log->debug('***Root::auto User not found, forwarding to /login');
-        $c->response->redirect($c->uri_for('/login'));
-        return 0;
-    }
-
-    return 1;
+      $c->stash(error_msg =>  'Application Error!');
+      $c->log->error($_);
+    };
 }
 
 sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
-
-    $c->response->body( $c->welcome_message );
+    try
+    {
+      $c->response->body( $c->welcome_message );
+    }
+    catch
+    {
+      $c->stash(error_msg =>  'Application Error!');
+      $c->log->error($_);
+    };
 }
 
 =head2 default
@@ -65,8 +80,16 @@ Standard 404 error page
 
 sub default :Path {
     my ( $self, $c ) = @_;
-    $c->response->body( 'Page not found' );
-    $c->response->status(404);
+    try
+    {
+      $c->response->body( 'Page not found' );
+      $c->response->status(404);
+    }
+    catch
+    {
+      $c->stash(error_msg =>  'Application Error!');
+      $c->log->error($_);
+    };
 }
 
 =head2 end

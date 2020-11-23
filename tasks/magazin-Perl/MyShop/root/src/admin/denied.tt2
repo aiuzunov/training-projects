@@ -1,1 +1,6 @@
-<p><a href="[% c.uri_for(c.controller.action_for('')) %]">Върни се към админ панела</a></p>
+<button onclick="goBack()">Назад</button>
+<script>
+function goBack() {
+ window.history.back();
+}
+</script>

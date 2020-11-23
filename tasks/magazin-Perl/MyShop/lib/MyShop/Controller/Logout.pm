@@ -3,6 +3,7 @@ use Moose;
 use namespace::autoclean;
 use warnings;
 use strict;
+use Try::Tiny;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -31,10 +32,18 @@ Logout logic
 
 sub index :Path :Args(0) {
     my ($self, $c) = @_;
+    try
+    {
+      $c->logout();
+      $c->response->redirect($c->uri_for('/'));
+    }
+    catch
+    {
+     $c->stash(error_msg =>  'Application Error!');
+     $c->log->error($_);
+    };
 
-    $c->logout();
 
-    $c->response->redirect($c->uri_for('/'));
 }
 
 

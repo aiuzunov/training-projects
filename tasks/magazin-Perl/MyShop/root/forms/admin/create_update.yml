@@ -33,7 +33,7 @@ elements:
       constraints:
         - type: Length
           min: 5
-      
+
 
     - type: Text
       name: description
@@ -54,8 +54,8 @@ elements:
       constraints:
         - type: Integer
         - type: Range
-          min: 1
-          message: "Количеството трябва да бъде по-голямо от 0."
+          min: 0
+          message: "Количеството трябва да бъде по-голямо или равно на 0."
 
 
     - type: Select

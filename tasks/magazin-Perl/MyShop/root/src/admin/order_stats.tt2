@@ -62,10 +62,3 @@
   </tr>
 [% END -%]
 </table>
-<footer>
-[% IF page - 1 > 0 %]
-   <a href="/admin/orders?page=[%page - 1%]&order_status=[% order_status %]&sort_by=[% sort_by %]">Previous Page</a>
-[% END %]
-[% page %]
-   <a href="/admin/orders?page=[%page + 1%]&order_status=[% order_status %]&sort_by=[% sort_by %]">Next Page</a>
-</footer>

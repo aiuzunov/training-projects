@@ -1,0 +1,43 @@
+[% META title = 'Успешно платихте за поръчката си' -%]
+
+<h1> Ето малко повече детайли за плащането: </h1>
+<table  class="rtable">
+<tr>
+<th>ID на плащането</th>
+<th>ID на платената поръчка</th>
+<th>Дата на плащането </th>
+<th>Име на плащача</th>
+<th>E-mail на плащача</th>
+<th>PayPal ID на плащането</th>
+<th>Обща сума на поръчката</th>
+<th>Валута</th>
+</tr>
+<tr>
+  <tc>
+    <td align="right">[% details.id %]</td>
+  </tc>
+  <tc>
+    <td align="right">[% details.order_id %]</td>
+  </tc>
+  <tc>
+    <td align="right">[% details.time_of_payment %]</td>
+  </tc>
+  <tc>
+    <td align="right">[% details.recipient_name %]</td>
+  </tc>
+  <tc>
+    <td align="right">[% details.recipient_email %]</td>
+  </tc>
+  <tc>
+    <td align="right">[% details.payerid %]</td>
+  </tc>
+  <tc>
+    <td align="right">[% details.payment_sum %]</td>
+  </tc>
+  <tc>
+    <td align="right">[% details.currency %]</td>
+  </tc>
+</tr>
+</table>
+
+<h3> <a href="[% c.uri_for('/profile/orders') %]">Към вашите поръчки</a></h3>

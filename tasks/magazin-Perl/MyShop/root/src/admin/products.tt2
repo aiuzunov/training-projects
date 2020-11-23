@@ -1,6 +1,5 @@
 [% META title = 'CRUD за Продукти' -%]
-[% FOREACH tagtest IN tags -%]
-[% END -%]
+
 
 <form method="get" id="filters" action="[% c.uri_for('/admin/products/') %]">
     <table>
@@ -21,11 +20,11 @@
         <td>
         <select multiple size="2" name="tags" id="tags">
         [% FOREACH tag IN select_tags -%]
-          [% IF tags.includes(tag.id) %]
-          <option value="[% tag.id %]" selected>[% tag.name %]</option>
-          [% ELSE %]
-          <option value="[% tag.id %]">[% tag.name %]</option>
-          [% END %]
+            [% IF tags.grep("^$tag.id").size %]
+            <option selected value="[% tag.id %]"> [% tag.name %] </option>
+            [% ELSE %]
+            <option value="[% tag.id %]"> [% tag.name %] </option>
+            [% END %]
         [% END %]
         </select>
         </td>
@@ -63,7 +62,7 @@ function ResetFilters() {
   <tr>
     <td align = center><a href="/books/details?id=[% book.id_hash %]"><img src="/static/images/[% book.name %].png"></a></td>
     <td>[% book.create_date %]</td>
-    <td>[% book.edit_time %]</td>
+    <td>[% book.edit_time || 'Не е обновяван'%]</td>
     <td>[% book.name %]</td>
     <td align = right>[% book.price %] [% book.currency_id %]</td>
     <td align=right>
@@ -76,7 +75,7 @@ function ResetFilters() {
     </td>
     [% IF c.check_user_roles('Update Products') %]
     <td>
-    <a href="[% c.uri_for('/admin/update') %]/[% book.product.id || book.id %]">Обнови Продукта</a>
+    <a href="[% c.uri_for('/admin/update') %]?id=[% book.product.id || book.id %]&page=[% page %]&prev_name=[% search_name %]&price1=[% price1 %]&price2=[% price2 %][% FOREACH tag IN tags -%]&prev_tags=[% tag %][% END %]">Обнови Продукта</a>
     </td>
     [% END %]
 
