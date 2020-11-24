@@ -365,122 +365,117 @@ sub products :Local{
     my $query_string;
     my @bind_params;
     my %filter;
-    try
+    if(defined $name && $name ne "")
     {
-      if(defined $name && $name ne "")
-      {
-        MyAsserts::user_assert("scalar_type",$name,"string","Име");
-        $filter{'name'} = { ilike => '%'.$name.'%' };
-      }
-
-      if(@tags != 0)
-      {
-        MyAsserts::user_assert("ref",\@tags,"ARRAY");
-        $filter{tag_id} = { in => [@tags] };
-        $query_string = "$query_string and tags.id = ANY(?)";
-        push @bind_params, [@tags];
-      }
-
-      if(defined $price1 && $price1 ne "")
-      {
-        MyAsserts::user_assert("scalar_type",$price1,"number","Цена[OT]");
-        $query_string = "$query_string and price >= ?";
-        $filter{price}{'>='} = $price1;
-        push @bind_params, $price1;
-      }
-
-      if(defined $price2 && $price2 ne "")
-      {
-        MyAsserts::user_assert("scalar_type",$price2,"number","Цена[ДО]");
-        $query_string = "$query_string and price <= ?";
-        $filter{price}{'<='} = $price2;
-        push @bind_params, $price2;
-      }
-
-      if($c->req->param('submit') eq 'Submit')
-      {
-        $page = 1;
-        $c->stash(search_name => $name, price1 => $price1, price2 => $price2, tags => [@tags]);
-      }
-      else
-      {
-        $c->stash(search_name => $name, price1 => $price1, price2 => $price2, tags => [@tags]);
-      }
-
-      if(!looks_like_number($page))
-      {
-        $page = 1;
-      }
-      try
-      {
-        my $offset = ($page-1)*10;
-        warn $query_string;
-        warn @bind_params;
-        my $sth = $dbh->prepare("SELECT
-                                  me.id,
-                                  me.name,
-                                  me.image,
-                                  me.price,
-                                  me.count_in_stock,
-                                  me.has_image,
-                                  me.description,
-                                  me.currency_id,
-                                  me.create_date,
-                                  me.edit_time,
-                                  me.brand,
-                                  me.id_hash,
-                                  array_agg(tags.name) as tagerinos,
-                                  to_char(me.create_date, 'dd-Mon-YYYY HH24:MM:SS') as date_formatted
-                                  FROM products me
-                                  join tags_products
-                                  on tags_products.product_id = me.id
-                                  join tags
-                                  on tags_products.tag_id = tags.id
-                                  where me.name
-                                  ilike ? $query_string
-                                  group by me.id
-                                  LIMIT 10
-                                  OFFSET ?");
-        $sth->execute('%'.$name.'%',@bind_params, $offset);
-        my @rows;
-        while ( my $row = $sth->fetchrow_hashref ) {
-            push @rows, $row;
-        }
-        $c->stash(books => [@rows]);
-        # $c->stash(books => [$c->model('DB::Product')->search({%filter}, {
-        #        page => $page,
-        #        rows => 10,
-        #        join      => {'tags_products'=>'tag'},
-        #        order_by => {-asc => 'id'},
-        #        group_by => 'id',
-        #   })]);
-        $sth = $dbh->prepare("SELECT * from tags");
-        $sth->execute();
-        @rows = ();
-        while (my $row = $sth->fetchrow_hashref ) {
-          push @rows, $row;
-        }
-        $c->stash(select_tags => [@rows]);
-      }
-      catch
-      {
-        $c->stash(error_msg =>  'Application Error!');
-        $c->log->error($_);
-      };
-      $c->stash(template => 'admin/products.tt2',page => $page);
+      MyAsserts::user_assert(!looks_like_number($name),"Невалидни данни в полето за търсене по име","user");
+      $filter{'name'} = { ilike => '%'.$name.'%' };
     }
-    catch
+
+    if(@tags != 0)
     {
-      my $error_msg = $_->{error};
-      my $caller_info = $_->{caller_info};
-      $c->stash(error_msg =>  "$error_msg");
-      $c->log->error("Error message: $error_msg, Caller Info: $caller_info");
-    };
+      MyAsserts::user_assert(ref(\@tags) ne "ARRAY","Невалидни данни в полето за търсене по жанр","user");
+      $filter{tag_id} = { in => [@tags] };
+      $query_string = "$query_string and tags.id = ANY(?)";
+      push @bind_params, [@tags];
+    }
+
+    if(defined $price1 && $price1 ne "")
+    {
+      MyAsserts::user_assert(looks_like_number($price1),"Невалидни данни в полето за търсене по Цена[ОТ]","user");
+      $query_string = "$query_string and price >= ?";
+      $filter{price}{'>='} = $price1;
+      push @bind_params, $price1;
+    }
+
+    if(defined $price2 && $price2 ne "")
+    {
+      MyAsserts::user_assert(looks_like_number($price2),"Невалидни данни в полето за търсене по Цена[ДО]","user");
+      $query_string = "$query_string and price <= ?";
+      $filter{price}{'<='} = $price2;
+      push @bind_params, $price2;
+    }
+
+    if($c->req->param('submit') eq 'Submit')
+    {
+      $page = 1;
+      $c->stash(search_name => $name, price1 => $price1, price2 => $price2, tags => [@tags]);
+    }
+    else
+    {
+      $c->stash(search_name => $name, price1 => $price1, price2 => $price2, tags => [@tags]);
+    }
+
+    if(!looks_like_number($page))
+    {
+      $page = 1;
+    }
+    my $offset = ($page-1)*10;
+    warn $query_string;
+    warn @bind_params;
+    my $sth = $dbh->prepare("SELECT
+                              me.id,
+                              me.name,
+                              me.image,
+                              me.price,
+                              me.count_in_stock,
+                              me.has_image,
+                              me.description,
+                              me.currency_id,
+                              me.create_date,
+                              me.edit_time,
+                              me.brand,
+                              me.id_hash,
+                              array_agg(tags.name) as tagerinos,
+                              to_char(me.create_date, 'dd-Mon-YYYY HH24:MM:SS') as date_formatted
+                              FROM products me
+                              join tags_products
+                              on tags_products.product_id = me.id
+                              join tags
+                              on tags_products.tag_id = tags.id
+                              where me.name
+                              ilike ? $query_string
+                              group by me.id
+                              LIMIT 10
+                              OFFSET ?");
+    $sth->execute('%'.$name.'%',@bind_params, $offset);
+    my @rows;
+    while ( my $row = $sth->fetchrow_hashref ) {
+        push @rows, $row;
+    }
+    $c->stash(books => [@rows]);
+    # $c->stash(books => [$c->model('DB::Product')->search({%filter}, {
+    #        page => $page,
+    #        rows => 10,
+    #        join      => {'tags_products'=>'tag'},
+    #        order_by => {-asc => 'id'},
+    #        group_by => 'id',
+    #   })]);
+    $sth = $dbh->prepare("SELECT * from tags");
+    $sth->execute();
+    @rows = ();
+    while (my $row = $sth->fetchrow_hashref ) {
+      push @rows, $row;
+    }
+    $c->stash(select_tags => [@rows]);
   }
   catch
   {
-    $c->stash(error_msg =>  'Application Error!');
-    $c->log->error($_);
+    if(ref($_) eq "HASH")
+    {
+      my $error_type =$_->{type};
+      if($error_type eq "user")
+      {
+        my $error_msg = $_->{error};
+        my $caller_info = $_->{caller_info};
+        $c->stash(error_msg =>  "$error_msg");
+        $c->log->error("Error message: $error_msg, Caller Info: $caller_info");
+      }
+    }
+    else
+    {
+      $c->stash(error_msg =>  "Application Error!");
+      $c->log->error("$_");
+    }
   };
 }
 
@@ -488,28 +483,39 @@ sub orders :Local{
   my ($self, $c) = @_;
   try
   {
+    my $dbh = DBI->connect('dbi:Pg:dbname=onlineshop', 'shopadmin', '1234', {AutoCommit => 1}) or die $DBI::errstr;
     my $page = $c->req->param('page');
     my $id = $c->request->param('id');
     my $price1 = $c->request->param('price1');
     my $price2 = $c->request->param('price2');
     my @order_status = $c->request->param('order_status');
+    my $query_string;
+    my @bind_params;
     my %filter;
-
-
 
     if(defined $id && $id ne '')
     {
       $filter{order_id} = { '=' , $id };
+      MyAsserts::user_assert(MyAsserts::is_int($id),"Невалидни данни в полето за търсене по ID","user");
+      $query_string = "$query_string and me.id = ?";
+      push @bind_params, $id;
     }
 
 
-    if(defined $price1 && $price1 ne ""){
+    if(defined $price1 && $price1 ne "")
+    {
+      MyAsserts::user_assert(looks_like_number($price1),"Невалидни данни в полето за търсене по Цена[ОТ]","user");
       $filter{price}{'>='} = $price1;
-
+      $query_string = "$query_string and me.price >= ?";
+      push @bind_params, $price1;
     }
 
-    if(defined $price2 && $price2 ne ""){
+    if(defined $price2 && $price2 ne "")
+    {
+      MyAsserts::user_assert(looks_like_number($price2),"Невалидни данни в полето за търсене по Цена[ДО]","user");
       $filter{price}{'<='} = $price2;
+      $query_string = "$query_string and me.price <= ?";
+      push @bind_params, $price2;
     }
 
 
@@ -517,6 +523,8 @@ sub orders :Local{
     if(@order_status != 0)
       {
         $filter{order_status} = { in => [@order_status] };
+        $query_string = "$query_string and order_status = ANY(?)";
+        push @bind_params, [@order_status];
       }
 
 
@@ -536,31 +544,68 @@ sub orders :Local{
     {
       $page = 1;
     }
+    my $offset = ($page-1)*10;
 
-    try
+    my $sth = $dbh->prepare("SELECT me.id,
+                            me.user_id,
+                            me.address_id,
+                            to_char(me.created, 'yyyy-mm-dd hh24:mi:ss') as created,
+                            me.order_status,
+                            me.price,
+                            me.currency,
+                            me.phone_number,
+                            me.buyer_name,
+                            me.payment_type,
+                            users.name as name,
+                            users.email as email,
+                            to_char(payments.time_of_payment, 'yyyy-mm-dd hh24:mi:ss') as payment_date,
+                            array_agg(' [ ' || products.name || ': ' || order_items.quantity || 'бр' || ' Цена: ' || order_items.product_price*order_items.quantity || ' ' || me.currency  || ' ] ') as producterinos
+                            FROM orders me
+                            left join payments on payments.order_id = me.id
+                            join order_items on order_items.order_id = me.id
+                            join products on order_items.product_id = products.id
+                            join users on me.user_id = users.id
+                            where 1=1 $query_string
+                            group by me.id,users.name,users.email,payment_date
+                            order by me.order_status,me.id desc
+                            LIMIT 10 OFFSET ?");
+
+    $sth->execute(@bind_params,$offset);
+    my @rows;
+    while ( my $row = $sth->fetchrow_hashref )
     {
-      $c->stash(orders => [$c->model('DB::Order')->search({%filter}, {
-             page => $page,
-             rows => 10,
-             join      => {'order_items'=>'product','user'},
-             order_by => {-asc => 'me.order_status'},
-             group_by => 'me.id',
-        })]);
+        push @rows, $row;
+    }
+    $c->stash(orders => [@rows]);
+
+    # $c->stash(orders => [$c->model('DB::Order')->search({%filter}, {
+    #        page => $page,
+    #        rows => 10,
+    #        join      => {'order_items'=>'product','user'},
+    #        order_by => {-asc => 'me.order_status'},
+    #        group_by => 'me.id',
+    #   })]);
     }
     catch
     {
-      $c->stash(error_msg =>  'Application Error!');
-      $c->log->error($_);
+      if(ref($_) eq "HASH")
+      {
+        my $error_type =$_->{type};
+        if($error_type eq "user")
+        {
+          my $error_msg = $_->{error};
+          my $caller_info = $_->{caller_info};
+          $c->stash(error_msg =>  "$error_msg");
+          $c->log->error("Error message: $error_msg, Caller Info: $caller_info");
+        }
+      }
+      else
+      {
+        $c->stash(error_msg =>  "Application Error!");
+        $c->log->error("$_");
+      }
     };
-
-    $c->stash(template => 'admin/orders.tt2',page => $page);
-  }
-  catch
-  {
-    $c->stash(error_msg =>  'Application Error!');
-    $c->log->error($_);
-  };
-  }
+}
 
 sub employees :Local{
   my ($self, $c) = @_;

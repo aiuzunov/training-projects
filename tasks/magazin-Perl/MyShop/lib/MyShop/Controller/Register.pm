@@ -82,7 +82,7 @@ sub send_mail : Local {
             to      => $email,
             from    => 'aleksandar.i.uzunov@gmail.com',
             subject => 'Потвърждениe на акаунта ви в gotiniqtmagazinzaknigi.com',
-            body    => 'http://localhost:3000/register/verify/'.$code,
+            body    => "http://localhost:3000/register/verify/$code",
         };
 
         $c->forward( $c->view('Email') );

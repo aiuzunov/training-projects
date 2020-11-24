@@ -1,7 +1,4 @@
 [% META title = 'CRUD за Поръчки' -%]
-[% FOREACH os IN order_status -%]
-  [% os %]
-[% END -%]
 [% length = orders.size %]
 [% IF length==0 %]
 <h3> Няма поръчки </h3>
@@ -74,6 +71,7 @@ function ResetFilters() {
 <th>Име на получателя</th>
 <th>E-mail на поръчителя</th>
 <th>Телефон за връзка</th>
+<th>Дата на плащането</th>
 <th>Статус на поръчката</th>
 <th>Тип на плащането</th>
 <th>Обща сума на поръчката</th>
@@ -81,24 +79,26 @@ function ResetFilters() {
 </tr>
 [% FOREACH order IN orders -%]
   <tr>
-    <td align="right">[% order.id %]</td>
-    <td align="right">[% order.created %]</td>
-    <td align="right">[% order.user_id %]</td>
-    <td align="right">[% order.user.name %]</td>
-    <td align="right">[% order.buyer_name %]</td>
-    <td align="right">[% order.user.email %]</td>
-    <td align="right">[% order.phone_number %]</td>
-    <td align="right">[% order.order_status %]</td>
-    <td align="right">[% order.payment_type %]</td>
-    <td align = right>[% order.price %] [% order.currency %].</td>
-    <td align = center>
-    [% FOREACH order IN order.order_items -%]
-    [% order.product.name %]x[% order.quantity %]
-    [% END -%]
+  <td align="right">[% order.id %]</td>
+  <td align="right">[% order.created %]</td>
+  <td align="right">[% order.user_id %]</td>
+  <td align="right">[% order.name %]</td>
+  <td align="right">[% order.buyer_name %]</td>
+  <td align="right">[% order.email %]</td>
+  <td align="right">[% order.phone_number %]</td>
+  <td align="right">[% order.payment_date || '-' %]</td>
+  <td align="right">[% order.order_status %]</td>
+  <td align="right">[% order.payment_type %]</td>
+  <td align = right>[% order.price %] [% order.currency %].</td>
+  <td align = left>
+  [% FOREACH producterino IN order.producterinos -%]
+  [% producterino %]
+  [% END -%]
+  </td>
     </td>
     [% IF c.check_user_roles('Update Orders') %]
     <td>
-    <a href="[% c.uri_for('/admin/update_order') %]/[% order.order.id || order.id %]">Обнови Поръчката</a>
+    <a href="[% c.uri_for('/admin/update_order') %]/[% order.id %]">Обнови Поръчката</a>
     </td>
     [% END %]
 

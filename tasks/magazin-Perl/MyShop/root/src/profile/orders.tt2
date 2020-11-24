@@ -52,5 +52,7 @@
    <a href="/profile/orders?page=[%page - 1%]">Previous Page</a>
 [% END %]
 [% page %]
+[% IF length != 0 %]
    <a href="/profile/orders?page=[%page + 1%]">Next Page</a>
+[% END %]
 </footer>

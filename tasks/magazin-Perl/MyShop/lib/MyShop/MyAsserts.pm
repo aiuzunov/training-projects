@@ -26,55 +26,19 @@ sub is_int {
     }
 }
 
-sub user_assert {
-  my ($type, $param, $ref, $field) = @_;
+sub user_assert
+{
+  my ($condition, $msg, $type) = @_;
   my $json = JSON->new;
   my ($pkg, $file, $line) = caller(0);
   open my $fh, "<", $file;
   my @lines = <$fh>;
   close $fh;
   my $caller_info = "$file:$line: " . $lines[$line - 1];
-  if($type eq "defined")
+  if(!$condition)
   {
-    if(!defined $param)
-    {
-      my $data_to_json = {error=>"The given parameter is not defined",caller_info=>$caller_info};
+      my $data_to_json = {error=>"$msg",caller_info=>$caller_info,type=>$type};
       die $data_to_json;
-    }
-  }
-  elsif($type eq "ref")
-  {
-    if (ref($param) ne $ref)
-    {
-      my $data_to_json = {error=>"Assertion failed: the given parameter is not of type $ref.",caller_info=>$caller_info};
-      die $data_to_json;
-    }
-
-  }
-  elsif($type eq "scalar_type")
-  {
-      if($ref eq "string" && looks_like_number($param))
-      {
-        my $data_to_json = {error=>"Невалидни данни в полето: '$field'",caller_info=>$caller_info};
-        die $data_to_json;
-      }
-      elsif($ref eq "number" && !looks_like_number($param))
-      {
-        my $data_to_json = {error=>"Невалидни данни в полето: '$field'",caller_info=>$caller_info};
-        die $data_to_json;      }
-      elsif($ref eq "integer" && !(is_int($param)))
-      {
-        my $data_to_json = {error=>"Невалидни данни в полето: '$field'",caller_info=>$caller_info};
-        die $data_to_json;
-      }
-  }
-  else
-  {
-    if(!$param)
-    {
-      my $data_to_json = {error=>"$param is false:",caller_info=>$caller_info};
-      die $data_to_json;
-    }
   }
 }
 
