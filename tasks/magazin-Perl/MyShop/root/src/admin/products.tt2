@@ -69,8 +69,8 @@ function ResetFilters() {
     [% book.count_in_stock %]
     </td>
     <td align = center>
-    [% FOREACH book IN book.tags_products -%]
-    [% book.tag.name %]
+    [% FOREACH tagerino IN book.tagerinos -%]
+    [% tagerino %]
     [% END -%]
     </td>
     [% IF c.check_user_roles('Update Products') %]

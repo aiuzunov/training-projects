@@ -3,7 +3,7 @@ use Moose;
 use namespace::autoclean;
 use utf8;
 use Catalyst qw/ Static::Simple /;
-
+use Try::Tiny;
 
 use Catalyst::Runtime 5.80;
 
@@ -117,7 +117,6 @@ __PACKAGE__->config(
 );
 # Start the application
 __PACKAGE__->setup();
-
 __PACKAGE__->deny_access_unless(
         "/admin/create",
         ['Create Products'],
@@ -128,12 +127,12 @@ __PACKAGE__->deny_access_unless(
     );
 __PACKAGE__->deny_access_unless(
         "/admin/create_user",
-        ['Create User'],
+        ['Create Users'],
     );
 
 __PACKAGE__->deny_access_unless(
         "/admin/update_user",
-        ['Update User'],
+        ['Update Users'],
     );
 
 __PACKAGE__->deny_access_unless(
@@ -158,13 +157,12 @@ __PACKAGE__->deny_access_unless(
   );
 __PACKAGE__->deny_access_unless(
         "/admin/user_stats",
-        ['View Stats'],
+        ['Справки'],
   );
 __PACKAGE__->deny_access_unless(
         "/admin/order_stats",
         ['Справки'],
   );
-
 
 
 

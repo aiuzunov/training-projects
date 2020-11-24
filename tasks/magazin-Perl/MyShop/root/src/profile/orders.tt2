@@ -3,7 +3,6 @@
 [% IF length==0 %]
 <h3> Няма поръчки </h3>
 [% ELSE %]
-
 <table  class="rtable">
 <tr>
 <th>ID</th>
@@ -24,20 +23,20 @@
     <td align="right">[% order.id %]</td>
     <td align="right">[% order.created %]</td>
     <td align="right">[% order.user_id %]</td>
-    <td align="right">[% order.user.name %]</td>
+    <td align="right">[% order.name %]</td>
     <td align="right">[% order.buyer_name %]</td>
-    <td align="right">[% order.user.email %]</td>
+    <td align="right">[% order.email %]</td>
     <td align="right">[% order.phone_number %]</td>
-    <td align="right">[% order.payments.time_of_payment %]</td>
+    <td align="right">[% order.payment_date || '-' %]</td>
     <td align="right">[% order.order_status %]</td>
     <td align="right">[% order.payment_type %]</td>
     <td align = right>[% order.price %] [% order.currency %].</td>
-    <td align = center>
-    [% FOREACH order IN order.order_items -%]
-    [% order.product.name %]x[% order.quantity %]
+    <td align = left>
+    [% FOREACH producterino IN order.producterinos -%]
+    [% producterino %]
     [% END -%]
     </td>
-    [% IF order.order.order_status == 'Неплатена'&&order.order.payment_type!='Наложен' %]
+    [% IF order.order_status == 'Неплатена'&&order.payment_type!='Наложен' %]
     <td>
     <a href="[% c.uri_for('/checkout') %]?order_id=[% order.order.id || order.id %]">Плати</a>
     </td>

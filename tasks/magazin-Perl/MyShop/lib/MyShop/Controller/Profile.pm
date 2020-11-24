@@ -36,6 +36,8 @@ sub orders :Local{
   my ($self, $c) = @_;
   try
   {
+    my $dbh = DBI->connect('dbi:Pg:dbname=onlineshop', 'shopadmin', '1234', {AutoCommit => 1}) or die $DBI::errstr;
+
     my $page = $c->req->param('page');
 
     if(!looks_like_number($page)){
@@ -43,12 +45,44 @@ sub orders :Local{
     }
     try
     {
-      $c->stash(orders => [$c->model('DB::Order')->search({user_id => $c->user->get('id')}, {
-             page => $page,
-             rows => 10,
-             order_by => {-asc => 'order_status'},
-             group_by => 'id',
-        })]);
+        my $offset = ($page-1)*10;
+
+        my $sth = $dbh->prepare("SELECT me.id,
+                                me.user_id,
+                                me.address_id,
+                                to_char(me.created, 'yyyy-mm-dd hh24:mi:ss') as created,
+                                me.order_status,
+                                me.price,
+                                me.currency,
+                                me.phone_number,
+                                me.buyer_name,
+                                me.payment_type,
+                                users.name as name,
+                                users.email as email,
+                                to_char(payments.time_of_payment, 'yyyy-mm-dd hh24:mi:ss') as payment_date,
+                                array_agg(' [ ' || products.name || ': ' || order_items.quantity || 'бр' || ' Цена: ' || order_items.product_price*order_items.quantity || ' ' || me.currency  || ' ] ') as producterinos
+                                FROM orders me
+                                left join payments on payments.order_id = me.id
+                                join order_items on order_items.order_id = me.id
+                                join products on order_items.product_id = products.id
+                                join users on me.user_id = users.id
+                                where me.user_id = ?
+                                group by me.id,users.name,users.email,payment_date
+                                order by me.order_status,me.id desc
+                                LIMIT 10 OFFSET ?");
+
+        $sth->execute($c->user->get('id'),$offset);
+        my @rows;
+        while ( my $row = $sth->fetchrow_hashref ) {
+            push @rows, $row;
+        }
+        $c->stash(orders => [@rows]);
+      # $c->stash(orders => [$c->model('DB::Order')->search({user_id => $c->user->get('id')}, {
+      #        page => $page,
+      #        rows => 10,
+      #        order_by => {-asc => 'order_status'},
+      #        group_by => 'id',
+      #   })]);
 
     }
     catch

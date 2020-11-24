@@ -8,7 +8,10 @@ use Scalar::Util qw(looks_like_number);
 use Try::Tiny;
 use URI::Escape;
 use MyShop::MyAsserts;
+use JSON;
+use DBI;
 BEGIN { extends 'Catalyst::Controller::HTML::FormFu'; }
+
 
 =head1 NAME
 
@@ -80,8 +83,19 @@ sub auto :Private {
 
 sub test :Local{
   my ($self, $c) = @_;
-  my $test = 0;
-  MyAsserts::user_assert('whatever',1);
+  my %hash = (hash=>"hash");
+
+  my $scalar;
+  try
+  {
+    MyAsserts::user_assert("defined",$scalar);
+  }
+  catch
+    {
+      my $error_msg = $_->{error};
+      $c->stash(error_msg =>  "$error_msg");
+      $c->log->error($error_msg);
+    };
 }
 
 sub denied :Local{
@@ -342,65 +356,126 @@ sub products :Local{
   my ($self, $c) = @_;
   try
   {
+    my $dbh = DBI->connect('dbi:Pg:dbname=onlineshop', 'shopadmin', '1234', {AutoCommit => 1}) or die $DBI::errstr;
     my $page = $c->req->param('page');
     my $name = $c->request->param('name');
     my $price1 = $c->request->param('price1');
     my $price2 = $c->request->param('price2');
     my @tags = $c->request->param('tags');
+    my $query_string;
+    my @bind_params;
     my %filter;
-
-    if(defined $name && $name ne "")
-    {
-      $filter{name} = { ilike => '%'.$name.'%' };
-    }
-
-    if(@tags != 0)
-    {
-      $filter{tag_id} = { in => [@tags] };
-    }
-
-
-    if(defined $price1 && $price1 ne ""){
-      $filter{price}{'>='} = $price1;
-
-    }
-
-    if(defined $price2 && $price2 ne ""){
-      $filter{price}{'<='} = $price2;
-    }
-
-
-    if($c->req->param('submit') eq 'Submit')
-    {
-      $page = 1;
-      $c->stash(search_name => $name, price1 => $price1, price2 => $price2, tags => [@tags]);
-    }
-    else
-    {
-      $c->stash(search_name => $name, price1 => $price1, price2 => $price2, tags => [@tags]);
-    }
-
-    if(!looks_like_number($page))
-    {
-      $page = 1;
-    }
     try
     {
-      $c->stash(books => [$c->model('DB::Product')->search({%filter}, {
-             page => $page,
-             rows => 10,
-             join      => {'tags_products'=>'tag'},
-             order_by => {-asc => 'id'},
-             group_by => 'id',
-        })]);
-      $c->stash(select_tags => [$c->model('DB::Tag')->all()]);
+      if(defined $name && $name ne "")
+      {
+        MyAsserts::user_assert("scalar_type",$name,"string","Име");
+        $filter{'name'} = { ilike => '%'.$name.'%' };
+      }
+
+      if(@tags != 0)
+      {
+        MyAsserts::user_assert("ref",\@tags,"ARRAY");
+        $filter{tag_id} = { in => [@tags] };
+        $query_string = "$query_string and tags.id = ANY(?)";
+        push @bind_params, [@tags];
+      }
+
+      if(defined $price1 && $price1 ne "")
+      {
+        MyAsserts::user_assert("scalar_type",$price1,"number","Цена[OT]");
+        $query_string = "$query_string and price >= ?";
+        $filter{price}{'>='} = $price1;
+        push @bind_params, $price1;
+      }
+
+      if(defined $price2 && $price2 ne "")
+      {
+        MyAsserts::user_assert("scalar_type",$price2,"number","Цена[ДО]");
+        $query_string = "$query_string and price <= ?";
+        $filter{price}{'<='} = $price2;
+        push @bind_params, $price2;
+      }
+
+      if($c->req->param('submit') eq 'Submit')
+      {
+        $page = 1;
+        $c->stash(search_name => $name, price1 => $price1, price2 => $price2, tags => [@tags]);
+      }
+      else
+      {
+        $c->stash(search_name => $name, price1 => $price1, price2 => $price2, tags => [@tags]);
+      }
+
+      if(!looks_like_number($page))
+      {
+        $page = 1;
+      }
+      try
+      {
+        my $offset = ($page-1)*10;
+        warn $query_string;
+        warn @bind_params;
+        my $sth = $dbh->prepare("SELECT
+                                  me.id,
+                                  me.name,
+                                  me.image,
+                                  me.price,
+                                  me.count_in_stock,
+                                  me.has_image,
+                                  me.description,
+                                  me.currency_id,
+                                  me.create_date,
+                                  me.edit_time,
+                                  me.brand,
+                                  me.id_hash,
+                                  array_agg(tags.name) as tagerinos,
+                                  to_char(me.create_date, 'dd-Mon-YYYY HH24:MM:SS') as date_formatted
+                                  FROM products me
+                                  join tags_products
+                                  on tags_products.product_id = me.id
+                                  join tags
+                                  on tags_products.tag_id = tags.id
+                                  where me.name
+                                  ilike ? $query_string
+                                  group by me.id
+                                  LIMIT 10
+                                  OFFSET ?");
+        $sth->execute('%'.$name.'%',@bind_params, $offset);
+        my @rows;
+        while ( my $row = $sth->fetchrow_hashref ) {
+            push @rows, $row;
+        }
+        $c->stash(books => [@rows]);
+        # $c->stash(books => [$c->model('DB::Product')->search({%filter}, {
+        #        page => $page,
+        #        rows => 10,
+        #        join      => {'tags_products'=>'tag'},
+        #        order_by => {-asc => 'id'},
+        #        group_by => 'id',
+        #   })]);
+        $sth = $dbh->prepare("SELECT * from tags");
+        $sth->execute();
+        @rows = ();
+        while (my $row = $sth->fetchrow_hashref ) {
+          push @rows, $row;
+        }
+        $c->stash(select_tags => [@rows]);
+      }
+      catch
+      {
+        $c->stash(error_msg =>  'Application Error!');
+        $c->log->error($_);
+      };
+      $c->stash(template => 'admin/products.tt2',page => $page);
     }
     catch
     {
-      $c->stash(error_msg =>  'Application Error!');
-      $c->log->error($_);
+      my $error_msg = $_->{error};
+      my $caller_info = $_->{caller_info};
+      $c->stash(error_msg =>  "$error_msg");
+      $c->log->error("Error message: $error_msg, Caller Info: $caller_info");
     };
-    $c->stash(template => 'admin/products.tt2',page => $page);
   }
   catch
   {
@@ -940,5 +1015,6 @@ it under the same terms as Perl itself.
 =cut
 
 __PACKAGE__->meta->make_immutable;
+
 
 1;

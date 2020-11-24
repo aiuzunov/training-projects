@@ -1,4 +1,5 @@
 [% META title = 'Списък с Продукти' -%]
+
 <form id="filters" method="get" action="[% c.uri_for('/books/list/') %]">
     <table>
         <tc>
@@ -56,13 +57,13 @@ function ResetFilters() {
     <td>[% book.name %]</td>
     <td align = right>[% book.price %] [% book.currency_id %]</td>
     <td align = center>
-    [% FOREACH book IN book.tags_products -%]
-    [% book.tag.name %]
+    [% FOREACH tagerino IN book.tagerinos -%]
+    [% tagerino %]
     [% END -%]
     </td>
     <td>
     [% IF book.product.count_in_stock || book.count_in_stock > 0 %]
-    <a href="[% c.uri_for('/cart/add') %]/[% book.product.id_hash %]">
+    <a href="[% c.uri_for('/cart/add') %]/[% book.id_hash %]">
     <input type="button" name="AddToCart" value="добави в количката"/>
     </a>
     [% ELSE %]
