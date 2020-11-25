@@ -7,11 +7,15 @@ use warnings;
 use Scalar::Util qw(looks_like_number);
 use Try::Tiny;
 use URI::Escape;
-use MyShop::MyAsserts;
 use JSON;
 use DBI;
+use lib qw(./Modules);
+use MyAsserts;
+use MyDBI;
+
 BEGIN { extends 'Catalyst::Controller::HTML::FormFu'; }
 
+our $dbh;
 
 =head1 NAME
 
@@ -81,22 +85,22 @@ sub auto :Private {
     };
 }
 
-sub test :Local{
-  my ($self, $c) = @_;
-  my %hash = (hash=>"hash");
-
-  my $scalar;
-  try
-  {
-    MyAsserts::user_assert("defined",$scalar);
-  }
-  catch
-    {
-      my $error_msg = $_->{error};
-      $c->stash(error_msg =>  "$error_msg");
-      $c->log->error($error_msg);
-    };
-}
+# sub test :Local{
+#   my ($self, $c) = @_;
+#   my %hash = (hash=>"hash");
+#
+#   my $scalar;
+#   try
+#   {
+#     MyAsserts::user_assert("defined",$scalar);
+#   }
+#   catch
+#     {
+#       my $error_msg = $_->{error};
+#       $c->stash(error_msg =>  "$error_msg");
+#       $c->log->error($error_msg);
+#     };
+# }
 
 sub denied :Local{
   my ($self, $c) = @_;
@@ -356,8 +360,8 @@ sub products :Local{
   my ($self, $c) = @_;
   try
   {
-    my $dbh = DBI->connect('dbi:Pg:dbname=onlineshop', 'shopadmin', '1234', {AutoCommit => 1}) or die $DBI::errstr;
-    my $page = $c->req->param('page');
+    $dbh=connect();
+    assert(defined $dbh,"No connection to the database");    my $page = $c->req->param('page');
     my $name = $c->request->param('name');
     my $price1 = $c->request->param('price1');
     my $price2 = $c->request->param('price2');
@@ -367,13 +371,13 @@ sub products :Local{
     my %filter;
     if(defined $name && $name ne "")
     {
-      MyAsserts::user_assert(!looks_like_number($name),"Невалидни данни в полето за търсене по име","user");
+      user_assert(!looks_like_number($name),"A493","Невалидни данни в полето за търсене по име");
       $filter{'name'} = { ilike => '%'.$name.'%' };
     }
 
     if(@tags != 0)
     {
-      MyAsserts::user_assert(ref(\@tags) ne "ARRAY","Невалидни данни в полето за търсене по жанр","user");
+      user_assert(ref(\@tags) ne "ARRAY","A494","Невалидни данни в полето за търсене по жанр");
       $filter{tag_id} = { in => [@tags] };
       $query_string = "$query_string and tags.id = ANY(?)";
       push @bind_params, [@tags];
@@ -381,7 +385,7 @@ sub products :Local{
 
     if(defined $price1 && $price1 ne "")
     {
-      MyAsserts::user_assert(looks_like_number($price1),"Невалидни данни в полето за търсене по Цена[ОТ]","user");
+      user_assert(looks_like_number($price1),"A495","Невалидни данни в полето за търсене по Цена[ОТ]");
       $query_string = "$query_string and price >= ?";
       $filter{price}{'>='} = $price1;
       push @bind_params, $price1;
@@ -389,7 +393,7 @@ sub products :Local{
 
     if(defined $price2 && $price2 ne "")
     {
-      MyAsserts::user_assert(looks_like_number($price2),"Невалидни данни в полето за търсене по Цена[ДО]","user");
+      user_assert(looks_like_number($price2),"A496","Невалидни данни в полето за търсене по Цена[ДО]");
       $query_string = "$query_string and price <= ?";
       $filter{price}{'<='} = $price2;
       push @bind_params, $price2;
@@ -413,28 +417,28 @@ sub products :Local{
     warn $query_string;
     warn @bind_params;
     my $sth = $dbh->prepare("SELECT
-                              me.id,
-                              me.name,
-                              me.image,
-                              me.price,
-                              me.count_in_stock,
-                              me.has_image,
-                              me.description,
-                              me.currency_id,
-                              me.create_date,
-                              me.edit_time,
-                              me.brand,
-                              me.id_hash,
-                              array_agg(tags.name) as tagerinos,
-                              to_char(me.create_date, 'dd-Mon-YYYY HH24:MM:SS') as date_formatted
-                              FROM products me
-                              join tags_products
-                              on tags_products.product_id = me.id
-                              join tags
-                              on tags_products.tag_id = tags.id
-                              where me.name
+                              p.id,
+                              p.name,
+                              p.image,
+                              p.price,
+                              p.count_in_stock,
+                              p.has_image,
+                              p.description,
+                              p.currency_id,
+                              p.create_date,
+                              p.edit_time,
+                              p.brand,
+                              p.id_hash,
+                              array_agg(t.name) as tagerinos,
+                              to_char(p.create_date, 'dd-Mon-YYYY HH24:MM:SS') as date_formatted
+                              FROM products p
+                              join tags_products tp
+                              on tp.product_id = p.id
+                              join tags t
+                              on tp.tag_id = t.id
+                              where p.name
                               ilike ? $query_string
-                              group by me.id
+                              group by p.id
                               LIMIT 10
                               OFFSET ?");
     $sth->execute('%'.$name.'%',@bind_params, $offset);
@@ -470,6 +474,19 @@ sub products :Local{
         $c->stash(error_msg =>  "$error_msg");
         $c->log->error("Error message: $error_msg, Caller Info: $caller_info");
       }
+      elsif($error_type eq "internal")
+      {
+        my $error_msg = $_->{error};
+        my $caller_info = $_->{caller_info};
+        $c->stash(error_msg =>  "Application Error!");
+        $c->log->error("Error message: $error_msg, Caller Info: $caller_info");
+      }
+      else
+      {
+        $c->stash(error_msg =>  "Application Error!");
+        $c->log->error("$_");
+      }
+
     }
     else
     {
@@ -483,7 +500,9 @@ sub orders :Local{
   my ($self, $c) = @_;
   try
   {
-    my $dbh = DBI->connect('dbi:Pg:dbname=onlineshop', 'shopadmin', '1234', {AutoCommit => 1}) or die $DBI::errstr;
+    $dbh=connect();
+    TRACE("TEST","TEST2");
+    assert(defined $dbh,"No connection to the database");
     my $page = $c->req->param('page');
     my $id = $c->request->param('id');
     my $price1 = $c->request->param('price1');
@@ -496,7 +515,7 @@ sub orders :Local{
     if(defined $id && $id ne '')
     {
       $filter{order_id} = { '=' , $id };
-      MyAsserts::user_assert(MyAsserts::is_int($id),"Невалидни данни в полето за търсене по ID","user");
+      user_assert(MyAsserts::is_int($id),"A505","Невалидни данни в полето за търсене по ID");
       $query_string = "$query_string and me.id = ?";
       push @bind_params, $id;
     }
@@ -504,7 +523,7 @@ sub orders :Local{
 
     if(defined $price1 && $price1 ne "")
     {
-      MyAsserts::user_assert(looks_like_number($price1),"Невалидни данни в полето за търсене по Цена[ОТ]","user");
+      user_assert(looks_like_number($price1),"A506","Невалидни данни в полето за търсене по Цена[ОТ]");
       $filter{price}{'>='} = $price1;
       $query_string = "$query_string and me.price >= ?";
       push @bind_params, $price1;
@@ -512,7 +531,7 @@ sub orders :Local{
 
     if(defined $price2 && $price2 ne "")
     {
-      MyAsserts::user_assert(looks_like_number($price2),"Невалидни данни в полето за търсене по Цена[ДО]","user");
+      user_assert(looks_like_number($price2),"A507","Невалидни данни в полето за търсене по Цена[ДО]");
       $filter{price}{'<='} = $price2;
       $query_string = "$query_string and me.price <= ?";
       push @bind_params, $price2;
@@ -546,28 +565,28 @@ sub orders :Local{
     }
     my $offset = ($page-1)*10;
 
-    my $sth = $dbh->prepare("SELECT me.id,
-                            me.user_id,
-                            me.address_id,
-                            to_char(me.created, 'yyyy-mm-dd hh24:mi:ss') as created,
-                            me.order_status,
-                            me.price,
-                            me.currency,
-                            me.phone_number,
-                            me.buyer_name,
-                            me.payment_type,
-                            users.name as name,
-                            users.email as email,
-                            to_char(payments.time_of_payment, 'yyyy-mm-dd hh24:mi:ss') as payment_date,
-                            array_agg(' [ ' || products.name || ': ' || order_items.quantity || 'бр' || ' Цена: ' || order_items.product_price*order_items.quantity || ' ' || me.currency  || ' ] ') as producterinos
-                            FROM orders me
-                            left join payments on payments.order_id = me.id
-                            join order_items on order_items.order_id = me.id
-                            join products on order_items.product_id = products.id
-                            join users on me.user_id = users.id
-                            where 1=1 $query_string
-                            group by me.id,users.name,users.email,payment_date
-                            order by me.order_status,me.id desc
+    my $sth = $dbh->prepare("SELECT o.id,
+                            o.user_id,
+                            o.address_id,
+                            to_char(o.created, 'yyyy-mm-dd hh24:mi:ss') as created,
+                            o.order_status,
+                            o.price,
+                            o.currency,
+                            o.phone_number,
+                            o.buyer_name,
+                            o.payment_type,
+                            u.name as name,
+                            u.email as email,
+                            to_char(pa.payment_timestamp, 'yyyy-mm-dd hh24:mi:ss') as payment_date,
+                            array_agg(' [ ' || p.name || ': ' || oi.quantity || 'бр' || ' Цена: ' || oi.product_price*oi.quantity || ' ' || o.currency  || ' ] ') as producterinos
+                            FROM orders o
+                            left join payments pa on pa.order_id = o.id
+                            join order_items oi on oi.order_id = o.id
+                            join products p on oi.product_id = p.id
+                            join users u on o.user_id = u.id
+                            where true $query_string
+                            group by o.id,u.name,u.email,payment_date
+                            order by o.order_status,o.id desc
                             LIMIT 10 OFFSET ?");
 
     $sth->execute(@bind_params,$offset);
@@ -598,6 +617,19 @@ sub orders :Local{
           $c->stash(error_msg =>  "$error_msg");
           $c->log->error("Error message: $error_msg, Caller Info: $caller_info");
         }
+        elsif($error_type eq "internal")
+        {
+          my $error_msg = $_->{error};
+          my $caller_info = $_->{caller_info};
+          $c->stash(error_msg =>  "Application Error!");
+          $c->log->error("Error message: $error_msg, Caller Info: $caller_info");
+        }
+        else
+        {
+          $c->stash(error_msg =>  "Application Error!");
+          $c->log->error("$_");
+        }
+
       }
       else
       {

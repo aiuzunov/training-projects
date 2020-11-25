@@ -47,33 +47,34 @@ sub orders :Local{
     {
         my $offset = ($page-1)*10;
 
-        my $sth = $dbh->prepare("SELECT me.id,
-                                me.user_id,
-                                me.address_id,
-                                to_char(me.created, 'yyyy-mm-dd hh24:mi:ss') as created,
-                                me.order_status,
-                                me.price,
-                                me.currency,
-                                me.phone_number,
-                                me.buyer_name,
-                                me.payment_type,
-                                users.name as name,
-                                users.email as email,
-                                to_char(payments.time_of_payment, 'yyyy-mm-dd hh24:mi:ss') as payment_date,
-                                array_agg(' [ ' || products.name || ': ' || order_items.quantity || 'бр' || ' Цена: ' || order_items.product_price*order_items.quantity || ' ' || me.currency  || ' ] ') as producterinos
-                                FROM orders me
-                                left join payments on payments.order_id = me.id
-                                join order_items on order_items.order_id = me.id
-                                join products on order_items.product_id = products.id
-                                join users on me.user_id = users.id
-                                where me.user_id = ?
-                                group by me.id,users.name,users.email,payment_date
-                                order by me.order_status,me.id desc
+        my $sth = $dbh->prepare("SELECT o.id,
+                                o.user_id,
+                                o.address_id,
+                                to_char(o.created, 'yyyy-mm-dd hh24:mi:ss') as created,
+                                o.order_status,
+                                o.price,
+                                o.currency,
+                                o.phone_number,
+                                o.buyer_name,
+                                o.payment_type,
+                                u.name as name,
+                                u.email as email,
+                                to_char(pa.payment_timestamp, 'yyyy-mm-dd hh24:mi:ss') as payment_date,
+                                array_agg(' [ ' || p.name || ': ' || oi.quantity || 'бр' || ' Цена: ' || oi.product_price*oi.quantity || ' ' || o.currency  || ' ] ') as producterinos
+                                FROM orders o
+                                left join payments pa on pa.order_id = o.id
+                                join order_items oi on oi.order_id = o.id
+                                join products p on oi.product_id = p.id
+                                join users u on o.user_id = u.id
+                                where o.user_id = ?
+                                group by o.id,u.name,u.email,payment_date
+                                order by o.order_status,o.id desc
                                 LIMIT 10 OFFSET ?");
 
         $sth->execute($c->user->get('id'),$offset);
         my @rows;
-        while ( my $row = $sth->fetchrow_hashref ) {
+        while ( my $row = $sth->fetchrow_hashref )
+        {
             push @rows, $row;
         }
         $c->stash(orders => [@rows]);

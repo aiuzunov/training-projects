@@ -8,8 +8,13 @@ use strict;
 use warnings;
 use DBI;
 use Try::Tiny;
-use MyShop::MyAsserts;
+use lib qw(./Modules);
+use MyAsserts;
+use MyDBI;
+
 #use open qw(:utf8 :std);
+
+our $dbh;
 
 
 
@@ -47,12 +52,13 @@ sub list :Local {
 
     try
     {
-      my $dbh = DBI->connect('dbi:Pg:dbname=onlineshop', 'shopadmin', '1234', {AutoCommit => 1}) or die $DBI::errstr;
-
+      $dbh=connect();
+      TRACE("TEST","TEST2");
+      assert(defined $dbh,"No connection to the database");
       #MyAsserts::user_assert("scalar_type",\$scalar,"number");
       #MyAsserts::user_assert("defined",$page);
       #MyAsserts::user_assert("ref",\$scalar,"HASH");
-
+      #my $dbh = DBI->connect('dbi:Pg:dbname=onlineshop', 'shopadmin', '1234', {AutoCommit => 1}) or die $DBI::errstr;
       my $page = $c->req->param('page') || 1;
       my $name = $c->request->param('name');
       my $price1 = $c->request->param('price1');
@@ -61,15 +67,18 @@ sub list :Local {
       my $query_string;
       my @bind_params;
       my %filter;
+
+    #  assert(defined $dbh);
+
       if(defined $name && $name ne "")
       {
-        MyAsserts::user_assert(!looks_like_number($name),"Невалидни данни в полето за търсене по име","user");
+        user_assert(!looks_like_number($name),"A500","Невалидни данни в полето за търсене по име");
         $filter{'name'} = { ilike => '%'.$name.'%' };
       }
 
       if(@tags != 0)
       {
-        MyAsserts::user_assert(ref(\@tags) eq "ARRAY","Невалидни данни в полето за търсене по жанр","user");
+        user_assert(ref(\@tags) eq "ARRAY","A501","Невалидни данни в полето за търсене по жанр");
         $filter{tag_id} = { in => [@tags] };
         $query_string = "$query_string and tags.id = ANY(?)";
         push @bind_params, [@tags];
@@ -77,7 +86,7 @@ sub list :Local {
 
       if(defined $price1 && $price1 ne "")
       {
-        MyAsserts::user_assert(looks_like_number($price1),"Невалидни данни в полето за търсене по Цена[ОТ]","user");
+        user_assert(looks_like_number($price1),"A502","Невалидни данни в полето за търсене по Цена[ОТ]");
         $query_string = "$query_string and price >= ?";
         $filter{price}{'>='} = $price1;
         push @bind_params, $price1;
@@ -85,7 +94,7 @@ sub list :Local {
 
       if(defined $price2 && $price2 ne "")
       {
-        MyAsserts::user_assert(looks_like_number($price2),"Невалидни данни в полето за търсене по Цена[ДО]","user");
+        user_assert(looks_like_number($price2),"A503","Невалидни данни в полето за търсене по Цена[ДО]");
         $query_string = "$query_string and price <= ?";
         $filter{price}{'<='} = $price2;
         push @bind_params, $price2;
@@ -109,27 +118,27 @@ sub list :Local {
       my $offset = ($page-1)*10;
 
       my $sth = $dbh->prepare("SELECT
-                              me.id,
-                              me.name,
-                              me.image,
-                              me.price,
-                              me.count_in_stock,
-                              me.has_image,
-                              me.description,
-                              me.currency_id,
-                              me.create_date,
-                              me.edit_time,
-                              me.brand,
-                              me.id_hash,
-                              array_agg(tags.name) as tagerinos
-                              FROM products me
-                              join tags_products
-                              on tags_products.product_id = me.id
-                              join tags
-                              on tags_products.tag_id = tags.id
-                              where me.name
+                              p.id,
+                              p.name,
+                              p.image,
+                              p.price,
+                              p.count_in_stock,
+                              p.has_image,
+                              p.description,
+                              p.currency_id,
+                              p.create_date,
+                              p.edit_time,
+                              p.brand,
+                              p.id_hash,
+                              array_agg(t.name) as tagerinos
+                              FROM products p
+                              join tags_products tp
+                              on tp.product_id = p.id
+                              join tags t
+                              on tp.tag_id = t.id
+                              where p.name
                               ilike ? $query_string
-                              group by me.id
+                              group by p.id
                               LIMIT 10
                               OFFSET ?");
       $sth->execute('%'.$name.'%',@bind_params, $offset);
@@ -147,6 +156,7 @@ sub list :Local {
       #   })]);
       $sth = $dbh->prepare("SELECT * from tags");
       $sth->execute();
+
       @rows = ();
       while (my $row = $sth->fetchrow_hashref ) {
         push @rows, $row;
@@ -168,6 +178,19 @@ sub list :Local {
         $c->stash(error_msg =>  "$error_msg");
         $c->log->error("Error message: $error_msg, Caller Info: $caller_info");
       }
+      elsif($error_type eq "internal")
+      {
+        my $error_msg = $_->{error};
+        my $caller_info = $_->{caller_info};
+        $c->stash(error_msg =>  "Application Error!");
+        $c->log->error("Error message: $error_msg, Caller Info: $caller_info");
+      }
+      else
+      {
+        $c->stash(error_msg =>  "Application Error!");
+        $c->log->error("$_");
+      }
+
     }
     else
     {
@@ -209,12 +232,6 @@ sub details :Local {
 __PACKAGE__->meta->make_immutable;
 
 
-    #my $page = $c->req->params->{page};
-
-#     $c->stash(tset => [$c->model('DB::Product')->all]);
-#     $c->stash(books => [$c->model('DB::Product')->search({
-#   name => 'Книга18'
-# })]);
 
 
 1;

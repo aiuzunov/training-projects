@@ -105,7 +105,7 @@ sub complete_checkout :Local{
     {
      cancelled=>'false',
      paid=>'true',
-     time_of_payment => $payinfo{PaymentDate},
+     remote_payment_timestamp => $payinfo{PaymentDate},
      recipient_name => $details{Name},
      recipient_email => $details{Payer},
      payerid => $details{PayerID},
