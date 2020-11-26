@@ -112,5 +112,8 @@ function ResetFilters() {
    <a href="/admin/orders?page=[%page - 1%][% FOREACH os IN order_status -%]&order_status=[% os %][% END %]&id=[% order_id %]&price1=[% price1 %]&price2=[% price2 %]">Previous Page</a>
 [% END %]
 [% page %]
-   <a href="/admin/orders?page=[%page + 1%][% FOREACH os IN order_status -%]&order_status=[% os %][% END %]&id=[% order_id %]&price1=[% price1 %]&price2=[% price2 %]">Next Page</a>
+[% IF length != 0 %]
+<a href="/admin/orders?page=[%page + 1%][% FOREACH os IN order_status -%]&order_status=[% os %][% END %]&id=[% order_id %]&price1=[% price1 %]&price2=[% price2 %]">Next Page</a>
+[% END %]
+
 </footer>

@@ -1,0 +1,11 @@
+[% META title = 'Възникна грешка при плащането' -%]
+
+
+<button onclick="goBack()">Назад</button>
+
+
+<script>
+function goBack() {
+ window.history.back();
+}
+</script>

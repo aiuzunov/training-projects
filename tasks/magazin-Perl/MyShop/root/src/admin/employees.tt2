@@ -16,9 +16,9 @@
     <td align="left">[% employee.name %]</td>
     <td align="left">[% employee.username %]</td>
     <td align="left">[% employee.email %]</td>
-    <td align = center>
-    [% FOREACH employee IN employee.employee_roles -%]
-    [% employee.role.name %]
+    <td align = left>
+    [% FOREACH role IN employee.roles -%]
+    [% role || '-' %]
     [% END -%]
     </td>
     [% IF c.check_user_roles('Update Employees') %]
@@ -39,5 +39,8 @@
    <a href="/admin/employees?page=[%page - 1%]">Previous Page</a>
 [% END %]
 [% page %]
-   <a href="/admin/employees?page=[%page + 1%]">Next Page</a>
+[% IF length != 0 %]
+  <a href="/admin/employees?page=[%page + 1%]">Next Page</a>
+[% END %]
+
 </footer>

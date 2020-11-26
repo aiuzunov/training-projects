@@ -17,8 +17,8 @@
     <td>[% user.name %]</td>
     <td>[% user.email %]</td>
     <td align = center>
-    [% FOREACH user IN user.addresses -%]
-    [% user.address %]
+    [% FOREACH address IN user.addresses -%]
+    [% address %]
     [% END -%]
     </td>
     <td>
@@ -50,5 +50,8 @@
    <a href="/admin/users?page=[%page - 1%]">Previous Page</a>
 [% END %]
 [% page %]
-   <a href="/admin/users?page=[%page + 1%]">Next Page</a>
+[% IF length != 0 %]
+<a href="/admin/users?page=[%page + 1%]">Next Page</a>
+[% END %]
+
 </footer>

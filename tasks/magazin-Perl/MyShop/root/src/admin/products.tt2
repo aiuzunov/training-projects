@@ -1,6 +1,8 @@
 [% META title = 'CRUD за Продукти' -%]
-
-
+[% length = books.size %]
+[% IF length==0 %]
+<h3> Няма поръчки </h3>
+[% END %]
 <form method="get" id="filters" action="[% c.uri_for('/admin/products/') %]">
     <table>
         <tc>
@@ -95,5 +97,7 @@ function ResetFilters() {
 <a href="/admin/products?page=[%page - 1%]&name=[% search_name %]&price1=[% price1 %]&price2=[% price2 %][% FOREACH tag IN tags -%]&tags=[% tag %][% END %]&submit=Prev">Previous Page</a>
 [% END %]
 [% page %]
+[% IF length != 0 %]
 <a href="/admin/products?page=[%page + 1%]&name=[% search_name %]&price1=[% price1 %]&price2=[% price2 %][% FOREACH tag IN tags -%]&tags=[% tag %][% END %]&submit=Next">Next Page</a>
+[% END %]
 </footer>

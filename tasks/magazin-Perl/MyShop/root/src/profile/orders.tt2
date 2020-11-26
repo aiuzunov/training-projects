@@ -28,7 +28,7 @@
     <td align="right">[% order.email %]</td>
     <td align="right">[% order.phone_number %]</td>
     <td align="right">[% order.payment_date || '-' %]</td>
-    <td align="right">[% order.order_status %]</td>
+    <td [% IF order.order_status == 'Платена' %] style="color:green;" [% ELSE %]style="color:red;" [% END %]align="right">[% order.order_status %]</td>
     <td align="right">[% order.payment_type %]</td>
     <td align = right>[% order.price %] [% order.currency %].</td>
     <td align = left>

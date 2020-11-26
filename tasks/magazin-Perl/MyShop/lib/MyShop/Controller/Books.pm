@@ -53,7 +53,6 @@ sub list :Local {
     try
     {
       $dbh=connect();
-      TRACE("TEST","TEST2");
       assert(defined $dbh,"No connection to the database");
       #MyAsserts::user_assert("scalar_type",\$scalar,"number");
       #MyAsserts::user_assert("defined",$page);
@@ -75,12 +74,11 @@ sub list :Local {
         user_assert(!looks_like_number($name),"A500","Невалидни данни в полето за търсене по име");
         $filter{'name'} = { ilike => '%'.$name.'%' };
       }
-
       if(@tags != 0)
       {
         user_assert(ref(\@tags) eq "ARRAY","A501","Невалидни данни в полето за търсене по жанр");
         $filter{tag_id} = { in => [@tags] };
-        $query_string = "$query_string and tags.id = ANY(?)";
+        $query_string = "$query_string and t.id = ANY(?)";
         push @bind_params, [@tags];
       }
 
@@ -156,6 +154,7 @@ sub list :Local {
       #   })]);
       $sth = $dbh->prepare("SELECT * from tags");
       $sth->execute();
+      assert($sth->rows>0,"Грешка при взимането на жанрове от базата");
 
       @rows = ();
       while (my $row = $sth->fetchrow_hashref ) {
@@ -205,27 +204,85 @@ sub details :Local {
    my ($self, $c) = @_;
    try
    {
+     $dbh=connect();
+     assert(defined $dbh,"No connection to the database");
      my $id = $c->req->params->{id};
-
-     try
-     {
-       $c->stash(book => [$c->model('DB::Product')->search(
-      { 'me.id_hash' => $id,},
-      { join      => {'tags_products'=>'tag'},}
-      )]);
+     assert(defined $id,"ID not defined");
+     my $sth = $dbh->prepare("SELECT p.name,
+                              p.image,
+                              p.price,
+                              p.count_in_stock,
+                              p.description,
+                              p.currency_id,
+                              p.id_hash,
+                              array_agg(t.name) as tagerinos
+                              from products p
+                              join tags_products tp
+                              on tp.product_id = p.id
+                              join tags t
+                              on tp.tag_id = t.id
+                              where id_hash = ?
+                              group by p.name,
+                              p.image,
+                              p.price,
+                              p.count_in_stock,
+                              p.description,
+                              p.currency_id,
+                              p.id_hash");
+     $sth->execute($id);
+     assert($sth->rows>0,"Грешка при взимането на информацията за книгата");
+     my @rows = ();
+     while (my $row = $sth->fetchrow_hashref ) {
+       push @rows, $row;
      }
-     catch
-     {
-       $c->stash(error_msg =>  'Application Error!');
-       $c->log->error($_);
-     };
+     $c->stash(book => [@rows]);
+
+     # try
+     # {
+     #   $c->stash(book => [$c->model('DB::Product')->search(
+     #  { 'me.id_hash' => $id,},
+     #  { join      => {'tags_products'=>'tag'},}
+     #  )]);
+     # }
+     # catch
+     # {
+     #   $c->stash(error_msg =>  'Application Error!');
+     #   $c->log->error($_);
+     # };
 
      $c->stash(template => 'books/details.tt2');
    }
    catch
    {
-     $c->stash(error_msg =>  'Application Error!');
-     $c->log->error($_);
+     if(ref($_) eq "HASH")
+     {
+       my $error_type =$_->{type};
+       if($error_type eq "user")
+       {
+         my $error_msg = $_->{error};
+         my $caller_info = $_->{caller_info};
+         $c->stash(error_msg =>  "$error_msg");
+         $c->log->error("Error message: $error_msg, Caller Info: $caller_info");
+       }
+       elsif($error_type eq "internal")
+       {
+         my $error_msg = $_->{error};
+         my $caller_info = $_->{caller_info};
+         $c->stash(error_msg =>  "Application Error!");
+         $c->log->error("Error message: $error_msg, Caller Info: $caller_info");
+       }
+       else
+       {
+         $c->stash(error_msg =>  "Application Error!");
+         $c->log->error("$_");
+       }
+
+     }
+     else
+     {
+       $c->stash(error_msg =>  "Application Error!");
+       $c->log->error("$_");
+     }
    };
 }
 

@@ -20,7 +20,7 @@
     <td align="right">[% details.order_id %]</td>
   </tc>
   <tc>
-    <td align="right">[% details.time_of_payment %]</td>
+    <td align="right">[% details.payment_timestamp %]</td>
   </tc>
   <tc>
     <td align="right">[% details.recipient_name %]</td>

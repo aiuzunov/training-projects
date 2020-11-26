@@ -8,13 +8,13 @@
     <td align = right>[%  book.first.price %] [% book.first.currency_id %]</td>
     <td>[% book.first.description %]</td>
     <td>
-    [% FOREACH book IN book.first.tags_products -%]
-    [% book.tag.name %]
+    [% FOREACH tagerino IN book.first.tagerinos -%]
+    [% tagerino %]
     [% END -%]
     </td>
     <td>
-    <a href="[% c.uri_for('/cart/add') %]/[% book.first.product.id_hash %]">
-    [% IF book.first.product.count_in_stock >= 1 %]
+    <a href="[% c.uri_for('/cart/add') %]/[% book.first.id_hash %]">
+    [% IF book.first.count_in_stock >= 1 %]
     <input type="button" name="AddToCart" value="добави в количката"/>
     [% END %]
     </a>

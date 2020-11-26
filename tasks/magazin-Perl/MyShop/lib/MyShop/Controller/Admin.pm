@@ -304,7 +304,7 @@ sub update :Local :FormConfig('admin/create_update.yml') {
 
           foreach (@currObjs)
           {
-              push(@currencies, [$_->currency_id, $_->currency_name]);
+            push(@currencies, [$_->currency_id, $_->currency_name]);
           }
 
           my $select = $form->get_element({type => 'Select'});
@@ -312,6 +312,7 @@ sub update :Local :FormConfig('admin/create_update.yml') {
           my $curr_select = $form->get_element({name => 'currency_id'});
           $curr_select->options(\@currencies);
           $form->model->default_values($book);
+
           my $time = localtime;
           $book->update({edit_time=>$time});
 
@@ -332,18 +333,28 @@ sub update :Local :FormConfig('admin/create_update.yml') {
 }
 
 
-sub delete :Local{
+sub delete :Private{
   my ($self, $c, $id) = @_;
   try
   {
-      $c->stash(object => $c->model('DB::Product')->find($id));
-      $c->stash(relations => $c->model('DB::TagsProduct')->find({ product_id => $id })->delete);
+      $dbh=connect();
+      assert(defined $dbh,"No connection to the database");
+
+      #$c->stash(relations => $c->model('DB::TagsProduct')->find({ product_id => $id })->delete);
+      my $sth = $dbh->prepare("DELETE from tags_products where product_id = ?");
+      $sth->execute($id);
+      assert($sth->rows>0,"Грешка при изтриването на жанрове на книгата от базата");
 
         #$c->model('DB::TagsProduct')->find({ product_id => $id })->delete;
         #$c->model('DB::Product')->find({ product_id => $id })->delete;
 
-      die "Book not found!" if !$c->stash->{object};
-      $c->stash->{object}->delete;
+      # $c->stash(object => $c->model('DB::Product')->find($id));
+      # die "Book not found!" if !$c->stash->{object};
+      # $c->stash->{object}->delete;
+      $sth = $dbh->prepare("DELETE from products where id = ?");
+      $sth->execute($id);
+      assert($sth->rows>0,"Грешка при изтриването на книгата от базата");
+
 
       $c->response->redirect($c->uri_for($self->action_for('products'),
          {mid => $c->set_status_msg("Книгата с ID:$id беше успешно изтрита")}));
@@ -361,7 +372,8 @@ sub products :Local{
   try
   {
     $dbh=connect();
-    assert(defined $dbh,"No connection to the database");    my $page = $c->req->param('page');
+    assert(defined $dbh,"No connection to the database");
+    my $page = $c->req->param('page');
     my $name = $c->request->param('name');
     my $price1 = $c->request->param('price1');
     my $price2 = $c->request->param('price2');
@@ -377,9 +389,10 @@ sub products :Local{
 
     if(@tags != 0)
     {
-      user_assert(ref(\@tags) ne "ARRAY","A494","Невалидни данни в полето за търсене по жанр");
+      warn @tags;
+      user_assert(ref(@tags) ne "ARRAY","A494","Невалидни данни в полето за търсене по жанр");
       $filter{tag_id} = { in => [@tags] };
-      $query_string = "$query_string and tags.id = ANY(?)";
+      $query_string = "$query_string and t.id = ANY(?)";
       push @bind_params, [@tags];
     }
 
@@ -446,7 +459,7 @@ sub products :Local{
     while ( my $row = $sth->fetchrow_hashref ) {
         push @rows, $row;
     }
-    $c->stash(books => [@rows]);
+    $c->stash(books => [@rows],page => $page);
     # $c->stash(books => [$c->model('DB::Product')->search({%filter}, {
     #        page => $page,
     #        rows => 10,
@@ -456,6 +469,7 @@ sub products :Local{
     #   })]);
     $sth = $dbh->prepare("SELECT * from tags");
     $sth->execute();
+    assert($sth->rows>0,"Грешка при взимането на жанровете от базата");
     @rows = ();
     while (my $row = $sth->fetchrow_hashref ) {
       push @rows, $row;
@@ -501,7 +515,6 @@ sub orders :Local{
   try
   {
     $dbh=connect();
-    TRACE("TEST","TEST2");
     assert(defined $dbh,"No connection to the database");
     my $page = $c->req->param('page');
     my $id = $c->request->param('id');
@@ -643,32 +656,81 @@ sub employees :Local{
   my ($self, $c) = @_;
   try
   {
+    $dbh = connect();
+    assert(defined $dbh,"No connection to the database");
+
     my $page = $c->req->param('page');
     if(!looks_like_number($page))
     {
     $page = 1;
     }
-    try
+    my $offset = ($page-1)*10;
+    my $sth = $dbh->prepare("SELECT e.id,
+                            e.name,
+                            e.username,
+                            e.email,
+                            array_agg(' [ ' || r.name || ' ] ') as roles
+                            FROM employees e
+                            left join employee_roles er
+                            on er.employee_id = e.id
+                            left join roles r
+                            on r.id = er.role_id
+                            group by
+                            e.id,
+                            e.name,
+                            e.username,
+                            e.email
+                            LIMIT 10
+                            OFFSET ?");
+
+    $sth->execute($offset);
+    my @rows;
+    while ( my $row = $sth->fetchrow_hashref )
     {
-    $c->stash(employees => [$c->model('DB::Employee')->search(undef, {
-           page => $page,
-           rows => 10,
-           join      => {'employee_roles'=>'role'},
-           order_by => {-asc => 'id'},
-           group_by => 'id',
-      })]);
+        push @rows, $row;
     }
-    catch
-    {
-      $c->stash(error_msg =>  'Application Error!');
-      $c->log->error($_);
-    };
-    $c->stash(template => 'admin/employees.tt2',page => $page);
+
+    $c->stash(employees => [@rows],page => $page);
+    #
+    # $c->stash(employees => [$c->model('DB::Employee')->search(undef, {
+    #        page => $page,
+    #        rows => 10,
+    #        join      => {'employee_roles'=>'role'},
+    #        order_by => {-asc => 'id'},
+    #        group_by => 'id',
+    #   })]);
   }
   catch
   {
-    $c->stash(error_msg =>  'Application Error!');
-    $c->log->error($_);
+    if(ref($_) eq "HASH")
+    {
+      my $error_type =$_->{type};
+      if($error_type eq "user")
+      {
+        my $error_msg = $_->{error};
+        my $caller_info = $_->{caller_info};
+        $c->stash(error_msg =>  "$error_msg");
+        $c->log->error("Error message: $error_msg, Caller Info: $caller_info");
+      }
+      elsif($error_type eq "internal")
+      {
+        my $error_msg = $_->{error};
+        my $caller_info = $_->{caller_info};
+        $c->stash(error_msg =>  "Application Error!");
+        $c->log->error("Error message: $error_msg, Caller Info: $caller_info");
+      }
+      else
+      {
+        $c->stash(error_msg =>  "Application Error!");
+        $c->log->error("$_");
+      }
+
+    }
+    else
+    {
+      $c->stash(error_msg =>  "Application Error!");
+      $c->log->error("$_");
+    }
   };
 }
 
@@ -678,33 +740,81 @@ sub users :Local{
   my ($self, $c) = @_;
   try
   {
+    $dbh = connect();
+    assert(defined $dbh,"No connection to the database");
     my $page = $c->req->param('page');
 
     if(!looks_like_number($page))
     {
     $page = 1;
     }
-    try
+    my $offset = ($page-1)*10;
+    my $sth = $dbh->prepare("SELECT u.id,
+                            u.name,
+                            u.username,
+                            u.email,
+                            u.verified,
+                            to_char(u.create_date, 'yyyy-mm-dd hh24:mi:ss') as create_date,
+                            array_agg(' [ ' || a.address || ' ] ') as addresses
+                            FROM users u
+                            left join addresses a
+                            on a.user_id = u.id
+                            group by
+                            u.id,
+                            u.name,
+                            u.username,
+                            u.email,
+                            u.verified
+                            LIMIT 10
+                            OFFSET ?");
+
+    $sth->execute($offset);
+    my @rows;
+    while ( my $row = $sth->fetchrow_hashref )
     {
-      $c->stash(users => [$c->model('DB::User')->search(undef, {
-             page => $page,
-             rows => 10,
-             join      => 'addresses',
-             order_by => {-asc => 'id'},
-             group_by => 'id',
-        })]);
+        push @rows, $row;
     }
-    catch
-    {
-      $c->stash(error_msg =>  'Application Error!');
-      $c->log->error($_);
-    };
-    $c->stash(template => 'admin/users.tt2',page => $page);
+
+    $c->stash(users => [@rows],page => $page);
+    # $c->stash(users => [$c->model('DB::User')->search(undef, {
+    #        page => $page,
+    #        rows => 10,
+    #        join      => 'addresses',
+    #        order_by => {-asc => 'id'},
+    #        group_by => 'id',
+    #   })]);
   }
   catch
   {
-    $c->stash(error_msg =>  'Application Error!');
-    $c->log->error($_);
+    if(ref($_) eq "HASH")
+    {
+      my $error_type =$_->{type};
+      if($error_type eq "user")
+      {
+        my $error_msg = $_->{error};
+        my $caller_info = $_->{caller_info};
+        $c->stash(error_msg =>  "$error_msg");
+        $c->log->error("Error message: $error_msg, Caller Info: $caller_info");
+      }
+      elsif($error_type eq "internal")
+      {
+        my $error_msg = $_->{error};
+        my $caller_info = $_->{caller_info};
+        $c->stash(error_msg =>  "Application Error!");
+        $c->log->error("Error message: $error_msg, Caller Info: $caller_info");
+      }
+      else
+      {
+        $c->stash(error_msg =>  "Application Error!");
+        $c->log->error("$_");
+      }
+
+    }
+    else
+    {
+      $c->stash(error_msg =>  "Application Error!");
+      $c->log->error("$_");
+    }
   };
 }
 
